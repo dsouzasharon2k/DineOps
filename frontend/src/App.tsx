@@ -4,6 +4,7 @@ import DashboardLayout from './layouts/DashboardLayout'
 import ProtectedRoute from './routes/ProtectedRoute'
 import LoginPage from './pages/auth/LoginPage'
 import DashboardHome from './pages/dashboard/DashboardHome'
+import RestaurantsPage from './pages/dashboard/RestaurantsPage'
 
 function App() {
   return (
@@ -24,8 +25,8 @@ function App() {
           }
         >
           <Route path="/dashboard" element={<DashboardHome />} />
-          <Route path="/dashboard/restaurants" element={<DashboardHome />} />
-        </Route>
+          <Route path="/dashboard/restaurants" element={<RestaurantsPage />} />
+          </Route>
 
         {/* Default redirect */}
         <Route path="*" element={<Navigate to="/login" replace />} />
