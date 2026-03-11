@@ -27,13 +27,16 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/api/v1/auth/**",
-                    "/api/v1/restaurants",
-                    "/actuator/**",
-                    "/swagger-ui/**",
-                    "/v3/api-docs/**"
-                ).permitAll()
+                // Public
+                .requestMatchers("/api/v1/auth/**").permitAll()
+                .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                // Restaurants - read public, write restricted
+                .requestMatchers("GET", "/api/v1/restaurants").permitAll()
+                .requestMatchers("POST", "/api/v1/restaurants").hasRole("SUPER_ADMIN")
+                .requestMatchers("PUT", "/api/v1/restaurants/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN")
+                .requestMatchers("DELETE", "/api/v1/restaurants/**").hasRole("SUPER_ADMIN")
+                // Everything else requires authentication
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
