@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.Optional;
 
+// import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
@@ -52,5 +54,9 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("token", token));
     }
 
-    
+    // @GetMapping("/hash")
+    // public ResponseEntity<?> generateHash(@RequestParam String password) {
+    //     BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    //     return ResponseEntity.ok(Map.of("hash", encoder.encode(password)));
+    // }
 }
