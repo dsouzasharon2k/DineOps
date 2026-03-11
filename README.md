@@ -3,7 +3,8 @@
 
 > Multi-tenant Restaurant Management & Food Ordering SaaS platform
 
-![Architecture]
+## Architecture
+<img width="1408" height="768" alt="Gemini_Generated_Image_c370aac370aac370" src="https://github.com/user-attachments/assets/3df624ee-c5dc-419f-8707-20b9dd1c66e9" />
 
 ## Tech Stack
 
@@ -71,7 +72,7 @@ cd backend
 
 Migrations run automatically on Spring Boot startup via Flyway.
 
-## Architecture
+## Documentation
 
 See `docs/DineOps_SRS_v1_0.docx` for full Software Requirements Specification.
 
