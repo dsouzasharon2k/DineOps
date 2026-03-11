@@ -37,3 +37,8 @@ management:
   endpoint:
     health:
       show-details: always
+
+app:
+  jwt:
+    secret: dineops-super-secret-key-change-this-in-production-min-32-chars
+    expiration-ms: 86400000
