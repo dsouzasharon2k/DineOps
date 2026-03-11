@@ -1,33 +1,93 @@
+
 # DineOps
 
-Multi-tenant Restaurant Management & Food Ordering SaaS platform.
+> Multi-tenant Restaurant Management & Food Ordering SaaS platform
+
+![Architecture]
 
 ## Tech Stack
-- **Backend:** Spring Boot 3, Java 21, Spring Security, Spring Data JPA
-- **Frontend:** React 18, Vite, Tailwind CSS
-- **Database:** PostgreSQL 16 (Flyway migrations)
-- **Cache:** Redis 7
-- **DevOps:** Docker, Kubernetes (Kind), GitHub Actions, Prometheus, Grafana
-- **Testing:** Selenium, k6
+
+| Layer | Technology | Version |
+
+|-------|-----------|---------|
+
+| Backend | Spring Boot | 3.5.11 |
+
+| Language | Java | 21 (LTS) |
+
+| Frontend | React + Vite | 18.x / 5.x |
+
+| CSS | Tailwind CSS | 3.x |
+
+| Database | PostgreSQL | 16 |
+
+| Migrations | Flyway | 10.x |
+
+| Cache / PubSub | Redis | 7 |
+
+| Containerisation | Docker | 29.x |
+
+| Orchestration | Kubernetes (Kind) | 1.29 |
+
+| CI/CD | GitHub Actions + Jenkins | - |
+
+| Code Quality | SonarQube Cloud | Free tier |
+
+| Monitoring | Prometheus + Grafana | - |
+
+| Load Testing | k6 | 0.50.x |
+
+| E2E Testing | Selenium | 4.x |
 
 ## Local Development
 
 ### Prerequisites
-- Docker Desktop with WSL2 integration
-- Java 21, Node.js, Kind, kubectl
+
+- Docker Desktop with WSL2 Ubuntu integration
+
+- Java 21 (OpenJDK), Node.js 24.x
+
+- Kind, kubectl
 
 ### Start local environment
+
 ```bash
+
 docker compose up -d
+
+```
+
+### Run backend
+
+```bash
+
+cd backend
+
+./mvnw spring-boot:run
+
 ```
 
 ### Run database migrations
+
 Migrations run automatically on Spring Boot startup via Flyway.
 
 ## Architecture
-See `docs/architecture.md` for full system design.
+
+See `docs/DineOps_SRS_v1_0.docx` for full Software Requirements Specification.
 
 ## Branch Strategy
-- `main` → production-ready only
-- `develop` → integration branch
-- `feature/*` → one branch per feature
+
+- `main` → production-ready only, protected branch
+
+- `develop` → integration branch, all features merge here first
+
+- `feature/*` → one branch per feature (e.g. feature/auth-api)
+
+## Project Board
+
+Tracked on Jira: DOPS Sprint board
+
+## Author
+
+Sharon D'Souza | [github.com/dsouzasharon2k](https://github.com/dsouzasharon2k)
+
