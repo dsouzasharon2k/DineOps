@@ -54,5 +54,30 @@ See `docs/DineOps_SRS_v1_0.docx` for full Software Requirements Specification.
 ## Project Board
 Tracked on Jira: DOPS Sprint board
 
+## Authentication
+
+Login by sending a POST request:
+```http
+POST /api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@dineops.com",
+  "password": "yourpassword"
+}
+```
+
+Response:
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9..."
+}
+```
+
+Use the token in all subsequent requests:
+```
+Authorization: Bearer <token>
+```
+
 ## Author
 Sharon D'Souza | [github.com/dsouzasharon2k](https://github.com/dsouzasharon2k)
