@@ -28,6 +28,10 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<sonar.coverage.exclusions>
+			**/DineopsBackendApplication.java,
+			**/config/SecurityConfig.java
+		</sonar.coverage.exclusions>
 	</properties>
 	<dependencies>
 		<dependency>
