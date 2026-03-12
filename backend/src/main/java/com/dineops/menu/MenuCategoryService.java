@@ -21,7 +21,7 @@ public class MenuCategoryService {
     // Get all active categories for a restaurant
     public List<MenuCategory> getCategoriesByTenant(UUID tenantId) {
         return menuCategoryRepository
-                .findByTenantIdAndIsActiveTrueOrderByDisplayOrderAsc(tenantId);
+                .findByTenant_IdAndIsActiveTrueOrderByDisplayOrderAsc(tenantId);
     }
 
     // Create a new category for a restaurant

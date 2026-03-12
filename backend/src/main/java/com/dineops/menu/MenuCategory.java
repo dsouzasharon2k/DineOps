@@ -4,6 +4,7 @@ import com.dineops.restaurant.Restaurant;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "menu_categories")
@@ -15,6 +16,7 @@ public class MenuCategory {
 
     // Each category belongs to a specific restaurant (tenant)
     // This is how multi-tenancy works - every record is scoped to a tenant
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id", nullable = false)
     private Restaurant tenant;

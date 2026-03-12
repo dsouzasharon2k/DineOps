@@ -8,5 +8,5 @@ public interface MenuCategoryRepository extends JpaRepository<MenuCategory, UUID
 
     // Find all active categories for a specific restaurant (tenant)
     // Spring Data JPA generates the query automatically from the method name
-    List<MenuCategory> findByTenantIdAndIsActiveTrueOrderByDisplayOrderAsc(UUID tenantId);
+    List<MenuCategory> findByTenant_IdAndIsActiveTrueOrderByDisplayOrderAsc(UUID tenantId);
 }
