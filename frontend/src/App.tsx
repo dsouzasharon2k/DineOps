@@ -5,6 +5,7 @@ import ProtectedRoute from './routes/ProtectedRoute'
 import LoginPage from './pages/auth/LoginPage'
 import DashboardHome from './pages/dashboard/DashboardHome'
 import RestaurantsPage from './pages/dashboard/RestaurantsPage'
+import MenuPage from './pages/dashboard/MenuPage'
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
         >
           <Route path="/dashboard" element={<DashboardHome />} />
           <Route path="/dashboard/restaurants" element={<RestaurantsPage />} />
+          <Route path="/dashboard/menu" element={<MenuPage />} />
           </Route>
 
         {/* Default redirect */}
