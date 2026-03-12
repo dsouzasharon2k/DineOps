@@ -40,6 +40,10 @@ public class SecurityConfig {
                 .requestMatchers("GET", "/api/v1/restaurants/*/categories").permitAll()
                 .requestMatchers("POST", "/api/v1/restaurants/*/categories").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN")
                 .requestMatchers("DELETE", "/api/v1/restaurants/*/categories/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN")
+                // Menu items - public GET, auth required for write operations
+                .requestMatchers("GET", "/api/v1/restaurants/*/categories/*/items").permitAll()
+                .requestMatchers("POST", "/api/v1/restaurants/*/categories/*/items").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN")
+                .requestMatchers("DELETE", "/api/v1/restaurants/*/categories/*/items/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN")
                 // Everything else requires authentication
                 .anyRequest().authenticated()
             )
