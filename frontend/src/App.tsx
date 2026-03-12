@@ -6,6 +6,7 @@ import LoginPage from './pages/auth/LoginPage'
 import DashboardHome from './pages/dashboard/DashboardHome'
 import RestaurantsPage from './pages/dashboard/RestaurantsPage'
 import MenuPage from './pages/dashboard/MenuPage'
+import PublicMenuPage from './pages/menu/PublicMenuPage'
 
 function App() {
   return (
@@ -15,6 +16,8 @@ function App() {
         {/* Public routes - no login required */}
         <Route element={<PublicLayout />}>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/menu/:tenantId" element={<PublicMenuPage />} />
+
         </Route>
 
         {/* Protected routes - login required */}
