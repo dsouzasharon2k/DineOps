@@ -31,11 +31,15 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                // Restaurants - read public, write restricted
+                // Restaurants
                 .requestMatchers("GET", "/api/v1/restaurants").permitAll()
                 .requestMatchers("POST", "/api/v1/restaurants").hasRole("SUPER_ADMIN")
                 .requestMatchers("PUT", "/api/v1/restaurants/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN")
                 .requestMatchers("DELETE", "/api/v1/restaurants/**").hasRole("SUPER_ADMIN")
+                // Menu categories - public GET, auth required for write operations
+                .requestMatchers("GET", "/api/v1/restaurants/*/categories").permitAll()
+                .requestMatchers("POST", "/api/v1/restaurants/*/categories").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN")
+                .requestMatchers("DELETE", "/api/v1/restaurants/*/categories/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN")
                 // Everything else requires authentication
                 .anyRequest().authenticated()
             )
