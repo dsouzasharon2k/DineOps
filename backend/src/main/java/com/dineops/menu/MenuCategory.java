@@ -1,4 +1,4 @@
-package com.dineops.user;
+package com.dineops.menu;
 
 import com.dineops.restaurant.Restaurant;
 import jakarta.persistence.*;
@@ -7,32 +7,28 @@ import java.util.UUID;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
-@Table(name = "users")
-public class User {
+@Table(name = "menu_categories")
+public class MenuCategory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    // Each category belongs to a specific restaurant (tenant)
+    // This is how multi-tenancy works - every record is scoped to a tenant
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tenant_id")
+    @JoinColumn(name = "tenant_id", nullable = false)
     private Restaurant tenant;
 
     @Column(nullable = false)
     private String name;
 
-    @Column(unique = true, nullable = false)
-    private String email;
+    private String description;
 
-    @Column(name = "password_hash", nullable = false)
-    private String passwordHash;
-
-    private String phone;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private UserRole role;
+    // Controls the order categories appear in the menu
+    @Column(name = "display_order")
+    private Integer displayOrder = 0;
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
@@ -49,16 +45,13 @@ public class User {
     public void setTenant(Restaurant tenant) { this.tenant = tenant; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    public String getPasswordHash() { return passwordHash; }
-    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
-    public UserRole getRole() { return role; }
-    public void setRole(UserRole role) { this.role = role; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public Integer getDisplayOrder() { return displayOrder; }
+    public void setDisplayOrder(Integer displayOrder) { this.displayOrder = displayOrder; }
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { isActive = active; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }
