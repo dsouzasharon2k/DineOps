@@ -10,6 +10,7 @@ import KitchenPage from './pages/dashboard/KitchenPage'
 import PublicMenuPage from './pages/menu/PublicMenuPage'
 import OrderConfirmPage from './pages/menu/OrderConfirmPage'
 import OrderStatusPage from './pages/menu/OrderStatusPage'
+import OrderHistoryPage from './pages/menu/OrderHistoryPage'
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/menu/:tenantId" element={<PublicMenuPage />} />
           <Route path="/menu/:tenantId/confirm" element={<OrderConfirmPage />} />
           <Route path="/menu/:tenantId/order/:orderId" element={<OrderStatusPage />} />
+          <Route path="/menu/:tenantId/track" element={<OrderHistoryPage />} />
         </Route>
 
         {/* Protected routes - login required */}

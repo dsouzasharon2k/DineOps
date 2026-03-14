@@ -82,9 +82,15 @@ const PublicMenuPage = () => {
     <div className="min-h-screen bg-gray-50">
 
       {/* Header */}
-      <div className="bg-orange-500 text-white px-4 py-6 text-center">
+      <div className="bg-orange-500 text-white px-4 py-6 text-center relative">
         <h1 className="text-2xl font-bold">Our Menu</h1>
         <p className="text-orange-100 text-sm mt-1">Fresh. Delicious. Made for you.</p>
+        <button
+          onClick={() => navigate(`/menu/${tenantId}/track`)}
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-orange-100 hover:text-white underline"
+        >
+          Track Order
+        </button>
       </div>
 
       {/* Sticky category tabs - scrollable horizontally on mobile */}
