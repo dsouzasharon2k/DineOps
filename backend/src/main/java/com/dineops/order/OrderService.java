@@ -57,6 +57,12 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    // Get a single order by ID (for customer status tracking - public)
+    public Order getOrderById(UUID orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+    }
+
     // Get all orders for a restaurant (used by TENANT_ADMIN and STAFF)
     public List<Order> getOrdersByTenant(UUID tenantId) {
         return orderRepository.findByTenantIdOrderByCreatedAtDesc(tenantId);
