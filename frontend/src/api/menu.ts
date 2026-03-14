@@ -71,3 +71,27 @@ export const getOrderApi = async (orderId: string) => {
   const res = await axiosInstance.get(`/api/v1/orders/${orderId}`)
   return res.data
 }
+
+// Get all active orders for a restaurant (kitchen view)
+export const getActiveOrdersApi = async (tenantId: string, token: string) => {
+  const res = await axiosInstance.get(`/api/v1/orders/active?tenantId=${tenantId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return res.data
+}
+
+// Update order status (kitchen staff action)
+export const updateOrderStatusApi = async (
+  orderId: string,
+  status: string,
+  token: string
+) => {
+  const res = await axiosInstance.patch(
+    `/api/v1/orders/${orderId}/status`,
+    { status },
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  )
+  return res.data
+}
