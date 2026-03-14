@@ -13,6 +13,7 @@ const DashboardLayout = () => {
   const navLinks = [
     { to: '/dashboard/restaurants', label: '🏠 Restaurants' },
     { to: '/dashboard/menu', label: '🍽️ Menu' },
+    { to: '/dashboard/kitchen', label: '👨‍🍳 Kitchen' },
   ]
 
   return (
