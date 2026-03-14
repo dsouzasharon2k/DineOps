@@ -23,6 +23,12 @@ public class OrderController {
         return ResponseEntity.status(201).body(order);
     }
 
+    // GET /api/v1/orders/{orderId} - get single order (public - for customer status tracking)
+    @GetMapping("/{orderId}")
+    public ResponseEntity<Order> getOrder(@PathVariable UUID orderId) {
+        return ResponseEntity.ok(orderService.getOrderById(orderId));
+    }
+
     // GET /api/v1/orders?tenantId=xxx - get all orders for a restaurant
     @GetMapping
     public ResponseEntity<List<Order>> getOrders(@RequestParam UUID tenantId) {

@@ -55,3 +55,19 @@ export const deleteItemApi = async (
     `/api/v1/restaurants/${tenantId}/categories/${categoryId}/items/${itemId}`
   )
 }
+
+// Place a new order
+export const placeOrderApi = async (
+  tenantId: string,
+  notes: string,
+  items: { menuItemId: string; quantity: number }[]
+) => {
+  const res = await axiosInstance.post('/api/v1/orders', { tenantId, notes, items })
+  return res.data
+}
+
+// Get order by ID (for status tracking)
+export const getOrderApi = async (orderId: string) => {
+  const res = await axiosInstance.get(`/api/v1/orders/${orderId}`)
+  return res.data
+}
