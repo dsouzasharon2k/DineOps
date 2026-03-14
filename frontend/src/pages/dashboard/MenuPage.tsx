@@ -22,7 +22,7 @@ interface MenuItem {
   name: string
   description: string
   price: number
-  isVegetarian: boolean
+  vegetarian: boolean
   available: boolean
 }
 
