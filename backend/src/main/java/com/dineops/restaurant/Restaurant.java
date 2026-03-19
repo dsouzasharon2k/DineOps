@@ -27,8 +27,9 @@ public class Restaurant {
     @Column(name = "logo_url")
     private String logoUrl;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status = "active";
+    private RestaurantStatus status = RestaurantStatus.PENDING;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -50,8 +51,8 @@ public class Restaurant {
     public void setCuisineType(String cuisineType) { this.cuisineType = cuisineType; }
     public String getLogoUrl() { return logoUrl; }
     public void setLogoUrl(String logoUrl) { this.logoUrl = logoUrl; }
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public RestaurantStatus getStatus() { return status; }
+    public void setStatus(RestaurantStatus status) { this.status = status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 }
