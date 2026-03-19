@@ -25,7 +25,15 @@ export const options = {
 };
 
 // Test data
-const BASE_URL = 'http://localhost:8080/api/v1';
+const DEFAULT_API_BASE_URL = 'http://localhost:8080/api/v1';
+// K6_BASE_URL should point at the API prefix (including `/api/v1`)
+// Example: K6_BASE_URL=http://localhost:8080/api/v1
+const API_BASE_URL = (__ENV.K6_BASE_URL || DEFAULT_API_BASE_URL).replace(/\/$/, '');
+// Health endpoint lives at the service root (not under /api/v1)
+const API_ORIGIN = API_BASE_URL.endsWith('/api/v1')
+  ? API_BASE_URL.slice(0, -'/api/v1'.length)
+  : API_BASE_URL.replace(/\/api\/v\d+$/, '');
+
 const TENANT_ID = 'a085284e-ca00-4f64-a2c7-42fc0572bb97';
 const MENU_ITEM_ID = 'd757a274-4519-4737-80ab-11e79e6e0f64';
 
@@ -44,7 +52,7 @@ export default function () {
 
   // --- Scenario 1: Browse menu (most common operation) ---
   const categoriesRes = http.get(
-    `${BASE_URL}/restaurants/${TENANT_ID}/categories`,
+    `${API_BASE_URL}/restaurants/${TENANT_ID}/categories`,
     { tags: { name: 'get_categories' } }
   );
   checkResponse(categoriesRes, 'Get Categories');
@@ -56,7 +64,7 @@ export default function () {
     if (categories.length > 0) {
       const catId = categories[0].id;
       const itemsRes = http.get(
-        `${BASE_URL}/restaurants/${TENANT_ID}/categories/${catId}/items`,
+        `${API_BASE_URL}/restaurants/${TENANT_ID}/categories/${catId}/items`,
         { tags: { name: 'get_items' } }
       );
       checkResponse(itemsRes, 'Get Menu Items');
@@ -75,7 +83,7 @@ export default function () {
 
   const orderStart = Date.now();
   const orderRes = http.post(
-    `${BASE_URL}/orders`,
+    `${API_BASE_URL}/orders`,
     orderPayload,
     { headers, tags: { name: 'place_order' } }
   );
@@ -92,7 +100,7 @@ export default function () {
   if (orderRes.status === 201) {
     const orderId = JSON.parse(orderRes.body).id;
     const trackRes = http.get(
-      `${BASE_URL}/orders/${orderId}`,
+      `${API_BASE_URL}/orders/${orderId}`,
       { tags: { name: 'track_order' } }
     );
     checkResponse(trackRes, 'Track Order');

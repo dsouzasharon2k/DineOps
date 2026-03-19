@@ -46,6 +46,19 @@ Migrations run automatically on Spring Boot startup via Flyway.
 ## Documentation
 See `docs/DineOps_SRS_v1_0.docx` for full Software Requirements Specification.
 
+## Load Testing (k6)
+Run the smoke test:
+```bash
+K6_BASE_URL=http://localhost:8080/api/v1 k6 run k6/smoke-test.js
+```
+
+Run the load test:
+```bash
+K6_BASE_URL=http://localhost:8080/api/v1 k6 run k6/load-test.js
+```
+
+More details: `docs/k6-runbook.md`.
+
 ## Branch Strategy
 - `main` → production-ready only, protected branch
 - `develop` → integration branch, all features merge here first
