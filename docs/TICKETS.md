@@ -19,6 +19,16 @@ Types: `fix`, `feat`, `refactor`, `chore`, `test`, `docs`, `security`, `perf`
 
 ---
 
+## Jira Ticket Number Rule (so branch ids match your Jira keys)
+
+Use this rule when reading `docs/TICKETS.md` vs your Jira sprint board:
+
+- `Jira DOPS-<J>` = `docs/TICKETS.md DOPS-<D>` + `48`
+
+Examples (from your instructions):
+- `DOPS-004` in this file corresponds to Jira `DOPS-052`
+- `DOPS-017` in this file corresponds to Jira `DOPS-065`
+
 ## Epic 1 — Critical Bug Fixes (P0)
 
 ### DOPS-001: Fix RestaurantService constructor type error
@@ -209,6 +219,30 @@ refactor/DOPS-066-password-encoder-bean
 security/DOPS-067-token-storage-hardening
 test/DOPS-068-isolated-test-db
 ```
+
+## Hardening Flow (DOPS-065 to DOPS-068)
+
+Use this order because it limits risk and keeps contracts stable.
+
+1. `DOPS-065` (Block inactive logins)
+   - Backend change only (AuthController / auth logic).
+   - Verify: active user login still issues JWT; inactive user gets the same generic unauthorized response.
+
+2. `DOPS-066` (BCryptPasswordEncoder as a Spring bean)
+   - Refactor only (wiring/DI), no auth behavior change expected.
+   - Verify: all existing unit tests for auth/user still pass; login still works for active users.
+
+3. `DOPS-068` (Isolate test profile from dev DB)
+   - Test infra change only.
+   - Verify: running backend tests does not touch your dev credentials/data and uses isolated DB (Testcontainers or dedicated test DB).
+
+4. `DOPS-067` (Token storage hardening)
+   - This is the biggest user-facing security/UX change because it affects how the frontend stores/sends auth credentials.
+   - Flow:
+     - Write a decision record (localStorage vs httpOnly cookie).
+     - Implement backend auth changes (token issuance / endpoints / CSRF strategy if using cookies).
+     - Update frontend auth flow + axios interceptors.
+     - Verify end-to-end: login → authenticated API calls → logout/session expiry handling.
 
 **Acceptance Criteria:**
 
@@ -1725,94 +1759,96 @@ DOPS-033, DOPS-038, DOPS-039, DOPS-047, DOPS-051, DOPS-053–DOPS-061
 
 ## Quick Reference: All Branches
 
-```
-# Epic 1 — Critical Bug Fixes
-fix/DOPS-001-restaurant-service-constructor
-fix/DOPS-002-menu-item-controller-return
-fix/DOPS-003-restaurant-status-enum
+## Sprint Checklist (Jira IDs: DOPS-32 to DOPS-48)
 
-# Epic 2 — Security Hardening
-security/DOPS-004-hide-password-hash
-security/DOPS-005-externalize-secrets
-security/DOPS-006-tenant-isolation
-security/DOPS-007-restrict-actuator-swagger
-security/DOPS-008-rate-limiting
-security/DOPS-009-security-headers
-security/DOPS-010-account-lockout
+Marking items based on your board screenshots and the code changes already made:
 
-# Epic 3 — Backend Core
-feat/DOPS-011-global-exception-handler
-feat/DOPS-012-request-validation
-feat/DOPS-013-pagination
-feat/DOPS-014-redis-caching
-feat/DOPS-015-jpa-auditing
-refactor/DOPS-016-response-dtos
-feat/DOPS-017-structured-logging
-feat/DOPS-018-order-status-validation
+[x] DOPS-32 — dockerignore files for backend and frontend
+[x] DOPS-33 — k6 duplicate BASE_URL bug + env-driven base URL
+[ ] DOPS-34 — Bean Validation on request DTOs (+ @Valid)
+[ ] DOPS-35 — @ControllerAdvice global exception handler
+[ ] DOPS-36 — OrderService validation
+[ ] DOPS-37 — updateStatus null/invalid fix
+[ ] DOPS-38 — Response DTOs for Order/MenuItem/etc
+[ ] DOPS-39 — Axios 401 interceptor + redirect to `/login`
+[ ] DOPS-40 — `VITE_API_URL` env var in axiosInstance (remove localhost hardcode)
+[ ] DOPS-41 — K8s Secrets for DB password and JWT secret
+[x] DOPS-42 — Dockerfile non-root user for backend
+[x] DOPS-43 — Nginx hardening (gzip/cache/security headers)
+[ ] DOPS-44 — React Error Boundary wrapping the app
+[ ] DOPS-45 — Toast notifications for API errors
+[ ] DOPS-46 — Login form validation
+[ ] DOPS-47 — index.html title fix to "DineOps" + small UI polish
+[ ] DOPS-48 — (not visible in screenshots you shared; add when you confirm the key)
 
-# Epic 4 — Auth & User Management
-feat/DOPS-019-user-registration
-feat/DOPS-020-jwt-refresh-token
-feat/DOPS-021-restaurant-onboarding
-feat/DOPS-022-frontend-auth-context
+## Master DOPS Checklist (All Tickets)
 
-# Epic 5 — Payment & Financial
-feat/DOPS-023-payment-integration
-feat/DOPS-024-gst-invoicing
-
-# Epic 6 — Frontend Improvements
-refactor/DOPS-025-cleanup-layouts
-feat/DOPS-026-typescript-interfaces
-feat/DOPS-027-api-base-url-env
-feat/DOPS-028-global-error-handling
-feat/DOPS-029-loading-empty-states
-feat/DOPS-030-icons-and-404
-feat/DOPS-031-error-boundaries
-
-# Epic 7 — Real-time & Notifications
-feat/DOPS-032-websocket-orders
-feat/DOPS-033-notifications
-
-# Epic 8 — Data & Analytics
-feat/DOPS-034-order-status-history
-feat/DOPS-035-audit-log
-feat/DOPS-036-analytics-dashboard
-
-# Epic 9 — DevOps & Infrastructure
-chore/DOPS-037-complete-docker-k8s
-chore/DOPS-038-resource-limits
-chore/DOPS-039-database-backup
-chore/DOPS-040-frontend-ci
-feat/DOPS-041-configurable-cors
-chore/DOPS-042-hikaricp-config
-
-# Epic 10 — Testing & Quality
-test/DOPS-043-integration-tests
-test/DOPS-044-service-unit-tests
-test/DOPS-045-e2e-playwright
-test/DOPS-046-frontend-component-tests
-chore/DOPS-047-coverage-thresholds
-
-# Epic 11 — Database Improvements
-perf/DOPS-048-indexes-constraints
-feat/DOPS-049-updated-at-trigger
-
-# Epic 12 — Compliance & Legal
-feat/DOPS-050-legal-pages
-feat/DOPS-051-data-deletion
-feat/DOPS-052-fssai-gst-fields
-
-# Epic 13 — Customer Experience
-feat/DOPS-053-table-management
-feat/DOPS-054-customer-cancellation
-feat/DOPS-055-restaurant-contact-info
-feat/DOPS-056-phone-order-lookup
-
-# Epic 14 — Business Features
-feat/DOPS-057-ratings-reviews
-feat/DOPS-058-prep-time-estimate
-feat/DOPS-059-inventory-management
-feat/DOPS-060-subscription-billing
-feat/DOPS-061-accessibility
-```
+[x] DOPS-049 — fix/DOPS-049-restaurant-service-constructor
+[x] DOPS-050 — fix/DOPS-050-menu-item-controller-return
+[x] DOPS-051 — fix/DOPS-051-restaurant-status-enum
+[ ] DOPS-052 — security/DOPS-052-hide-password-hash
+[ ] DOPS-053 — security/DOPS-053-externalize-secrets
+[ ] DOPS-054 — security/DOPS-054-tenant-isolation
+[ ] DOPS-055 — security/DOPS-055-restrict-actuator-swagger
+[ ] DOPS-056 — security/DOPS-056-rate-limiting
+[ ] DOPS-057 — security/DOPS-057-security-headers
+[ ] DOPS-058 — security/DOPS-058-account-lockout
+[ ] DOPS-059 — feat/DOPS-059-global-exception-handler
+[ ] DOPS-060 — feat/DOPS-060-request-validation
+[ ] DOPS-061 — feat/DOPS-061-pagination
+[ ] DOPS-062 — feat/DOPS-062-redis-caching
+[ ] DOPS-063 — feat/DOPS-063-jpa-auditing
+[ ] DOPS-064 — refactor/DOPS-064-response-dtos
+[ ] DOPS-065 — feat/DOPS-065-structured-logging
+[ ] DOPS-066 — feat/DOPS-066-order-status-validation
+[ ] DOPS-067 — feat/DOPS-067-user-registration
+[ ] DOPS-068 — feat/DOPS-068-jwt-refresh-token
+[ ] DOPS-069 — feat/DOPS-069-restaurant-onboarding
+[ ] DOPS-070 — feat/DOPS-070-frontend-auth-context
+[ ] DOPS-071 — feat/DOPS-071-payment-integration
+[ ] DOPS-072 — feat/DOPS-072-gst-invoicing
+[ ] DOPS-073 — refactor/DOPS-073-cleanup-layouts
+[ ] DOPS-074 — feat/DOPS-074-typescript-interfaces
+[ ] DOPS-075 — feat/DOPS-075-api-base-url-env
+[ ] DOPS-076 — feat/DOPS-076-global-error-handling
+[ ] DOPS-077 — feat/DOPS-077-loading-empty-states
+[ ] DOPS-078 — feat/DOPS-078-icons-and-404
+[ ] DOPS-079 — feat/DOPS-079-error-boundaries
+[ ] DOPS-080 — feat/DOPS-080-websocket-orders
+[ ] DOPS-081 — feat/DOPS-081-notifications
+[ ] DOPS-082 — feat/DOPS-082-order-status-history
+[ ] DOPS-083 — feat/DOPS-083-audit-log
+[ ] DOPS-084 — feat/DOPS-084-analytics-dashboard
+[ ] DOPS-085 — chore/DOPS-085-complete-docker-k8s
+[ ] DOPS-086 — chore/DOPS-086-resource-limits
+[ ] DOPS-087 — chore/DOPS-087-database-backup
+[ ] DOPS-088 — chore/DOPS-088-frontend-ci
+[ ] DOPS-089 — feat/DOPS-089-configurable-cors
+[ ] DOPS-090 — chore/DOPS-090-hikaricp-config
+[ ] DOPS-091 — test/DOPS-091-integration-tests
+[ ] DOPS-092 — test/DOPS-092-service-unit-tests
+[ ] DOPS-093 — test/DOPS-093-e2e-playwright
+[ ] DOPS-094 — test/DOPS-094-frontend-component-tests
+[ ] DOPS-095 — chore/DOPS-095-coverage-thresholds
+[ ] DOPS-096 — perf/DOPS-096-indexes-constraints
+[ ] DOPS-097 — feat/DOPS-097-updated-at-trigger
+[ ] DOPS-098 — feat/DOPS-098-legal-pages
+[ ] DOPS-099 — feat/DOPS-099-data-deletion
+[ ] DOPS-100 — feat/DOPS-100-fssai-gst-fields
+[ ] DOPS-101 — feat/DOPS-101-table-management
+[ ] DOPS-102 — feat/DOPS-102-customer-cancellation
+[ ] DOPS-103 — feat/DOPS-103-restaurant-contact-info
+[ ] DOPS-104 — feat/DOPS-104-phone-order-lookup
+[ ] DOPS-105 — feat/DOPS-105-ratings-reviews
+[ ] DOPS-106 — feat/DOPS-106-prep-time-estimate
+[ ] DOPS-107 — feat/DOPS-107-inventory-management
+[ ] DOPS-108 — feat/DOPS-108-subscription-billing
+[ ] DOPS-109 — feat/DOPS-109-accessibility
+[x] DOPS-110 — fix/DOPS-110-k6-base-url-cleanup
+[x] DOPS-111 — security/DOPS-111-backend-non-root
+[x] DOPS-112 — chore/DOPS-112-nginx-hardening
+[ ] DOPS-113 — security/DOPS-113-block-inactive-logins
+[ ] DOPS-114 — refactor/DOPS-114-password-encoder-bean
+[ ] DOPS-115 — security/DOPS-115-token-storage-hardening
+[ ] DOPS-116 — test/DOPS-116-isolated-test-db
 
