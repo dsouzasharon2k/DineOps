@@ -4,11 +4,14 @@ import com.dineops.dto.MenuItemResponse;
 import com.dineops.exception.EntityNotFoundException;
 import com.dineops.restaurant.Restaurant;
 import com.dineops.restaurant.RestaurantRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 
 @Service
+@SuppressWarnings("null")
 public class MenuItemService {
 
     private final MenuItemRepository menuItemRepository;
@@ -29,6 +32,7 @@ public class MenuItemService {
                 .findByCategoryIdAndIsAvailableTrueOrderByDisplayOrderAsc(categoryId);
     }
 
+    @Cacheable(cacheNames = "menu:items:by-category", key = "#categoryId")
     public List<MenuItemResponse> getItemResponsesByCategory(UUID categoryId) {
         return getItemsByCategory(categoryId).stream()
                 .map(this::toResponse)
@@ -42,6 +46,7 @@ public class MenuItemService {
     }
 
     // Create a new menu item
+    @CacheEvict(cacheNames = "menu:items:by-category", key = "#categoryId")
     public MenuItem createItem(UUID tenantId, UUID categoryId, CreateMenuItemRequest request) {
         Restaurant restaurant = restaurantRepository.findById(tenantId)
                 .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
@@ -66,6 +71,7 @@ public class MenuItemService {
     }
 
     // Soft delete - mark as unavailable instead of deleting
+    @CacheEvict(cacheNames = "menu:items:by-category", allEntries = true)
     public void deleteItem(UUID itemId) {
         MenuItem item = menuItemRepository.findById(itemId)
                 .orElseThrow(() -> new EntityNotFoundException("Item not found"));

@@ -1,10 +1,10 @@
 package com.dineops.order;
 
+import com.dineops.dto.PageResponse;
 import com.dineops.dto.OrderResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -33,14 +33,20 @@ public class OrderController {
 
     // GET /api/v1/orders?tenantId=xxx - get all orders for a restaurant
     @GetMapping
-    public ResponseEntity<List<OrderResponse>> getOrders(@RequestParam UUID tenantId) {
-        return ResponseEntity.ok(orderService.getOrderResponsesByTenant(tenantId));
+    public ResponseEntity<PageResponse<OrderResponse>> getOrders(
+            @RequestParam UUID tenantId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(PageResponse.from(orderService.getOrderResponsesByTenant(tenantId, page, size)));
     }
 
     // GET /api/v1/orders/active?tenantId=xxx - get active orders (kitchen view)
     @GetMapping("/active")
-    public ResponseEntity<List<OrderResponse>> getActiveOrders(@RequestParam UUID tenantId) {
-        return ResponseEntity.ok(orderService.getActiveOrderResponses(tenantId));
+    public ResponseEntity<PageResponse<OrderResponse>> getActiveOrders(
+            @RequestParam UUID tenantId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(PageResponse.from(orderService.getActiveOrderResponses(tenantId, page, size)));
     }
 
     // PATCH /api/v1/orders/{orderId}/status - update order status

@@ -1795,8 +1795,8 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-058 — security/DOPS-058-account-lockout
 [x] DOPS-059 — feat/DOPS-059-global-exception-handler
 [x] DOPS-060 — feat/DOPS-060-request-validation
-[ ] DOPS-061 — feat/DOPS-061-pagination
-[ ] DOPS-062 — feat/DOPS-062-redis-caching
+[x] DOPS-061 — feat/DOPS-061-pagination
+[x] DOPS-062 — feat/DOPS-062-redis-caching
 [x] DOPS-063 — feat/DOPS-063-jpa-auditing
 [x] DOPS-064 — refactor/DOPS-064-response-dtos
 [x] DOPS-065 — feat/DOPS-065-structured-logging
@@ -1819,12 +1819,12 @@ Marking items based on your board screenshots and the code changes already made:
 [ ] DOPS-082 — feat/DOPS-082-order-status-history
 [ ] DOPS-083 — feat/DOPS-083-audit-log
 [ ] DOPS-084 — feat/DOPS-084-analytics-dashboard
-[ ] DOPS-085 — chore/DOPS-085-complete-docker-k8s
-[ ] DOPS-086 — chore/DOPS-086-resource-limits
+[x] DOPS-085 — chore/DOPS-085-complete-docker-k8s
+[x] DOPS-086 — chore/DOPS-086-resource-limits
 [ ] DOPS-087 — chore/DOPS-087-database-backup
-[ ] DOPS-088 — chore/DOPS-088-frontend-ci
-[ ] DOPS-089 — feat/DOPS-089-configurable-cors
-[ ] DOPS-090 — chore/DOPS-090-hikaricp-config
+[x] DOPS-088 — chore/DOPS-088-frontend-ci
+[x] DOPS-089 — feat/DOPS-089-configurable-cors
+[x] DOPS-090 — chore/DOPS-090-hikaricp-config
 [ ] DOPS-091 — test/DOPS-091-integration-tests
 [ ] DOPS-092 — test/DOPS-092-service-unit-tests
 [ ] DOPS-093 — test/DOPS-093-e2e-playwright

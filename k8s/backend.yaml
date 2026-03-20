@@ -5,7 +5,7 @@ metadata:
   name: backend
   namespace: dineops
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: backend
@@ -22,30 +22,89 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            - name: SPRING_DATASOURCE_URL
-              value: jdbc:postgresql://postgres:5432/dineops
-            - name: SPRING_DATASOURCE_USERNAME
-              value: dineops
-            - name: SPRING_DATASOURCE_PASSWORD
-              value: dineops123
-            - name: SPRING_DATA_REDIS_HOST
-              value: redis
-            - name: SPRING_DATA_REDIS_PORT
-              value: "6379"
-            - name: APP_JWT_SECRET
-              value: dineops-super-secret-key-change-this-in-production-min-32-chars
+            - name: DB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: dineops-config
+                  key: DB_URL
+            - name: DB_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: dineops-config
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dineops-secrets
+                  key: DB_PASSWORD
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: dineops-config
+                  key: REDIS_HOST
+            - name: REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: dineops-config
+                  key: REDIS_PORT
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: dineops-secrets
+                  key: JWT_SECRET
+            - name: JWT_EXPIRATION_MS
+              valueFrom:
+                configMapKeyRef:
+                  name: dineops-config
+                  key: JWT_EXPIRATION_MS
+            - name: JWT_REFRESH_EXPIRATION_MS
+              valueFrom:
+                configMapKeyRef:
+                  name: dineops-config
+                  key: JWT_REFRESH_EXPIRATION_MS
+            - name: CORS_ALLOWED_ORIGINS
+              valueFrom:
+                configMapKeyRef:
+                  name: dineops-config
+                  key: CORS_ALLOWED_ORIGINS
+            - name: CORS_ALLOWED_METHODS
+              valueFrom:
+                configMapKeyRef:
+                  name: dineops-config
+                  key: CORS_ALLOWED_METHODS
+            - name: CORS_ALLOWED_HEADERS
+              valueFrom:
+                configMapKeyRef:
+                  name: dineops-config
+                  key: CORS_ALLOWED_HEADERS
+            - name: CORS_MAX_AGE_SECONDS
+              valueFrom:
+                configMapKeyRef:
+                  name: dineops-config
+                  key: CORS_MAX_AGE_SECONDS
           readinessProbe:
             httpGet:
               path: /actuator/health
               port: 8080
             initialDelaySeconds: 30
             periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 5
           livenessProbe:
             httpGet:
               path: /actuator/health
               port: 8080
             initialDelaySeconds: 60
             periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1024Mi"
 ---
 apiVersion: v1
 kind: Service

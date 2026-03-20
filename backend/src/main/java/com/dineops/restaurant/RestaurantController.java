@@ -1,9 +1,9 @@
 package com.dineops.restaurant;
 
+import com.dineops.dto.PageResponse;
 import com.dineops.dto.RestaurantResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/restaurants")
@@ -16,7 +16,9 @@ public class RestaurantController {
     }
 
     @GetMapping
-    public ResponseEntity<List<RestaurantResponse>> getAllRestaurants() {
-        return ResponseEntity.ok(restaurantService.getAllRestaurantResponses());
+    public ResponseEntity<PageResponse<RestaurantResponse>> getAllRestaurants(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(PageResponse.from(restaurantService.getRestaurantResponsePage(page, size)));
     }
 }
