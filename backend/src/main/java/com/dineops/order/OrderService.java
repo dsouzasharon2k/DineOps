@@ -91,29 +91,30 @@ public class OrderService {
     @Transactional
     @AuditedAction(entityType = "ORDER", action = "CREATE")
     public Order placeOrder(PlaceOrderRequest request) {
-        Restaurant restaurant = restaurantRepository.findById(request.tenantId())
+        PlaceOrderRequest safeRequest = Objects.requireNonNull(request, "request cannot be null");
+        Restaurant restaurant = restaurantRepository.findById(safeRequest.tenantId())
                 .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
 
         long monthlyOrderCount = orderRepository.countByTenantIdAndCreatedAtGreaterThanEqual(
-                request.tenantId(),
+                safeRequest.tenantId(),
                 LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0)
         );
-        subscriptionService.validateTenantCanPlaceOrder(request.tenantId(), monthlyOrderCount);
+        subscriptionService.validateTenantCanPlaceOrder(safeRequest.tenantId(), monthlyOrderCount);
 
         Order order = new Order();
         order.setTenant(restaurant);
-        if (request.tableNumber() != null && !request.tableNumber().isBlank()) {
-            order.setTable(diningTableService.findByTenantAndNumber(request.tenantId(), request.tableNumber()));
+        if (safeRequest.tableNumber() != null && !safeRequest.tableNumber().isBlank()) {
+            order.setTable(diningTableService.findByTenantAndNumber(safeRequest.tenantId(), safeRequest.tableNumber()));
         }
-        order.setCustomerName(trimToNull(request.customerName()));
-        order.setCustomerPhone(trimToNull(request.customerPhone()));
-        order.setCustomerEmail(trimToNull(request.customerEmail()));
-        order.setNotes(request.notes());
+        order.setCustomerName(trimToNull(safeRequest.customerName()));
+        order.setCustomerPhone(trimToNull(safeRequest.customerPhone()));
+        order.setCustomerEmail(trimToNull(safeRequest.customerEmail()));
+        order.setNotes(safeRequest.notes());
 
         int total = 0;
 
         // Build order items from the request
-        for (PlaceOrderRequest.OrderItemRequest itemReq : request.items()) {
+        for (PlaceOrderRequest.OrderItemRequest itemReq : safeRequest.items()) {
             MenuItem menuItem = menuItemRepository.findById(itemReq.menuItemId())
                     .orElseThrow(() -> new EntityNotFoundException("Menu item not found: " + itemReq.menuItemId()));
 
@@ -201,19 +202,22 @@ public class OrderService {
     @CacheEvict(cacheNames = {"orders:by-id", "orders:active-by-tenant", "orders:by-tenant"}, allEntries = true)
     @AuditedAction(entityType = "ORDER", action = "STATUS_UPDATE")
     public Order updateStatus(UUID orderId, OrderStatus newStatus) {
-        Order order = orderRepository.findById(orderId)
+        UUID safeOrderId = Objects.requireNonNull(orderId, "orderId cannot be null");
+        OrderStatus safeNewStatus = Objects.requireNonNull(newStatus, "newStatus cannot be null");
+
+        Order order = orderRepository.findById(safeOrderId)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found"));
         OrderStatus currentStatus = order.getStatus();
-        if (currentStatus != newStatus && !isTransitionAllowed(currentStatus, newStatus)) {
+        if (currentStatus != safeNewStatus && !isTransitionAllowed(currentStatus, safeNewStatus)) {
             throw new IllegalArgumentException(
-                    "Invalid order status transition: " + currentStatus + " -> " + newStatus);
+                    "Invalid order status transition: " + currentStatus + " -> " + safeNewStatus);
         }
-        if (currentStatus != newStatus) {
-            saveStatusHistory(order, currentStatus, newStatus);
-            notificationService.sendOrderStatusNotification(order, currentStatus, newStatus);
+        if (currentStatus != safeNewStatus) {
+            saveStatusHistory(order, currentStatus, safeNewStatus);
+            notificationService.sendOrderStatusNotification(order, currentStatus, safeNewStatus);
         }
-        order.setStatus(newStatus);
-        log.info("Order status changed: orderId={}, from={}, to={}", orderId, currentStatus, newStatus);
+        order.setStatus(safeNewStatus);
+        log.info("Order status changed: orderId={}, from={}, to={}", safeOrderId, currentStatus, safeNewStatus);
         return orderRepository.save(order);
     }
 
@@ -226,7 +230,8 @@ public class OrderService {
     @CacheEvict(cacheNames = {"orders:by-id", "orders:active-by-tenant", "orders:by-tenant"}, allEntries = true)
     @AuditedAction(entityType = "ORDER", action = "CUSTOMER_CANCEL")
     public OrderResponse customerCancelOrder(UUID orderId) {
-        Order order = orderRepository.findById(orderId)
+        UUID safeOrderId = Objects.requireNonNull(orderId, "orderId cannot be null");
+        Order order = orderRepository.findById(safeOrderId)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found"));
         OrderStatus currentStatus = order.getStatus();
 

@@ -16,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.Objects;
 import org.springframework.web.bind.annotation.*;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -78,9 +77,8 @@ public class OrderController {
     @PatchMapping("/{orderId}/status")
     public ResponseEntity<OrderResponse> updateStatus(
             @PathVariable UUID orderId,
-            @RequestBody Map<String, String> body) {
-        OrderStatus newStatus = OrderStatus.valueOf(body.get("status"));
-        return ResponseEntity.ok(orderService.updateStatusResponse(orderId, newStatus));
+            @RequestBody @Valid UpdateOrderStatusRequest request) {
+        return ResponseEntity.ok(orderService.updateStatusResponse(orderId, request.status()));
     }
 
     @PostMapping("/{orderId}/cancel")
