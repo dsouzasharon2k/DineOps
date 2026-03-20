@@ -1,12 +1,16 @@
 package com.dineops.auth;
 
 import jakarta.validation.Valid;
+import com.dineops.dto.UserResponse;
 import com.dineops.user.User;
+import com.dineops.user.UserRole;
 import com.dineops.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 import java.util.Optional;
@@ -41,13 +45,20 @@ public class AuthController {
 
         User user = userOpt.get();
 
-        // Step 3: Check if the provided password matches the stored BCrypt hash
+        // Step 3: Reject inactive users with the same generic 401 response
+        // to avoid leaking account state details.
+        if (!user.isActive()) {
+            log.info("login_failed reason=inactive_user email={}", request.email());
+            return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
+        }
+
+        // Step 4: Check if the provided password matches the stored BCrypt hash
         if (!userService.checkPassword(request.password(), user.getPasswordHash())) {
             log.info("login_failed reason=invalid_password email={}", request.email());
             return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
         }
 
-        // Step 4: Generate a JWT token containing userId, email, role, and tenantId
+        // Step 5: Generate a JWT token containing userId, email, role, and tenantId
         // This token is returned to the client and used for all future requests
         String token = jwtUtils.generateToken(
                 user.getId(),
@@ -61,6 +72,38 @@ public class AuthController {
                 user.getTenant() != null ? user.getTenant().getId() : null);
 
         return ResponseEntity.ok(Map.of("token", token));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<UserResponse> register(@RequestBody @Valid RegisterUserRequest request) {
+        if (userService.findByEmail(request.email()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered");
+        }
+
+        User user = new User();
+        user.setName(request.name());
+        user.setEmail(request.email());
+        user.setPhone(request.phone());
+        user.setRole(UserRole.CUSTOMER);
+        user.setActive(true);
+
+        User saved = userService.createUser(user, request.password());
+        log.info("user_registered userId={} role={}", saved.getId(), saved.getRole());
+        return ResponseEntity.status(HttpStatus.CREATED).body(toUserResponse(saved));
+    }
+
+    private UserResponse toUserResponse(User user) {
+        return new UserResponse(
+                user.getId(),
+                user.getTenant() != null ? user.getTenant().getId() : null,
+                user.getName(),
+                user.getEmail(),
+                user.getPhone(),
+                user.getRole(),
+                user.isActive(),
+                user.getCreatedAt(),
+                user.getUpdatedAt()
+        );
     }
 
     // @GetMapping("/hash")

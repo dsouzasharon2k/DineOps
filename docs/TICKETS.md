@@ -1788,10 +1788,10 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-051 — fix/DOPS-051-restaurant-status-enum
 [x] DOPS-052 — security/DOPS-052-hide-password-hash
 [x] DOPS-053 — security/DOPS-053-externalize-secrets
-[ ] DOPS-054 — security/DOPS-054-tenant-isolation
-[ ] DOPS-055 — security/DOPS-055-restrict-actuator-swagger
+[x] DOPS-054 — security/DOPS-054-tenant-isolation
+[x] DOPS-055 — security/DOPS-055-restrict-actuator-swagger
 [ ] DOPS-056 — security/DOPS-056-rate-limiting
-[ ] DOPS-057 — security/DOPS-057-security-headers
+[x] DOPS-057 — security/DOPS-057-security-headers
 [ ] DOPS-058 — security/DOPS-058-account-lockout
 [x] DOPS-059 — feat/DOPS-059-global-exception-handler
 [x] DOPS-060 — feat/DOPS-060-request-validation
@@ -1801,7 +1801,7 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-064 — refactor/DOPS-064-response-dtos
 [x] DOPS-065 — feat/DOPS-065-structured-logging
 [x] DOPS-066 — feat/DOPS-066-order-status-validation
-[ ] DOPS-067 — feat/DOPS-067-user-registration
+[x] DOPS-067 — feat/DOPS-067-user-registration
 [ ] DOPS-068 — feat/DOPS-068-jwt-refresh-token
 [ ] DOPS-069 — feat/DOPS-069-restaurant-onboarding
 [ ] DOPS-070 — feat/DOPS-070-frontend-auth-context
@@ -1847,8 +1847,8 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-110 — fix/DOPS-110-k6-base-url-cleanup
 [x] DOPS-111 — security/DOPS-111-backend-non-root
 [x] DOPS-112 — chore/DOPS-112-nginx-hardening
-[ ] DOPS-113 — security/DOPS-113-block-inactive-logins
-[ ] DOPS-114 — refactor/DOPS-114-password-encoder-bean
+[x] DOPS-113 — security/DOPS-113-block-inactive-logins
+[x] DOPS-114 — refactor/DOPS-114-password-encoder-bean
 [ ] DOPS-115 — security/DOPS-115-token-storage-hardening
 [ ] DOPS-116 — test/DOPS-116-isolated-test-db
 

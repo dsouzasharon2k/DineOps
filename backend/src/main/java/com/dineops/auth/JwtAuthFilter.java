@@ -52,6 +52,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 if (tenantId != null) {
                     MDC.put("tenantId", tenantId.toString());
                 }
+                request.setAttribute(TenantContext.ATTR_AUTH_ROLE, role);
+                if (tenantId != null) {
+                    request.setAttribute(TenantContext.ATTR_AUTH_TENANT_ID, tenantId.toString());
+                }
             }
         }
 
