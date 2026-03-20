@@ -1,9 +1,9 @@
 package com.dineops.menu;
 
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -28,11 +28,11 @@ public class MenuCategoryController {
     @PostMapping
     public ResponseEntity<MenuCategory> createCategory(
             @PathVariable UUID tenantId,
-            @RequestBody Map<String, String> body) {
+            @RequestBody @Valid CreateCategoryRequest request) {
         MenuCategory category = menuCategoryService.createCategory(
                 tenantId,
-                body.get("name"),
-                body.get("description")
+                request.name(),
+                request.description()
         );
         return ResponseEntity.status(201).body(category);
     }

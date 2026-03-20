@@ -1794,7 +1794,7 @@ Marking items based on your board screenshots and the code changes already made:
 [ ] DOPS-057 — security/DOPS-057-security-headers
 [ ] DOPS-058 — security/DOPS-058-account-lockout
 [x] DOPS-059 — feat/DOPS-059-global-exception-handler
-[ ] DOPS-060 — feat/DOPS-060-request-validation
+[x] DOPS-060 — feat/DOPS-060-request-validation
 [ ] DOPS-061 — feat/DOPS-061-pagination
 [ ] DOPS-062 — feat/DOPS-062-redis-caching
 [ ] DOPS-063 — feat/DOPS-063-jpa-auditing

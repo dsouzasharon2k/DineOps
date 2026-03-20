@@ -1,5 +1,6 @@
 package com.dineops.menu;
 
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -28,7 +29,7 @@ public class MenuItemController {
     public ResponseEntity<MenuItem> createItem(
             @PathVariable UUID tenantId,
             @PathVariable UUID categoryId,
-            @RequestBody CreateMenuItemRequest request) {
+            @RequestBody @Valid CreateMenuItemRequest request) {
         MenuItem item = menuItemService.createItem(tenantId, categoryId, request);
         return ResponseEntity.status(201).body(item);
     }

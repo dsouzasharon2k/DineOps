@@ -1,6 +1,6 @@
 package com.dineops.auth;
 
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import jakarta.validation.Valid;
 import com.dineops.user.User;
 import com.dineops.user.UserService;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +24,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@RequestBody @Valid LoginRequest request) {
         // Step 1: Look up the user by email in the database
         Optional<User> userOpt = userService.findByEmail(request.email());
 

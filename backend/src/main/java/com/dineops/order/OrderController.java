@@ -1,5 +1,6 @@
 package com.dineops.order;
 
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -18,7 +19,7 @@ public class OrderController {
 
     // POST /api/v1/orders - place a new order (public - no login needed)
     @PostMapping
-    public ResponseEntity<Order> placeOrder(@RequestBody PlaceOrderRequest request) {
+    public ResponseEntity<Order> placeOrder(@RequestBody @Valid PlaceOrderRequest request) {
         Order order = orderService.placeOrder(request);
         return ResponseEntity.status(201).body(order);
     }
