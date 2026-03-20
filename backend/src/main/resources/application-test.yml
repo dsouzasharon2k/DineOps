@@ -3,6 +3,14 @@ spring:
     url: ${TEST_DB_URL:jdbc:postgresql://localhost:5432/dineops_test}
     username: ${TEST_DB_USERNAME:dineops}
     password: ${TEST_DB_PASSWORD:change-me-test}
+    hikari:
+      pool-name: ${TEST_DB_POOL_NAME:dineops-test-hikari}
+      maximum-pool-size: ${TEST_DB_MAX_POOL_SIZE:5}
+      minimum-idle: ${TEST_DB_MIN_IDLE:1}
+      idle-timeout: ${TEST_DB_IDLE_TIMEOUT_MS:60000}
+      max-lifetime: ${TEST_DB_MAX_LIFETIME_MS:300000}
+      connection-timeout: ${TEST_DB_CONNECTION_TIMEOUT_MS:30000}
+      validation-timeout: ${TEST_DB_VALIDATION_TIMEOUT_MS:5000}
   flyway:
     enabled: false
   jpa:
