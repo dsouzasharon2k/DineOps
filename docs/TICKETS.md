@@ -1825,7 +1825,7 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-088 — chore/DOPS-088-frontend-ci
 [x] DOPS-089 — feat/DOPS-089-configurable-cors
 [x] DOPS-090 — chore/DOPS-090-hikaricp-config
-[ ] DOPS-091 — test/DOPS-091-integration-tests
+[x] DOPS-091 — test/DOPS-091-integration-tests
 [x] DOPS-092 — test/DOPS-092-service-unit-tests
 [ ] DOPS-093 — test/DOPS-093-e2e-playwright
 [ ] DOPS-094 — test/DOPS-094-frontend-component-tests
