@@ -22,6 +22,7 @@ export interface Order {
   id: string
   tenantId: string
   customer: User | null
+  tableNumber: string | null
   status: OrderStatus
   totalAmount: number
   notes: string | null

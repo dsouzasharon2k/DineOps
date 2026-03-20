@@ -2,6 +2,7 @@ package com.dineops.order;
 
 import com.dineops.entity.AuditableEntity;
 import com.dineops.restaurant.Restaurant;
+import com.dineops.table.DiningTable;
 import com.dineops.user.User;
 import jakarta.persistence.*;
 import java.util.ArrayList;
@@ -37,6 +38,10 @@ public class Order extends AuditableEntity {
 
     private String notes;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "table_id")
+    private DiningTable table;
+
     // One order has many order items - cascade means items are saved with the order
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<OrderItem> items = new ArrayList<>();
@@ -53,6 +58,8 @@ public class Order extends AuditableEntity {
     public void setTotalAmount(Integer totalAmount) { this.totalAmount = totalAmount; }
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+    public DiningTable getTable() { return table; }
+    public void setTable(DiningTable table) { this.table = table; }
     public List<OrderItem> getItems() { return items; }
     public void setItems(List<OrderItem> items) { this.items = items; }
 }

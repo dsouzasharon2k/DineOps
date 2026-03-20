@@ -8,6 +8,7 @@ import RestaurantsPage from './pages/dashboard/RestaurantsPage'
 import MenuPage from './pages/dashboard/MenuPage'
 import KitchenPage from './pages/dashboard/KitchenPage'
 import RestaurantOnboardingPage from './pages/dashboard/RestaurantOnboardingPage'
+import TableManagementPage from './pages/dashboard/TableManagementPage'
 import PublicMenuPage from './pages/menu/PublicMenuPage'
 import OrderConfirmPage from './pages/menu/OrderConfirmPage'
 import OrderStatusPage from './pages/menu/OrderStatusPage'
@@ -66,6 +67,7 @@ function App() {
             <Route path="/dashboard/onboarding" element={<RestaurantOnboardingPage />} />
             <Route path="/dashboard/menu" element={<MenuPage />} />
             <Route path="/dashboard/kitchen" element={<KitchenPage />} />
+            <Route path="/dashboard/tables" element={<TableManagementPage />} />
           </Route>
 
           {/* 404 route */}

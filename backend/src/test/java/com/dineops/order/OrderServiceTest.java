@@ -2,6 +2,7 @@ package com.dineops.order;
 
 import com.dineops.menu.MenuItemRepository;
 import com.dineops.restaurant.RestaurantRepository;
+import com.dineops.table.DiningTableService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -39,7 +40,14 @@ class OrderServiceTest {
         orderStatusHistoryRepository = Mockito.mock(OrderStatusHistoryRepository.class);
         MenuItemRepository menuItemRepository = Mockito.mock(MenuItemRepository.class);
         RestaurantRepository restaurantRepository = Mockito.mock(RestaurantRepository.class);
-        orderService = new OrderService(orderRepository, menuItemRepository, restaurantRepository, orderStatusHistoryRepository);
+        DiningTableService diningTableService = Mockito.mock(DiningTableService.class);
+        orderService = new OrderService(
+                orderRepository,
+                menuItemRepository,
+                restaurantRepository,
+                orderStatusHistoryRepository,
+                diningTableService
+        );
     }
 
     @Test

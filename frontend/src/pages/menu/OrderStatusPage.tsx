@@ -94,7 +94,7 @@ export default function OrderStatusPage() {
                     {idx < currentStep ? '✓' : idx + 1}
                   </div>
                   <p className="text-xs text-gray-500 mt-1 text-center leading-tight">
-                    {STATUS_LABELS[step].label}
+                    {STATUS_LABELS[step as OrderStatus].label}
                   </p>
                   {idx < 3 && (
                     <div className={`absolute top-4 left-0 right-0 h-0.5 ${

@@ -10,6 +10,7 @@ import java.util.UUID;
 // Request body for placing a new order
 public record PlaceOrderRequest(
         @NotNull(message = "Tenant ID is required") UUID tenantId,
+        String tableNumber,
         String notes,
         @NotEmpty(message = "Order must contain at least one item") @Valid List<OrderItemRequest> items
 ) {

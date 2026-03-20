@@ -10,6 +10,7 @@ public record OrderResponse(
         UUID id,
         UUID tenantId,
         UserResponse customer,
+        String tableNumber,
         OrderStatus status,
         Integer totalAmount,
         String notes,

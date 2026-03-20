@@ -65,10 +65,11 @@ export const deleteItemApi = async (
 // Place a new order
 export const placeOrderApi = async (
   tenantId: string,
+  tableNumber: string | null,
   notes: string,
   items: { menuItemId: string; quantity: number }[]
 ): Promise<Order> => {
-  const res = await axiosInstance.post<Order>('/api/v1/orders', { tenantId, notes, items })
+  const res = await axiosInstance.post<Order>('/api/v1/orders', { tenantId, tableNumber, notes, items })
   return res.data
 }
 

@@ -9,6 +9,7 @@ import com.dineops.menu.MenuItem;
 import com.dineops.menu.MenuItemRepository;
 import com.dineops.restaurant.Restaurant;
 import com.dineops.restaurant.RestaurantRepository;
+import com.dineops.table.DiningTableService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
@@ -50,15 +51,18 @@ public class OrderService {
     private final MenuItemRepository menuItemRepository;
     private final RestaurantRepository restaurantRepository;
     private final OrderStatusHistoryRepository orderStatusHistoryRepository;
+    private final DiningTableService diningTableService;
 
     public OrderService(OrderRepository orderRepository,
                         MenuItemRepository menuItemRepository,
                         RestaurantRepository restaurantRepository,
-                        OrderStatusHistoryRepository orderStatusHistoryRepository) {
+                        OrderStatusHistoryRepository orderStatusHistoryRepository,
+                        DiningTableService diningTableService) {
         this.orderRepository = orderRepository;
         this.menuItemRepository = menuItemRepository;
         this.restaurantRepository = restaurantRepository;
         this.orderStatusHistoryRepository = orderStatusHistoryRepository;
+        this.diningTableService = diningTableService;
     }
 
     // Place a new order - validates items, calculates total, saves everything
@@ -70,6 +74,9 @@ public class OrderService {
 
         Order order = new Order();
         order.setTenant(restaurant);
+        if (request.tableNumber() != null && !request.tableNumber().isBlank()) {
+            order.setTable(diningTableService.findByTenantAndNumber(request.tenantId(), request.tableNumber()));
+        }
         order.setNotes(request.notes());
 
         int total = 0;
@@ -211,6 +218,7 @@ public class OrderService {
                 order.getId(),
                 order.getTenant().getId(),
                 toUserResponse(order.getCustomer()),
+                order.getTable() != null ? order.getTable().getTableNumber() : null,
                 order.getStatus(),
                 order.getTotalAmount(),
                 order.getNotes(),

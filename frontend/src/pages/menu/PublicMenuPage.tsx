@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getCategoriesApi, getItemsApi } from '../../api/menu'
 import { useCart } from '../../hooks/useCart'
 import type { MenuCategory, MenuItem } from '../../types/menu'
@@ -9,7 +9,9 @@ import EmptyState from '../../components/EmptyState'
 
 const PublicMenuPage = () => {
   const { tenantId } = useParams<{ tenantId: string }>()
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const tableNumber = searchParams.get('table')
   const { addItem, removeItem, getQuantity, total, itemCount } = useCart(tenantId!)
   const [categories, setCategories] = useState<MenuCategory[]>([])
   const [itemsByCategory, setItemsByCategory] = useState<Record<string, MenuItem[]>>({})
@@ -70,6 +72,7 @@ const PublicMenuPage = () => {
       <div className="bg-orange-500 text-white px-4 py-6 text-center relative">
         <h1 className="text-2xl font-bold">Our Menu</h1>
         <p className="text-orange-100 text-sm mt-1">Fresh. Delicious. Made for you.</p>
+        {tableNumber && <p className="text-orange-100 text-xs mt-1">Table {tableNumber}</p>}
         <button
           onClick={() => navigate(`/menu/${tenantId}/track`)}
           className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-orange-100 hover:text-white underline"
@@ -199,7 +202,7 @@ const PublicMenuPage = () => {
       {itemCount > 0 && (
         <div className="fixed bottom-4 left-4 right-4 max-w-2xl mx-auto">
           <button
-            onClick={() => navigate(`/menu/${tenantId}/confirm`)}
+            onClick={() => navigate(`/menu/${tenantId}/confirm${tableNumber ? `?table=${encodeURIComponent(tableNumber)}` : ''}`)}
             className="w-full bg-orange-500 text-white rounded-xl py-4 px-6 flex items-center justify-between shadow-lg hover:bg-orange-600"
           >
             <span className="bg-orange-600 rounded-lg px-2 py-1 text-sm font-bold">
