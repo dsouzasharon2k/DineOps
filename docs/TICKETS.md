@@ -1843,7 +1843,7 @@ Marking items based on your board screenshots and the code changes already made:
 [ ] DOPS-106 — feat/DOPS-106-prep-time-estimate
 [ ] DOPS-107 — feat/DOPS-107-inventory-management
 [ ] DOPS-108 — feat/DOPS-108-subscription-billing
-[ ] DOPS-109 — feat/DOPS-109-accessibility
+[x] DOPS-109 — feat/DOPS-109-accessibility
 [x] DOPS-110 — fix/DOPS-110-k6-base-url-cleanup
 [x] DOPS-111 — security/DOPS-111-backend-non-root
 [x] DOPS-112 — chore/DOPS-112-nginx-hardening

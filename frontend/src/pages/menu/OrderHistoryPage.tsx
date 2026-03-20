@@ -68,16 +68,17 @@ export default function OrderHistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-50" aria-labelledby="track-order-title">
       {/* Header */}
       <div className="bg-white shadow-sm px-4 py-4 flex items-center gap-3">
         <button
           onClick={() => navigate(`/menu/${tenantId}`)}
+          aria-label="Back to menu"
           className="text-gray-500 hover:text-gray-700 text-xl"
         >
           ←
         </button>
-        <h1 className="text-lg font-bold text-gray-800">Track Your Order</h1>
+        <h1 id="track-order-title" className="text-lg font-bold text-gray-800">Track Your Order</h1>
       </div>
 
       <div className="max-w-lg mx-auto px-4 py-8">
@@ -86,8 +87,10 @@ export default function OrderHistoryPage() {
           <p className="text-sm text-gray-500 mb-3">
             Enter your phone number to see your recent orders.
           </p>
+          <label htmlFor="phoneLookup" className="sr-only">Phone number</label>
           <div className="flex gap-2">
             <input
+              id="phoneLookup"
               type="text"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -103,7 +106,7 @@ export default function OrderHistoryPage() {
               {loading ? '...' : 'Lookup'}
             </button>
           </div>
-          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+          {error && <p role="alert" aria-live="polite" className="text-red-700 text-sm mt-2">{error}</p>}
         </div>
 
         {/* Order result */}
@@ -178,6 +181,6 @@ export default function OrderHistoryPage() {
           </div>
         )}
       </div>
-    </div>
+    </main>
   )
 }
