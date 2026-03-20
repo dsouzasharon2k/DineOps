@@ -1,5 +1,6 @@
 package com.dineops.menu;
 
+import com.dineops.exception.EntityNotFoundException;
 import com.dineops.restaurant.Restaurant;
 import com.dineops.restaurant.RestaurantRepository;
 import org.springframework.stereotype.Service;
@@ -36,10 +37,10 @@ public class MenuItemService {
     // Create a new menu item
     public MenuItem createItem(UUID tenantId, UUID categoryId, CreateMenuItemRequest request) {
         Restaurant restaurant = restaurantRepository.findById(tenantId)
-                .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
 
         MenuCategory category = menuCategoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Category not found"));
 
         MenuItem item = new MenuItem();
         item.setTenant(restaurant);
@@ -56,7 +57,7 @@ public class MenuItemService {
     // Soft delete - mark as unavailable instead of deleting
     public void deleteItem(UUID itemId) {
         MenuItem item = menuItemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Item not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Item not found"));
         item.setAvailable(false);
         menuItemRepository.save(item);
     }

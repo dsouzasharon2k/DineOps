@@ -1,5 +1,6 @@
 package com.dineops.order;
 
+import com.dineops.exception.EntityNotFoundException;
 import com.dineops.menu.MenuItem;
 import com.dineops.menu.MenuItemRepository;
 import com.dineops.restaurant.Restaurant;
@@ -28,7 +29,7 @@ public class OrderService {
     @Transactional
     public Order placeOrder(PlaceOrderRequest request) {
         Restaurant restaurant = restaurantRepository.findById(request.tenantId())
-                .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
 
         Order order = new Order();
         order.setTenant(restaurant);
@@ -39,7 +40,7 @@ public class OrderService {
         // Build order items from the request
         for (PlaceOrderRequest.OrderItemRequest itemReq : request.items()) {
             MenuItem menuItem = menuItemRepository.findById(itemReq.menuItemId())
-                    .orElseThrow(() -> new RuntimeException("Menu item not found: " + itemReq.menuItemId()));
+                    .orElseThrow(() -> new EntityNotFoundException("Menu item not found: " + itemReq.menuItemId()));
 
             // Snapshot the name and price at time of order
             OrderItem orderItem = new OrderItem();
@@ -60,7 +61,7 @@ public class OrderService {
     // Get a single order by ID (for customer status tracking - public)
     public Order getOrderById(UUID orderId) {
         return orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Order not found"));
     }
 
     // Get all orders for a restaurant (used by TENANT_ADMIN and STAFF)
@@ -79,7 +80,7 @@ public class OrderService {
     // Update order status - used by kitchen staff to move order through lifecycle
     public Order updateStatus(UUID orderId, OrderStatus newStatus) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Order not found"));
         order.setStatus(newStatus);
         order.setUpdatedAt(java.time.LocalDateTime.now());
         return orderRepository.save(order);
