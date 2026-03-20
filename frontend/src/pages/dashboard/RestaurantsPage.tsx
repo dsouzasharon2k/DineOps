@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { getRestaurantsApi } from '../../api/restaurants'
 import type { Restaurant } from '../../types/restaurant'
 import { getApiErrorMessage } from '../../api/error'
+import LoadingState from '../../components/LoadingState'
+import EmptyState from '../../components/EmptyState'
 
 const RestaurantsPage = () => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
@@ -24,11 +26,7 @@ const RestaurantsPage = () => {
   }, [])
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-48 text-gray-400">
-        Loading...
-      </div>
-    )
+    return <LoadingState message="Loading restaurants..." />
   }
 
   if (error) {
@@ -49,11 +47,11 @@ const RestaurantsPage = () => {
 
       {/* Empty state */}
       {restaurants.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm p-12 text-center text-gray-400">
-          <p className="text-4xl mb-3">🍽️</p>
-          <p className="text-lg font-medium">No restaurants yet</p>
-          <p className="text-sm mt-1">Click "Add Restaurant" to get started.</p>
-        </div>
+        <EmptyState
+          icon="🍽️"
+          title="No restaurants yet"
+          description='Click "Add Restaurant" to get started.'
+        />
       ) : (
         // Responsive grid - 1 column on mobile, 2 on tablet, 3 on desktop
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

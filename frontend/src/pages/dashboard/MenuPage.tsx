@@ -9,6 +9,8 @@ import {
 } from '../../api/menu'
 import type { MenuCategory, MenuItem } from '../../types/menu'
 import { getApiErrorMessage } from '../../api/error'
+import LoadingState from '../../components/LoadingState'
+import EmptyState from '../../components/EmptyState'
 
 // We hardcode the tenant ID for now - in Sprint 5 this will come from the JWT token
 const TENANT_ID = 'a085284e-ca00-4f64-a2c7-42fc0572bb97'
@@ -119,7 +121,7 @@ const MenuPage = () => {
     }
   }
 
-  if (loading) return <div className="text-gray-400 text-center mt-20">Loading...</div>
+  if (loading) return <LoadingState message="Loading menu..." />
 
   return (
     <div>
@@ -200,10 +202,11 @@ const MenuPage = () => {
         {/* Right panel - Menu Items */}
         <div className="flex-1">
           {!selectedCategory ? (
-            <div className="bg-white rounded-xl shadow-sm p-12 text-center text-gray-400">
-              <p className="text-4xl mb-3">🍽️</p>
-              <p>Select a category to view items</p>
-            </div>
+            <EmptyState
+              icon="🍽️"
+              title="Select a category"
+              description="Choose a category to view menu items."
+            />
           ) : (
             <div className="bg-white rounded-xl shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
@@ -256,9 +259,7 @@ const MenuPage = () => {
 
               {/* Items list */}
               {items.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-8">
-                  No items in this category yet.
-                </p>
+                <EmptyState compact icon="🧾" title="No items yet" description="Add your first item in this category." />
               ) : (
                 <div className="divide-y">
                   {items.map((item) => (

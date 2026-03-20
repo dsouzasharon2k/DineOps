@@ -3,6 +3,8 @@ import { getActiveOrdersApi, updateOrderStatusApi } from '../../api/menu'
 import type { Order, OrderStatus } from '../../types/order'
 import { useAuth } from '../../context/AuthContext'
 import { getApiErrorMessage } from '../../api/error'
+import LoadingState from '../../components/LoadingState'
+import EmptyState from '../../components/EmptyState'
 
 // The status flow for an order in the kitchen
 const STATUS_FLOW: Record<OrderStatus, OrderStatus | undefined> = {
@@ -127,11 +129,7 @@ export default function KitchenPage() {
   )
 
   if (loading)
-    return (
-      <div className="flex items-center justify-center h-64 text-gray-400">
-        Loading kitchen orders...
-      </div>
-    )
+    return <LoadingState message="Loading kitchen orders..." />
 
   return (
     <div className="p-4">
@@ -155,10 +153,7 @@ export default function KitchenPage() {
       )}
 
       {orders.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-64 text-gray-400 gap-3">
-          <span className="text-5xl">🍽️</span>
-          <p>No active orders right now.</p>
-        </div>
+        <EmptyState icon="🍽️" title="No active orders" description="New orders will appear here automatically." />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           {columns.map((status) => {

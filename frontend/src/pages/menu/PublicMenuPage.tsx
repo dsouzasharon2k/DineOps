@@ -4,6 +4,8 @@ import { getCategoriesApi, getItemsApi } from '../../api/menu'
 import { useCart } from '../../hooks/useCart'
 import type { MenuCategory, MenuItem } from '../../types/menu'
 import { getApiErrorMessage } from '../../api/error'
+import LoadingState from '../../components/LoadingState'
+import EmptyState from '../../components/EmptyState'
 
 const PublicMenuPage = () => {
   const { tenantId } = useParams<{ tenantId: string }>()
@@ -46,19 +48,14 @@ const PublicMenuPage = () => {
   }, [tenantId])
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-gray-400">
-        Loading menu...
-      </div>
-    )
+    return <LoadingState fullPage message="Loading menu..." />
   }
 
   if (categories.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-400">
-        <div className="text-center">
-          <p className="text-4xl mb-3">🍽️</p>
-          <p>Menu not available yet.</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="w-full max-w-md">
+          <EmptyState icon="🍽️" title="Menu not available" description="This restaurant has no published categories yet." />
         </div>
       </div>
     )
@@ -111,9 +108,7 @@ const PublicMenuPage = () => {
           </h2>
         )}
         {activeItems.length === 0 ? (
-          <p className="text-gray-400 text-sm text-center py-8">
-            No items in this category yet.
-          </p>
+          <EmptyState compact icon="🧾" title="No items yet" description="Try another category or check back soon." />
         ) : (
           <div className="flex flex-col gap-3">
             {activeItems.map((item) => {
@@ -183,7 +178,7 @@ const PublicMenuPage = () => {
                               menuItemId: item.id,
                               name: item.name,
                               price: item.price,
-                            isVegetarian: item.isVegetarian,
+                              isVegetarian: item.isVegetarian,
                             })
                           }
                           className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-lg font-bold hover:bg-orange-600"
