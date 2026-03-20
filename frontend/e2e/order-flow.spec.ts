@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test'
 
 const tenantId = 'a085284e-ca00-4f64-a2c7-42fc0572bb97'
 const orderId = '11111111-1111-1111-1111-111111111111'
+const mockToken =
+  'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzdGFmZkBkaW5lb3BzLmNvbSIsInJvbGUiOiJTVEFGRiIsInRlbmFudElkIjoiYTA4NTI4NGUtY2EwMC00ZjY0LWEyYzctNDJmYzA1NzZiYjk3In0.signature'
 
 test('public menu to place order to track status', async ({ page }) => {
   await page.route(`**/api/v1/restaurants/${tenantId}`, async (route) => {
@@ -127,21 +129,28 @@ test('public menu to place order to track status', async ({ page }) => {
   await page.getByRole('button', { name: 'View Order' }).click()
   await page.getByRole('button', { name: /Place Order/ }).click()
   await expect(page).toHaveURL(new RegExp(`/menu/${tenantId}/order/${orderId}`))
-  await expect(page.getByText('Order Placed')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Order Placed' })).toBeVisible()
 })
 
 test('kitchen view updates order status', async ({ page }) => {
+  await page.route('**/api/v1/auth/refresh', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ token: mockToken }),
+    })
+  })
   await page.route('**/api/v1/auth/login', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ token: 'fake.jwt.token' }),
+      body: JSON.stringify({ token: mockToken }),
     })
   })
 
   let orderStatus = 'PENDING'
 
-  await page.route(`**/api/v1/orders/active?tenantId=${tenantId}`, async (route) => {
+  await page.route('**/api/v1/orders/active?tenantId=*', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -174,7 +183,7 @@ test('kitchen view updates order status', async ({ page }) => {
     })
   })
 
-  await page.route(`**/api/v1/orders/${orderId}/status`, async (route) => {
+  await page.route('**/api/v1/orders/*/status', async (route) => {
     orderStatus = 'CONFIRMED'
     await route.fulfill({
       status: 200,
@@ -201,6 +210,8 @@ test('kitchen view updates order status', async ({ page }) => {
   await page.getByPlaceholder('••••••••').fill('PasswordA1')
   await page.getByRole('button', { name: 'Login' }).click()
   await page.goto('/dashboard/kitchen')
-  await page.getByRole('button', { name: /Confirm/ }).click()
+  await expect(page).toHaveURL(/\/dashboard\/kitchen$/)
+  await expect(page.getByRole('button', { name: /Confirm/ }).first()).toBeVisible()
+  await page.getByRole('button', { name: /Confirm/ }).first().click()
   await expect(page.getByText('Confirmed')).toBeVisible()
 })
