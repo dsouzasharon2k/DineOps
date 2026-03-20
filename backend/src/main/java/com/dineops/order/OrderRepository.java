@@ -16,6 +16,7 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     // Get all orders for a specific customer
     List<Order> findByCustomerIdOrderByCreatedAtDesc(UUID customerId);
+    List<Order> findTop10ByTenantIdAndCustomerPhoneOrderByCreatedAtDesc(UUID tenantId, String customerPhone);
 
     // Get active orders only (not delivered or cancelled) for kitchen view
     List<Order> findByTenantIdAndStatusNotInOrderByCreatedAtAsc(

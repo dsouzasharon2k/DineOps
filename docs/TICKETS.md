@@ -1817,8 +1817,8 @@ Marking items based on your board screenshots and the code changes already made:
 [ ] DOPS-080 — feat/DOPS-080-websocket-orders
 [ ] DOPS-081 — feat/DOPS-081-notifications
 [x] DOPS-082 — feat/DOPS-082-order-status-history
-[ ] DOPS-083 — feat/DOPS-083-audit-log
-[ ] DOPS-084 — feat/DOPS-084-analytics-dashboard
+[x] DOPS-083 — feat/DOPS-083-audit-log
+[x] DOPS-084 — feat/DOPS-084-analytics-dashboard
 [x] DOPS-085 — chore/DOPS-085-complete-docker-k8s
 [x] DOPS-086 — chore/DOPS-086-resource-limits
 [ ] DOPS-087 — chore/DOPS-087-database-backup
@@ -1838,7 +1838,7 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-101 — feat/DOPS-101-table-management
 [x] DOPS-102 — feat/DOPS-102-customer-cancellation
 [x] DOPS-103 — feat/DOPS-103-restaurant-contact-info
-[ ] DOPS-104 — feat/DOPS-104-phone-order-lookup
+[x] DOPS-104 — feat/DOPS-104-phone-order-lookup
 [ ] DOPS-105 — feat/DOPS-105-ratings-reviews
 [ ] DOPS-106 — feat/DOPS-106-prep-time-estimate
 [ ] DOPS-107 — feat/DOPS-107-inventory-management

@@ -1,5 +1,6 @@
 package com.dineops.restaurant;
 
+import com.dineops.audit.AuditedAction;
 import com.dineops.dto.RestaurantResponse;
 import com.dineops.exception.EntityNotFoundException;
 import com.dineops.user.User;
@@ -48,6 +49,7 @@ public class RestaurantService {
         return toResponse(restaurant);
     }
 
+    @AuditedAction(entityType = "RESTAURANT", action = "CREATE")
     public RestaurantResponse createRestaurantResponse(CreateRestaurantRequest request, String actorEmail, boolean actorIsSuperAdmin) {
         String slug = generateSlug(request.name());
         if (restaurantRepository.existsBySlug(slug)) {

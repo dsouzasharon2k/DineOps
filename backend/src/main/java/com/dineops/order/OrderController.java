@@ -53,6 +53,13 @@ public class OrderController {
         return ResponseEntity.ok(PageResponse.from(orderService.getOrderResponsesByTenant(tenantId, page, size)));
     }
 
+    @GetMapping("/lookup")
+    public ResponseEntity<java.util.List<OrderResponse>> lookupOrdersByPhone(
+            @RequestParam UUID tenantId,
+            @RequestParam String phone) {
+        return ResponseEntity.ok(orderService.lookupRecentOrdersByPhone(tenantId, phone));
+    }
+
     // GET /api/v1/orders/active?tenantId=xxx - get active orders (kitchen view)
     @GetMapping("/active")
     public ResponseEntity<PageResponse<OrderResponse>> getActiveOrders(
