@@ -3,6 +3,9 @@ package com.dineops.order;
 import com.dineops.dto.PageResponse;
 import com.dineops.dto.OrderResponse;
 import com.dineops.dto.OrderStatusHistoryResponse;
+import com.dineops.dto.InitiatePaymentRequest;
+import com.dineops.dto.InitiatePaymentResponse;
+import com.dineops.dto.PaymentWebhookRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -67,5 +70,21 @@ public class OrderController {
     @PostMapping("/{orderId}/cancel")
     public ResponseEntity<OrderResponse> customerCancelOrder(@PathVariable UUID orderId) {
         return ResponseEntity.ok(orderService.customerCancelOrder(orderId));
+    }
+
+    @PostMapping("/{orderId}/pay")
+    public ResponseEntity<InitiatePaymentResponse> initiatePayment(
+            @PathVariable UUID orderId,
+            @RequestBody @Valid InitiatePaymentRequest request) {
+        return ResponseEntity.ok(orderService.initiatePayment(orderId, request.paymentMethod()));
+    }
+
+    @PostMapping("/payments/webhook")
+    public ResponseEntity<OrderResponse> paymentWebhook(@RequestBody @Valid PaymentWebhookRequest request) {
+        return ResponseEntity.ok(orderService.handlePaymentWebhook(
+                request.providerOrderRef(),
+                request.providerPaymentRef(),
+                request.success()
+        ));
     }
 }

@@ -8,6 +8,9 @@ export type OrderStatus =
   | 'DELIVERED'
   | 'CANCELLED'
 
+export type PaymentStatus = 'UNPAID' | 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED'
+export type PaymentMethod = 'CASH' | 'UPI' | 'CARD' | 'ONLINE'
+
 export interface OrderItem {
   id: string
   menuItemId: string | null
@@ -24,6 +27,8 @@ export interface Order {
   customer: User | null
   tableNumber: string | null
   status: OrderStatus
+  paymentStatus: PaymentStatus
+  paymentMethod: PaymentMethod
   totalAmount: number
   notes: string | null
   items: OrderItem[]

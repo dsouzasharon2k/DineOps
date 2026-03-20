@@ -3,6 +3,7 @@ package com.dineops.order;
 import com.dineops.dto.OrderItemResponse;
 import com.dineops.dto.OrderResponse;
 import com.dineops.dto.OrderStatusHistoryResponse;
+import com.dineops.dto.InitiatePaymentResponse;
 import com.dineops.dto.UserResponse;
 import com.dineops.exception.EntityNotFoundException;
 import com.dineops.menu.MenuItem;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Objects;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -201,6 +203,38 @@ public class OrderService {
         throw new IllegalArgumentException("Cancellation window has passed for this order.");
     }
 
+    @CacheEvict(cacheNames = {"orders:by-id", "orders:active-by-tenant", "orders:by-tenant"}, allEntries = true)
+    public InitiatePaymentResponse initiatePayment(UUID orderId, PaymentMethod paymentMethod) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new EntityNotFoundException("Order not found"));
+
+        PaymentMethod safeMethod = Objects.requireNonNull(paymentMethod, "paymentMethod cannot be null");
+        order.setPaymentMethod(safeMethod);
+
+        if (safeMethod == PaymentMethod.CASH) {
+            order.setPaymentStatus(PaymentStatus.UNPAID);
+            Order saved = orderRepository.save(order);
+            return new InitiatePaymentResponse(saved.getId(), saved.getPaymentStatus(), saved.getPaymentMethod(), null, null);
+        }
+
+        String providerOrderRef = "pay_" + UUID.randomUUID().toString().replace("-", "");
+        order.setPaymentStatus(PaymentStatus.PENDING);
+        order.setPaymentProviderOrderRef(providerOrderRef);
+        Order saved = orderRepository.save(order);
+        String checkoutUrl = "/pay/checkout/" + saved.getId() + "?ref=" + providerOrderRef;
+        return new InitiatePaymentResponse(saved.getId(), saved.getPaymentStatus(), saved.getPaymentMethod(), providerOrderRef, checkoutUrl);
+    }
+
+    @CacheEvict(cacheNames = {"orders:by-id", "orders:active-by-tenant", "orders:by-tenant"}, allEntries = true)
+    public OrderResponse handlePaymentWebhook(String providerOrderRef, String providerPaymentRef, boolean success) {
+        String safeProviderOrderRef = Objects.requireNonNull(providerOrderRef, "providerOrderRef cannot be null");
+        Order order = orderRepository.findByPaymentProviderOrderRef(safeProviderOrderRef)
+                .orElseThrow(() -> new EntityNotFoundException("Order not found for providerOrderRef: " + safeProviderOrderRef));
+        order.setPaymentProviderPaymentRef(providerPaymentRef);
+        order.setPaymentStatus(success ? PaymentStatus.PAID : PaymentStatus.FAILED);
+        return toResponse(orderRepository.save(order));
+    }
+
     public List<OrderStatusHistoryResponse> getStatusHistory(UUID orderId) {
         if (!orderRepository.existsById(orderId)) {
             throw new EntityNotFoundException("Order not found");
@@ -239,6 +273,8 @@ public class OrderService {
                 toUserResponse(order.getCustomer()),
                 order.getTable() != null ? order.getTable().getTableNumber() : null,
                 order.getStatus(),
+                order.getPaymentStatus(),
+                order.getPaymentMethod(),
                 order.getTotalAmount(),
                 order.getNotes(),
                 order.getItems().stream().map(this::toItemResponse).toList(),
