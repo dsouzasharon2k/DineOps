@@ -1789,7 +1789,7 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-052 — security/DOPS-052-hide-password-hash
 [x] DOPS-053 — security/DOPS-053-externalize-secrets
 [x] DOPS-054 — security/DOPS-054-tenant-isolation
-[ ] DOPS-055 — security/DOPS-055-restrict-actuator-swagger
+[x] DOPS-055 — security/DOPS-055-restrict-actuator-swagger
 [ ] DOPS-056 — security/DOPS-056-rate-limiting
 [ ] DOPS-057 — security/DOPS-057-security-headers
 [ ] DOPS-058 — security/DOPS-058-account-lockout

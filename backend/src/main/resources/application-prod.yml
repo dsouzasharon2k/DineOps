@@ -10,17 +10,27 @@ spring:
       ddl-auto: validate
     show-sql: false
 
-logging:
-  level:
-    org.hibernate.SQL: OFF
-    org.hibernate.orm.jdbc.bind: OFF
-
   data:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT:6379}
 
+logging:
+  level:
+    org.hibernate.SQL: OFF
+    org.hibernate.orm.jdbc.bind: OFF
+
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+
 management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,info
   endpoint:
     health:
       show-details: never
