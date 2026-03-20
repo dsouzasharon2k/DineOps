@@ -1,5 +1,7 @@
 package com.dineops.auth;
 
+import com.dineops.security.AccountLockoutService;
+import com.dineops.security.RateLimitService;
 import com.dineops.user.User;
 import com.dineops.user.UserRole;
 import com.dineops.user.UserService;
@@ -11,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -28,13 +31,19 @@ class AuthControllerTest {
 
     private UserService userService;
     private JwtUtils jwtUtils;
+    private RateLimitService rateLimitService;
+    private AccountLockoutService accountLockoutService;
     private AuthController authController;
 
     @BeforeEach
     void setUp() {
         userService = Mockito.mock(UserService.class);
         jwtUtils = Mockito.mock(JwtUtils.class);
-        authController = new AuthController(userService, jwtUtils);
+        rateLimitService = Mockito.mock(RateLimitService.class);
+        accountLockoutService = Mockito.mock(AccountLockoutService.class);
+        when(rateLimitService.isAllowed(Mockito.anyString(), Mockito.anyInt(), Mockito.any(Duration.class))).thenReturn(true);
+        when(accountLockoutService.isLocked(Mockito.anyString())).thenReturn(false);
+        authController = new AuthController(userService, jwtUtils, rateLimitService, accountLockoutService);
     }
 
     @Test
@@ -42,8 +51,10 @@ class AuthControllerTest {
         User activeUser = buildUser(true);
         when(userService.findByEmail(activeUser.getEmail())).thenReturn(Optional.of(activeUser));
         when(userService.checkPassword("plainPassword123", activeUser.getPasswordHash())).thenReturn(true);
-        when(jwtUtils.generateToken(nullable(UUID.class), anyString(), anyString(), nullable(UUID.class)))
+        when(jwtUtils.generateAccessToken(nullable(UUID.class), anyString(), anyString(), nullable(UUID.class)))
                 .thenReturn("jwt-token");
+        when(jwtUtils.generateRefreshToken(nullable(UUID.class), anyString()))
+                .thenReturn("refresh-token");
 
         ResponseEntity<?> response = authController.login(
                 new LoginRequest(activeUser.getEmail(), "plainPassword123"));
@@ -54,6 +65,7 @@ class AuthControllerTest {
         Map<String, String> body = (Map<String, String>) response.getBody();
         assertNotNull(body);
         assertEquals("jwt-token", body.get("token"));
+        verify(accountLockoutService).clearFailures(activeUser.getEmail());
     }
 
     @Test
@@ -71,8 +83,9 @@ class AuthControllerTest {
         assertNotNull(body);
         assertEquals("Invalid credentials", body.get("error"));
 
+        verify(accountLockoutService).recordFailedAttempt(inactiveUser.getEmail());
         verify(userService, never()).checkPassword(anyString(), anyString());
-        verify(jwtUtils, never()).generateToken(nullable(UUID.class), anyString(), anyString(), nullable(UUID.class));
+        verify(jwtUtils, never()).generateAccessToken(nullable(UUID.class), anyString(), anyString(), nullable(UUID.class));
     }
 
     @Test
@@ -90,7 +103,8 @@ class AuthControllerTest {
         assertNotNull(body);
         assertTrue(body.containsKey("error"));
         assertEquals("Invalid credentials", body.get("error"));
-        verify(jwtUtils, never()).generateToken(nullable(UUID.class), anyString(), anyString(), nullable(UUID.class));
+        verify(accountLockoutService).recordFailedAttempt(activeUser.getEmail());
+        verify(jwtUtils, never()).generateAccessToken(nullable(UUID.class), anyString(), anyString(), nullable(UUID.class));
     }
 
     @Test
@@ -127,6 +141,90 @@ class AuthControllerTest {
 
         assertEquals(201, response.getStatusCode().value());
         assertNotNull(response.getBody());
+    }
+
+    @Test
+    void login_rateLimited_returnsTooManyRequests() {
+        when(rateLimitService.isAllowed(Mockito.anyString(), Mockito.anyInt(), Mockito.any(Duration.class)))
+                .thenReturn(false);
+
+        ResponseEntity<?> response = authController.login(new LoginRequest("test@dineops.com", "wrong"));
+
+        assertEquals(429, response.getStatusCode().value());
+        assertInstanceOf(Map.class, response.getBody());
+        @SuppressWarnings("unchecked")
+        Map<String, String> body = (Map<String, String>) response.getBody();
+        assertNotNull(body);
+        assertEquals("Too many login attempts. Please try again later.", body.get("error"));
+        verify(userService, never()).findByEmail(anyString());
+        verify(jwtUtils, never()).generateAccessToken(nullable(UUID.class), anyString(), anyString(), nullable(UUID.class));
+    }
+
+    @Test
+    void login_lockedAccount_returnsLocked() {
+        when(accountLockoutService.isLocked("test@dineops.com")).thenReturn(true);
+
+        ResponseEntity<?> response = authController.login(new LoginRequest("test@dineops.com", "wrong"));
+
+        assertEquals(423, response.getStatusCode().value());
+        assertInstanceOf(Map.class, response.getBody());
+        @SuppressWarnings("unchecked")
+        Map<String, String> body = (Map<String, String>) response.getBody();
+        assertNotNull(body);
+        assertEquals("Account temporarily locked due to repeated failed attempts.", body.get("error"));
+        verify(userService, never()).findByEmail(anyString());
+        verify(jwtUtils, never()).generateAccessToken(nullable(UUID.class), anyString(), anyString(), nullable(UUID.class));
+    }
+
+    @Test
+    void refresh_validRefreshToken_returnsNewAccessAndRefreshToken() {
+        User activeUser = buildUser(true);
+        activeUser.setEmail("refresh@dineops.com");
+        when(jwtUtils.validateRefreshToken("valid-refresh")).thenReturn(true);
+        io.jsonwebtoken.Claims claims = Mockito.mock(io.jsonwebtoken.Claims.class);
+        when(claims.getSubject()).thenReturn("refresh@dineops.com");
+        when(jwtUtils.parseToken("valid-refresh")).thenReturn(claims);
+        when(userService.findByEmail("refresh@dineops.com")).thenReturn(Optional.of(activeUser));
+        when(jwtUtils.generateAccessToken(nullable(UUID.class), anyString(), anyString(), nullable(UUID.class)))
+                .thenReturn("new-access");
+        when(jwtUtils.generateRefreshToken(nullable(UUID.class), anyString()))
+                .thenReturn("new-refresh");
+
+        ResponseEntity<?> response = authController.refresh("valid-refresh");
+
+        assertEquals(200, response.getStatusCode().value());
+        assertInstanceOf(Map.class, response.getBody());
+        @SuppressWarnings("unchecked")
+        Map<String, String> body = (Map<String, String>) response.getBody();
+        assertNotNull(body);
+        assertEquals("new-access", body.get("token"));
+    }
+
+    @Test
+    void refresh_invalidRefreshToken_returnsUnauthorized() {
+        when(jwtUtils.validateRefreshToken("invalid-refresh")).thenReturn(false);
+
+        ResponseEntity<?> response = authController.refresh("invalid-refresh");
+
+        assertEquals(401, response.getStatusCode().value());
+        assertInstanceOf(Map.class, response.getBody());
+        @SuppressWarnings("unchecked")
+        Map<String, String> body = (Map<String, String>) response.getBody();
+        assertNotNull(body);
+        assertEquals("Invalid refresh token", body.get("error"));
+        verify(userService, never()).findByEmail(anyString());
+    }
+
+    @Test
+    void refresh_missingCookie_returnsUnauthorized() {
+        ResponseEntity<?> response = authController.refresh(null);
+
+        assertEquals(401, response.getStatusCode().value());
+        assertInstanceOf(Map.class, response.getBody());
+        @SuppressWarnings("unchecked")
+        Map<String, String> body = (Map<String, String>) response.getBody();
+        assertNotNull(body);
+        assertEquals("Invalid refresh token", body.get("error"));
     }
 
     private User buildUser(boolean active) {

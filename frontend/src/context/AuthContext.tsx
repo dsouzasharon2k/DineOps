@@ -1,27 +1,62 @@
-import { createContext, useContext, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { refreshTokenApi, logoutApi } from '../api/auth'
+import { tokenStore } from '../auth/tokenStore'
 
 interface AuthContextValue {
   token: string | null
   isAuthenticated: boolean
   login: (token: string) => void
-  logout: () => void
+  logout: () => Promise<void>
+  initializing: boolean
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
-const TOKEN_STORAGE_KEY = 'token'
+export const AuthProvider = ({
+  children,
+  skipBootstrap = false,
+  initialToken = null,
+}: {
+  children: React.ReactNode
+  skipBootstrap?: boolean
+  initialToken?: string | null
+}) => {
+  const [token, setToken] = useState<string | null>(initialToken)
+  const [initializing, setInitializing] = useState(!initialToken)
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_STORAGE_KEY))
+  useEffect(() => {
+    if (skipBootstrap) {
+      setInitializing(false)
+      return
+    }
+    const bootstrap = async () => {
+      try {
+        const data = await refreshTokenApi()
+        setToken(data.token)
+        tokenStore.setToken(data.token)
+      } catch {
+        setToken(null)
+        tokenStore.clear()
+      } finally {
+        setInitializing(false)
+      }
+    }
+    bootstrap()
+  }, [skipBootstrap])
 
   const login = (newToken: string) => {
-    localStorage.setItem(TOKEN_STORAGE_KEY, newToken)
     setToken(newToken)
+    tokenStore.setToken(newToken)
   }
 
-  const logout = () => {
-    localStorage.removeItem(TOKEN_STORAGE_KEY)
+  const logout = async () => {
+    try {
+      await logoutApi()
+    } catch {
+      // Ignore logout API failure; always clear local auth state.
+    }
     setToken(null)
+    tokenStore.clear()
   }
 
   const value = useMemo<AuthContextValue>(
@@ -30,8 +65,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       isAuthenticated: Boolean(token),
       login,
       logout,
+      initializing,
     }),
-    [token]
+    [token, initializing]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

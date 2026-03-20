@@ -6,11 +6,8 @@ import { AuthProvider } from '../context/AuthContext'
 describe('ProtectedRoute', () => {
 
   test('redirects to login if no token', () => {
-    // Make sure localStorage has no token
-    localStorage.removeItem('token')
-
     render(
-      <AuthProvider>
+      <AuthProvider skipBootstrap>
         <MemoryRouter initialEntries={['/dashboard']}>
           <Routes>
             <Route path="/login" element={<div>Login Page</div>} />
@@ -33,11 +30,8 @@ describe('ProtectedRoute', () => {
   })
 
   test('renders children if token exists', () => {
-    // Set a fake token
-    localStorage.setItem('token', 'fake-jwt-token')
-
     render(
-      <AuthProvider>
+      <AuthProvider skipBootstrap initialToken="fake-jwt-token">
         <MemoryRouter initialEntries={['/dashboard']}>
           <Routes>
             <Route path="/login" element={<div>Login Page</div>} />
@@ -58,7 +52,5 @@ describe('ProtectedRoute', () => {
     expect(screen.getByText('Dashboard')).toBeInTheDocument()
     expect(screen.queryByText('Login Page')).not.toBeInTheDocument()
 
-    // Cleanup
-    localStorage.removeItem('token')
   })
 })
