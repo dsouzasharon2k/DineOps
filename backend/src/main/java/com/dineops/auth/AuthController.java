@@ -2,6 +2,7 @@ package com.dineops.auth;
 
 import jakarta.validation.Valid;
 import com.dineops.dto.UserResponse;
+import com.dineops.security.RateLimitService;
 import com.dineops.user.User;
 import com.dineops.user.UserRole;
 import com.dineops.user.UserService;
@@ -14,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 import java.util.Optional;
+import java.time.Duration;
 
 // import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -22,16 +24,27 @@ import java.util.Optional;
 public class AuthController {
 
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+    private static final int LOGIN_RATE_LIMIT = 10;
+    private static final int REGISTER_RATE_LIMIT = 5;
+    private static final Duration RATE_LIMIT_WINDOW = Duration.ofMinutes(1);
     private final UserService userService;
     private final JwtUtils jwtUtils;
+    private final RateLimitService rateLimitService;
 
-    public AuthController(UserService userService, JwtUtils jwtUtils) {
+    public AuthController(UserService userService, JwtUtils jwtUtils, RateLimitService rateLimitService) {
         this.userService = userService;
         this.jwtUtils = jwtUtils;
+        this.rateLimitService = rateLimitService;
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody @Valid LoginRequest request) {
+        if (!rateLimitService.isAllowed(loginRateLimitKey(request.email()), LOGIN_RATE_LIMIT, RATE_LIMIT_WINDOW)) {
+            log.warn("rate_limited endpoint=login email={}", request.email());
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(Map.of("error", "Too many login attempts. Please try again later."));
+        }
+
         // Step 1: Look up the user by email in the database
         Optional<User> userOpt = userService.findByEmail(request.email());
 
@@ -76,6 +89,12 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@RequestBody @Valid RegisterUserRequest request) {
+        if (!rateLimitService.isAllowed(registerRateLimitKey(request.email()), REGISTER_RATE_LIMIT, RATE_LIMIT_WINDOW)) {
+            log.warn("rate_limited endpoint=register email={}", request.email());
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "Too many registration attempts. Please try again later.");
+        }
+
         if (userService.findByEmail(request.email()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered");
         }
@@ -104,6 +123,14 @@ public class AuthController {
                 user.getCreatedAt(),
                 user.getUpdatedAt()
         );
+    }
+
+    private String loginRateLimitKey(String email) {
+        return "rate_limit:auth:login:" + email.trim().toLowerCase();
+    }
+
+    private String registerRateLimitKey(String email) {
+        return "rate_limit:auth:register:" + email.trim().toLowerCase();
     }
 
     // @GetMapping("/hash")

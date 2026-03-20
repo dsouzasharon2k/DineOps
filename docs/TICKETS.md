@@ -1790,7 +1790,7 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-053 — security/DOPS-053-externalize-secrets
 [x] DOPS-054 — security/DOPS-054-tenant-isolation
 [x] DOPS-055 — security/DOPS-055-restrict-actuator-swagger
-[ ] DOPS-056 — security/DOPS-056-rate-limiting
+[x] DOPS-056 — security/DOPS-056-rate-limiting
 [x] DOPS-057 — security/DOPS-057-security-headers
 [ ] DOPS-058 — security/DOPS-058-account-lockout
 [x] DOPS-059 — feat/DOPS-059-global-exception-handler

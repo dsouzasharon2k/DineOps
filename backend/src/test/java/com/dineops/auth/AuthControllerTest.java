@@ -1,5 +1,6 @@
 package com.dineops.auth;
 
+import com.dineops.security.RateLimitService;
 import com.dineops.user.User;
 import com.dineops.user.UserRole;
 import com.dineops.user.UserService;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -28,13 +30,16 @@ class AuthControllerTest {
 
     private UserService userService;
     private JwtUtils jwtUtils;
+    private RateLimitService rateLimitService;
     private AuthController authController;
 
     @BeforeEach
     void setUp() {
         userService = Mockito.mock(UserService.class);
         jwtUtils = Mockito.mock(JwtUtils.class);
-        authController = new AuthController(userService, jwtUtils);
+        rateLimitService = Mockito.mock(RateLimitService.class);
+        when(rateLimitService.isAllowed(Mockito.anyString(), Mockito.anyInt(), Mockito.any(Duration.class))).thenReturn(true);
+        authController = new AuthController(userService, jwtUtils, rateLimitService);
     }
 
     @Test
@@ -127,6 +132,23 @@ class AuthControllerTest {
 
         assertEquals(201, response.getStatusCode().value());
         assertNotNull(response.getBody());
+    }
+
+    @Test
+    void login_rateLimited_returnsTooManyRequests() {
+        when(rateLimitService.isAllowed(Mockito.anyString(), Mockito.anyInt(), Mockito.any(Duration.class)))
+                .thenReturn(false);
+
+        ResponseEntity<?> response = authController.login(new LoginRequest("test@dineops.com", "wrong"));
+
+        assertEquals(429, response.getStatusCode().value());
+        assertInstanceOf(Map.class, response.getBody());
+        @SuppressWarnings("unchecked")
+        Map<String, String> body = (Map<String, String>) response.getBody();
+        assertNotNull(body);
+        assertEquals("Too many login attempts. Please try again later.", body.get("error"));
+        verify(userService, never()).findByEmail(anyString());
+        verify(jwtUtils, never()).generateToken(nullable(UUID.class), anyString(), anyString(), nullable(UUID.class));
     }
 
     private User buildUser(boolean active) {
