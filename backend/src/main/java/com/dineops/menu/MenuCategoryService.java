@@ -4,11 +4,14 @@ import com.dineops.dto.MenuCategoryResponse;
 import com.dineops.exception.EntityNotFoundException;
 import com.dineops.restaurant.Restaurant;
 import com.dineops.restaurant.RestaurantRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 
 @Service
+@SuppressWarnings("null")
 public class MenuCategoryService {
 
     private final MenuCategoryRepository menuCategoryRepository;
@@ -26,6 +29,7 @@ public class MenuCategoryService {
                 .findByTenant_IdAndIsActiveTrueOrderByDisplayOrderAsc(tenantId);
     }
 
+    @Cacheable(cacheNames = "menu:categories", key = "#tenantId")
     public List<MenuCategoryResponse> getCategoryResponsesByTenant(UUID tenantId) {
         return getCategoriesByTenant(tenantId).stream()
                 .map(this::toResponse)
@@ -33,6 +37,7 @@ public class MenuCategoryService {
     }
 
     // Create a new category for a restaurant
+    @CacheEvict(cacheNames = "menu:categories", key = "#tenantId")
     public MenuCategory createCategory(UUID tenantId, String name, String description) {
         // Find the restaurant - throw exception if not found
         Restaurant restaurant = restaurantRepository.findById(tenantId)
@@ -52,6 +57,7 @@ public class MenuCategoryService {
 
     // Soft delete - mark as inactive instead of deleting from DB
     // This preserves historical data and is safer than hard delete
+    @CacheEvict(cacheNames = "menu:categories", allEntries = true)
     public void deleteCategory(UUID categoryId) {
         MenuCategory category = menuCategoryRepository.findById(categoryId)
                 .orElseThrow(() -> new EntityNotFoundException("Category not found"));

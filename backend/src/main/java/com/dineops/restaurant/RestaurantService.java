@@ -1,6 +1,7 @@
 package com.dineops.restaurant;
 
 import com.dineops.dto.RestaurantResponse;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -17,6 +18,7 @@ public class RestaurantService {
         return restaurantRepository.findAll();
     }
 
+    @Cacheable(cacheNames = "restaurants:all")
     public List<RestaurantResponse> getAllRestaurantResponses() {
         return restaurantRepository.findAll().stream()
                 .map(this::toResponse)

@@ -10,6 +10,8 @@ import com.dineops.restaurant.Restaurant;
 import com.dineops.restaurant.RestaurantRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.EnumMap;
@@ -19,6 +21,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Service
+@SuppressWarnings("null")
 public class OrderService {
 
     private static final Logger log = LoggerFactory.getLogger(OrderService.class);
@@ -47,6 +50,7 @@ public class OrderService {
     }
 
     // Place a new order - validates items, calculates total, saves everything
+    @CacheEvict(cacheNames = {"orders:by-id", "orders:active-by-tenant"}, allEntries = true)
     @Transactional
     public Order placeOrder(PlaceOrderRequest request) {
         Restaurant restaurant = restaurantRepository.findById(request.tenantId())
@@ -95,6 +99,7 @@ public class OrderService {
                 .orElseThrow(() -> new EntityNotFoundException("Order not found"));
     }
 
+    @Cacheable(cacheNames = "orders:by-id", key = "#orderId")
     public OrderResponse getOrderResponseById(UUID orderId) {
         return toResponse(getOrderById(orderId));
     }
@@ -118,6 +123,7 @@ public class OrderService {
         );
     }
 
+    @Cacheable(cacheNames = "orders:active-by-tenant", key = "#tenantId")
     public List<OrderResponse> getActiveOrderResponses(UUID tenantId) {
         return getActiveOrders(tenantId).stream()
                 .map(this::toResponse)
@@ -125,6 +131,7 @@ public class OrderService {
     }
 
     // Update order status - used by kitchen staff to move order through lifecycle
+    @CacheEvict(cacheNames = {"orders:by-id", "orders:active-by-tenant"}, allEntries = true)
     public Order updateStatus(UUID orderId, OrderStatus newStatus) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found"));
