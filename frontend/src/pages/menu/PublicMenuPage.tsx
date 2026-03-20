@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getCategoriesApi, getItemsApi } from '../../api/menu'
+import { getRestaurantByIdApi } from '../../api/restaurants'
 import { useCart } from '../../hooks/useCart'
 import type { MenuCategory, MenuItem } from '../../types/menu'
+import type { Restaurant } from '../../types/restaurant'
 import { getApiErrorMessage } from '../../api/error'
 import LoadingState from '../../components/LoadingState'
 import EmptyState from '../../components/EmptyState'
@@ -14,6 +16,7 @@ const PublicMenuPage = () => {
   const tableNumber = searchParams.get('table')
   const { addItem, removeItem, getQuantity, total, itemCount } = useCart(tenantId!)
   const [categories, setCategories] = useState<MenuCategory[]>([])
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null)
   const [itemsByCategory, setItemsByCategory] = useState<Record<string, MenuItem[]>>({})
   const [loading, setLoading] = useState(true)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
@@ -25,6 +28,8 @@ const PublicMenuPage = () => {
         // Fetch all categories for this restaurant
         const cats = await getCategoriesApi(tenantId!)
         setCategories(cats)
+        const restaurantData = await getRestaurantByIdApi(tenantId!)
+        setRestaurant(restaurantData)
 
         if (cats.length > 0) {
           setActiveCategory(cats[0].id)
@@ -70,8 +75,17 @@ const PublicMenuPage = () => {
 
       {/* Header */}
       <div className="bg-orange-500 text-white px-4 py-6 text-center relative">
-        <h1 className="text-2xl font-bold">Our Menu</h1>
-        <p className="text-orange-100 text-sm mt-1">Fresh. Delicious. Made for you.</p>
+        {restaurant?.logoUrl && (
+          <img
+            src={restaurant.logoUrl}
+            alt={`${restaurant.name} logo`}
+            className="mx-auto mb-2 h-12 w-12 rounded-full object-cover bg-white/20"
+          />
+        )}
+        <h1 className="text-2xl font-bold">{restaurant?.name ?? 'Our Menu'}</h1>
+        <p className="text-orange-100 text-sm mt-1">{restaurant?.address ?? 'Fresh. Delicious. Made for you.'}</p>
+        {restaurant?.phone && <p className="text-orange-100 text-xs mt-1">Call: {restaurant.phone}</p>}
+        {restaurant?.operatingHours && <p className="text-orange-100 text-xs mt-1">Hours: {restaurant.operatingHours}</p>}
         {tableNumber && <p className="text-orange-100 text-xs mt-1">Table {tableNumber}</p>}
         <button
           onClick={() => navigate(`/menu/${tenantId}/track`)}

@@ -33,6 +33,9 @@ public class Restaurant extends AuditableEntity {
     @Column(name = "gst_number", length = 20)
     private String gstNumber;
 
+    @Column(name = "operating_hours", columnDefinition = "TEXT")
+    private String operatingHours;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RestaurantStatus status = RestaurantStatus.PENDING;
@@ -55,6 +58,8 @@ public class Restaurant extends AuditableEntity {
     public void setFssaiLicense(String fssaiLicense) { this.fssaiLicense = fssaiLicense; }
     public String getGstNumber() { return gstNumber; }
     public void setGstNumber(String gstNumber) { this.gstNumber = gstNumber; }
+    public String getOperatingHours() { return operatingHours; }
+    public void setOperatingHours(String operatingHours) { this.operatingHours = operatingHours; }
     public RestaurantStatus getStatus() { return status; }
     public void setStatus(RestaurantStatus status) { this.status = status; }
 }

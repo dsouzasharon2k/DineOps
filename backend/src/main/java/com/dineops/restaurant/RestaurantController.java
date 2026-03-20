@@ -24,6 +24,11 @@ public class RestaurantController {
         return ResponseEntity.ok(PageResponse.from(restaurantService.getRestaurantResponsePage(page, size)));
     }
 
+    @GetMapping("/{restaurantId}")
+    public ResponseEntity<RestaurantResponse> getRestaurantById(@PathVariable java.util.UUID restaurantId) {
+        return ResponseEntity.ok(restaurantService.getRestaurantResponseById(restaurantId));
+    }
+
     @PostMapping
     public ResponseEntity<RestaurantResponse> createRestaurant(
             @RequestBody @Valid CreateRestaurantRequest request,

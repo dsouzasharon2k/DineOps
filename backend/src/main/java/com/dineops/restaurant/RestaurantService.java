@@ -1,6 +1,7 @@
 package com.dineops.restaurant;
 
 import com.dineops.dto.RestaurantResponse;
+import com.dineops.exception.EntityNotFoundException;
 import com.dineops.user.User;
 import com.dineops.user.UserRepository;
 import com.dineops.user.UserRole;
@@ -39,6 +40,14 @@ public class RestaurantService {
         return new PageImpl<>(Objects.requireNonNull(content), pageable, restaurantPage.getTotalElements());
     }
 
+    @Cacheable(cacheNames = "restaurants:by-id", key = "#restaurantId")
+    public RestaurantResponse getRestaurantResponseById(java.util.UUID restaurantId) {
+        java.util.UUID safeRestaurantId = java.util.Objects.requireNonNull(restaurantId, "restaurantId cannot be null");
+        Restaurant restaurant = restaurantRepository.findById(safeRestaurantId)
+                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+        return toResponse(restaurant);
+    }
+
     public RestaurantResponse createRestaurantResponse(CreateRestaurantRequest request, String actorEmail, boolean actorIsSuperAdmin) {
         String slug = generateSlug(request.name());
         if (restaurantRepository.existsBySlug(slug)) {
@@ -54,6 +63,7 @@ public class RestaurantService {
         restaurant.setLogoUrl(trimToNull(request.logoUrl()));
         restaurant.setFssaiLicense(trimToNull(request.fssaiLicense()));
         restaurant.setGstNumber(trimToNull(request.gstNumber()));
+        restaurant.setOperatingHours(trimToNull(request.operatingHours()));
 
         Restaurant savedRestaurant = restaurantRepository.save(restaurant);
         User owner = resolveOwner(actorEmail, request.ownerEmail(), actorIsSuperAdmin);
@@ -75,6 +85,7 @@ public class RestaurantService {
                 restaurant.getLogoUrl(),
                 restaurant.getFssaiLicense(),
                 restaurant.getGstNumber(),
+                restaurant.getOperatingHours(),
                 restaurant.getStatus(),
                 restaurant.getCreatedAt(),
                 restaurant.getUpdatedAt()

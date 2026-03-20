@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { cancelOrderApi, getOrderApi, getOrderHistoryApi } from '../../api/menu';
+import { getRestaurantByIdApi } from '../../api/restaurants';
 import type { Order, OrderStatus, OrderStatusHistoryEntry } from '../../types/order';
+import type { Restaurant } from '../../types/restaurant';
 import { getApiErrorMessage } from '../../api/error';
 
 // Maps status to display label and progress step
@@ -21,6 +23,7 @@ export default function OrderStatusPage() {
   const navigate = useNavigate();
   const [order, setOrder] = useState<Order | null>(null);
   const [history, setHistory] = useState<OrderStatusHistoryEntry[]>([]);
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState('');
@@ -34,6 +37,10 @@ export default function OrderStatusPage() {
     try {
       const data = await getOrderApi(orderId);
       setOrder(data);
+      if (tenantId) {
+        const restaurantData = await getRestaurantByIdApi(tenantId);
+        setRestaurant(restaurantData);
+      }
       const timeline = await getOrderHistoryApi(orderId);
       setHistory(timeline);
     } catch (err) {
@@ -41,7 +48,7 @@ export default function OrderStatusPage() {
     } finally {
       setLoading(false);
     }
-  }, [orderId]);
+  }, [orderId, tenantId]);
 
   useEffect(() => {
     fetchOrder();
@@ -148,6 +155,26 @@ export default function OrderStatusPage() {
             <span>₹{order.totalAmount / 100}</span>
           </div>
         </div>
+
+        {restaurant && (
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-4">
+            <div className="px-4 py-3 border-b border-gray-100">
+              <p className="font-semibold text-gray-700">Contact Restaurant</p>
+            </div>
+            <div className="px-4 py-3 text-sm text-gray-600">
+              <p className="font-medium text-gray-800">{restaurant.name}</p>
+              {restaurant.address && <p>{restaurant.address}</p>}
+              {restaurant.phone && (
+                <p className="mt-1">
+                  <a className="text-orange-600 underline" href={`tel:${restaurant.phone}`}>
+                    {restaurant.phone}
+                  </a>
+                </p>
+              )}
+              {restaurant.operatingHours && <p className="mt-1">Hours: {restaurant.operatingHours}</p>}
+            </div>
+          </div>
+        )}
 
         {canCustomerCancel && (
           <button

@@ -23,3 +23,8 @@ export const createRestaurantApi = async (payload: CreateRestaurantPayload): Pro
   const response = await axiosInstance.post<Restaurant>('/api/v1/restaurants', payload)
   return response.data
 }
+
+export const getRestaurantByIdApi = async (restaurantId: string): Promise<Restaurant> => {
+  const response = await axiosInstance.get<Restaurant>(`/api/v1/restaurants/${restaurantId}`)
+  return response.data
+}

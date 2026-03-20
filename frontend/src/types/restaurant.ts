@@ -10,6 +10,7 @@ export interface Restaurant {
   logoUrl: string | null
   fssaiLicense: string | null
   gstNumber: string | null
+  operatingHours: string | null
   status: RestaurantStatus
   createdAt: string
   updatedAt: string

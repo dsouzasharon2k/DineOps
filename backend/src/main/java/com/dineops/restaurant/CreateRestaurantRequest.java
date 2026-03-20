@@ -14,6 +14,7 @@ public record CreateRestaurantRequest(
                 regexp = "^$|^[0-9A-Z]{15}$",
                 message = "GST number must be 15 uppercase alphanumeric characters"
         ) String gstNumber,
+        String operatingHours,
         String ownerEmail
 ) {
 }
