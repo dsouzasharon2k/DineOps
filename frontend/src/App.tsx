@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import PublicLayout from './layouts/PublicLayout'
 import DashboardLayout from './layouts/DashboardLayout'
 import ProtectedRoute from './routes/ProtectedRoute'
@@ -13,6 +13,7 @@ import OrderStatusPage from './pages/menu/OrderStatusPage'
 import OrderHistoryPage from './pages/menu/OrderHistoryPage'
 import ErrorBoundary from './components/ErrorBoundary'
 import SectionErrorFallback from './components/SectionErrorFallback'
+import NotFoundPage from './pages/NotFoundPage'
 
 function App() {
   return (
@@ -65,8 +66,8 @@ function App() {
             <Route path="/dashboard/kitchen" element={<KitchenPage />} />
           </Route>
 
-          {/* Default redirect */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          {/* 404 route */}
+          <Route path="*" element={<NotFoundPage />} />
 
         </Routes>
       </BrowserRouter>
