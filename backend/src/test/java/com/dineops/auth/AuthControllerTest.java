@@ -1,5 +1,6 @@
 package com.dineops.auth;
 
+import com.dineops.security.AccountLockoutService;
 import com.dineops.security.RateLimitService;
 import com.dineops.user.User;
 import com.dineops.user.UserRole;
@@ -31,6 +32,7 @@ class AuthControllerTest {
     private UserService userService;
     private JwtUtils jwtUtils;
     private RateLimitService rateLimitService;
+    private AccountLockoutService accountLockoutService;
     private AuthController authController;
 
     @BeforeEach
@@ -38,8 +40,10 @@ class AuthControllerTest {
         userService = Mockito.mock(UserService.class);
         jwtUtils = Mockito.mock(JwtUtils.class);
         rateLimitService = Mockito.mock(RateLimitService.class);
+        accountLockoutService = Mockito.mock(AccountLockoutService.class);
         when(rateLimitService.isAllowed(Mockito.anyString(), Mockito.anyInt(), Mockito.any(Duration.class))).thenReturn(true);
-        authController = new AuthController(userService, jwtUtils, rateLimitService);
+        when(accountLockoutService.isLocked(Mockito.anyString())).thenReturn(false);
+        authController = new AuthController(userService, jwtUtils, rateLimitService, accountLockoutService);
     }
 
     @Test
@@ -59,6 +63,7 @@ class AuthControllerTest {
         Map<String, String> body = (Map<String, String>) response.getBody();
         assertNotNull(body);
         assertEquals("jwt-token", body.get("token"));
+        verify(accountLockoutService).clearFailures(activeUser.getEmail());
     }
 
     @Test
@@ -76,6 +81,7 @@ class AuthControllerTest {
         assertNotNull(body);
         assertEquals("Invalid credentials", body.get("error"));
 
+        verify(accountLockoutService).recordFailedAttempt(inactiveUser.getEmail());
         verify(userService, never()).checkPassword(anyString(), anyString());
         verify(jwtUtils, never()).generateToken(nullable(UUID.class), anyString(), anyString(), nullable(UUID.class));
     }
@@ -95,6 +101,7 @@ class AuthControllerTest {
         assertNotNull(body);
         assertTrue(body.containsKey("error"));
         assertEquals("Invalid credentials", body.get("error"));
+        verify(accountLockoutService).recordFailedAttempt(activeUser.getEmail());
         verify(jwtUtils, never()).generateToken(nullable(UUID.class), anyString(), anyString(), nullable(UUID.class));
     }
 
@@ -147,6 +154,22 @@ class AuthControllerTest {
         Map<String, String> body = (Map<String, String>) response.getBody();
         assertNotNull(body);
         assertEquals("Too many login attempts. Please try again later.", body.get("error"));
+        verify(userService, never()).findByEmail(anyString());
+        verify(jwtUtils, never()).generateToken(nullable(UUID.class), anyString(), anyString(), nullable(UUID.class));
+    }
+
+    @Test
+    void login_lockedAccount_returnsLocked() {
+        when(accountLockoutService.isLocked("test@dineops.com")).thenReturn(true);
+
+        ResponseEntity<?> response = authController.login(new LoginRequest("test@dineops.com", "wrong"));
+
+        assertEquals(423, response.getStatusCode().value());
+        assertInstanceOf(Map.class, response.getBody());
+        @SuppressWarnings("unchecked")
+        Map<String, String> body = (Map<String, String>) response.getBody();
+        assertNotNull(body);
+        assertEquals("Account temporarily locked due to repeated failed attempts.", body.get("error"));
         verify(userService, never()).findByEmail(anyString());
         verify(jwtUtils, never()).generateToken(nullable(UUID.class), anyString(), anyString(), nullable(UUID.class));
     }

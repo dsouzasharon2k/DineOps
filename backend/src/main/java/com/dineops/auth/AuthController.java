@@ -2,6 +2,7 @@ package com.dineops.auth;
 
 import jakarta.validation.Valid;
 import com.dineops.dto.UserResponse;
+import com.dineops.security.AccountLockoutService;
 import com.dineops.security.RateLimitService;
 import com.dineops.user.User;
 import com.dineops.user.UserRole;
@@ -30,11 +31,16 @@ public class AuthController {
     private final UserService userService;
     private final JwtUtils jwtUtils;
     private final RateLimitService rateLimitService;
+    private final AccountLockoutService accountLockoutService;
 
-    public AuthController(UserService userService, JwtUtils jwtUtils, RateLimitService rateLimitService) {
+    public AuthController(UserService userService,
+                          JwtUtils jwtUtils,
+                          RateLimitService rateLimitService,
+                          AccountLockoutService accountLockoutService) {
         this.userService = userService;
         this.jwtUtils = jwtUtils;
         this.rateLimitService = rateLimitService;
+        this.accountLockoutService = accountLockoutService;
     }
 
     @PostMapping("/login")
@@ -45,6 +51,12 @@ public class AuthController {
                     .body(Map.of("error", "Too many login attempts. Please try again later."));
         }
 
+        if (accountLockoutService.isLocked(request.email())) {
+            log.warn("login_blocked reason=account_locked email={}", request.email());
+            return ResponseEntity.status(HttpStatus.LOCKED)
+                    .body(Map.of("error", "Account temporarily locked due to repeated failed attempts."));
+        }
+
         // Step 1: Look up the user by email in the database
         Optional<User> userOpt = userService.findByEmail(request.email());
 
@@ -52,6 +64,7 @@ public class AuthController {
         // We say "Invalid credentials" instead of "User not found"
         // so attackers can't tell whether the email exists or not
         if (userOpt.isEmpty()) {
+            accountLockoutService.recordFailedAttempt(request.email());
             log.info("login_failed reason=user_not_found email={}", request.email());
             return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
         }
@@ -61,12 +74,14 @@ public class AuthController {
         // Step 3: Reject inactive users with the same generic 401 response
         // to avoid leaking account state details.
         if (!user.isActive()) {
+            accountLockoutService.recordFailedAttempt(request.email());
             log.info("login_failed reason=inactive_user email={}", request.email());
             return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
         }
 
         // Step 4: Check if the provided password matches the stored BCrypt hash
         if (!userService.checkPassword(request.password(), user.getPasswordHash())) {
+            accountLockoutService.recordFailedAttempt(request.email());
             log.info("login_failed reason=invalid_password email={}", request.email());
             return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
         }
@@ -83,6 +98,7 @@ public class AuthController {
                 user.getId(),
                 user.getRole(),
                 user.getTenant() != null ? user.getTenant().getId() : null);
+        accountLockoutService.clearFailures(request.email());
 
         return ResponseEntity.ok(Map.of("token", token));
     }
