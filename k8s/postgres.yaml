@@ -21,7 +21,10 @@ spec:
             - name: POSTGRES_DB
               value: dineops
             - name: POSTGRES_USER
-              value: dineops
+              valueFrom:
+                secretKeyRef:
+                  name: dineops-secrets
+                  key: DB_USERNAME
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
