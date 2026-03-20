@@ -1,6 +1,7 @@
 package com.dineops.config;
 
 import com.dineops.auth.JwtAuthFilter;
+import com.dineops.logging.RequestContextFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -21,9 +22,11 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final RequestContextFilter requestContextFilter;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter, RequestContextFilter requestContextFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.requestContextFilter = requestContextFilter;
     }
 
     @Bean
@@ -51,7 +54,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/orders/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN", "STAFF")
                 .anyRequest().authenticated()
             )
-                    .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                    .addFilterBefore(requestContextFilter, UsernamePasswordAuthenticationFilter.class)
+                    .addFilterAfter(jwtAuthFilter, RequestContextFilter.class);
         return http.build()
         ;
     }

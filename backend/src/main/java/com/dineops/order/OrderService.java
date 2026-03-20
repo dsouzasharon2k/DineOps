@@ -76,7 +76,13 @@ public class OrderService {
         }
 
         order.setTotalAmount(total);
-        return orderRepository.save(order);
+        Order saved = orderRepository.save(order);
+        log.info("order_placed orderId={} tenantId={} totalAmount={} itemCount={}",
+                saved.getId(),
+                saved.getTenant().getId(),
+                saved.getTotalAmount(),
+                saved.getItems().size());
+        return saved;
     }
 
     public OrderResponse placeOrderResponse(PlaceOrderRequest request) {
