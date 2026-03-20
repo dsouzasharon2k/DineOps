@@ -1818,7 +1818,7 @@ Marking items based on your board screenshots and the code changes already made:
 [ ] DOPS-081 — feat/DOPS-081-notifications
 [x] DOPS-082 — feat/DOPS-082-order-status-history
 [x] DOPS-083 — feat/DOPS-083-audit-log
-[ ] DOPS-084 — feat/DOPS-084-analytics-dashboard
+[x] DOPS-084 — feat/DOPS-084-analytics-dashboard
 [x] DOPS-085 — chore/DOPS-085-complete-docker-k8s
 [x] DOPS-086 — chore/DOPS-086-resource-limits
 [ ] DOPS-087 — chore/DOPS-087-database-backup
