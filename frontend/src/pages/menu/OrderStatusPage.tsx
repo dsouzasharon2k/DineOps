@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { cancelOrderApi, downloadInvoiceApi, getOrderApi, getOrderHistoryApi } from '../../api/menu';
+import { getOrderReviewApi, submitOrderReviewApi } from '../../api/reviews';
 import { getRestaurantByIdApi } from '../../api/restaurants';
 import type { Order, OrderStatus, OrderStatusHistoryEntry } from '../../types/order';
+import type { Review } from '../../types/review';
 import type { Restaurant } from '../../types/restaurant';
 import { getApiErrorMessage } from '../../api/error';
 import { subscribeOrderStatus } from '../../realtime/ordersSocket';
@@ -29,6 +31,10 @@ export default function OrderStatusPage() {
   const [cancelling, setCancelling] = useState(false);
   const [downloadingInvoice, setDownloadingInvoice] = useState(false);
   const [wsConnected, setWsConnected] = useState(false);
+  const [review, setReview] = useState<Review | null>(null);
+  const [rating, setRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
   const [error, setError] = useState('');
 
   const fetchOrder = useCallback(async () => {
@@ -46,6 +52,12 @@ export default function OrderStatusPage() {
       }
       const timeline = await getOrderHistoryApi(orderId);
       setHistory(timeline);
+      try {
+        const orderReview = await getOrderReviewApi(orderId);
+        setReview(orderReview);
+      } catch {
+        setReview(null);
+      }
     } catch (err) {
       setError(getApiErrorMessage(err, 'Failed to fetch order.'));
     } finally {
@@ -134,6 +146,20 @@ export default function OrderStatusPage() {
     }
   };
 
+  const handleSubmitReview = async () => {
+    if (!orderId) return;
+    setSubmittingReview(true);
+    setError('');
+    try {
+      const saved = await submitOrderReviewApi(orderId, rating, reviewComment);
+      setReview(saved);
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Unable to submit review.'));
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -197,6 +223,52 @@ export default function OrderStatusPage() {
             <span>₹{order.totalAmount / 100}</span>
           </div>
         </div>
+
+        {order.status === 'DELIVERED' && (
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-4">
+            <div className="px-4 py-3 border-b border-gray-100">
+              <p className="font-semibold text-gray-700">Rate your experience</p>
+            </div>
+            {review ? (
+              <div className="px-4 py-3 text-sm text-gray-700">
+                <p>Thanks for your feedback!</p>
+                <p className="mt-1">Rating: {review.rating} / 5</p>
+                {review.comment && <p className="mt-1 text-gray-600">"{review.comment}"</p>}
+              </div>
+            ) : (
+              <div className="px-4 py-3">
+                <div className="mb-3 flex gap-2">
+                  {[1, 2, 3, 4, 5].map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setRating(value)}
+                      className={`rounded-md px-3 py-1 text-sm ${
+                        rating === value ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      {value}★
+                    </button>
+                  ))}
+                </div>
+                <textarea
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  placeholder="Share your feedback (optional)"
+                  rows={3}
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                />
+                <button
+                  onClick={handleSubmitReview}
+                  disabled={submittingReview}
+                  className="mt-3 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-60"
+                >
+                  {submittingReview ? 'Submitting...' : 'Submit Review'}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {restaurant && (
           <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-4">

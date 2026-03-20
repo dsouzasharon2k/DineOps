@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { getAnalyticsSummaryApi } from '../../api/analytics'
+import { getReviewsByTenantApi } from '../../api/reviews'
 import { getApiErrorMessage } from '../../api/error'
 import { useAuth } from '../../context/AuthContext'
 import type { AnalyticsSummary } from '../../types/analytics'
+import type { Review } from '../../types/review'
 
 const extractTenantId = (token: string | null): string | null => {
   if (!token) return null
@@ -18,6 +20,7 @@ const DashboardHome = () => {
   const { token } = useAuth()
   const tenantId = useMemo(() => extractTenantId(token), [token])
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null)
+  const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -30,6 +33,8 @@ const DashboardHome = () => {
       setError('')
       const data = await getAnalyticsSummaryApi(tenantId)
       setSummary(data)
+      const reviewData = await getReviewsByTenantApi(tenantId)
+      setReviews(reviewData.slice(0, 5))
     } catch (err) {
       setError(getApiErrorMessage(err, 'Failed to load analytics summary.'))
     } finally {
@@ -142,6 +147,23 @@ const DashboardHome = () => {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="mt-4 rounded-xl bg-white p-4 shadow-sm">
+        <p className="mb-3 text-sm font-semibold text-gray-700">Recent Customer Reviews</p>
+        {reviews.length === 0 ? (
+          <p className="text-sm text-gray-500">No reviews yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {reviews.map((review) => (
+              <div key={review.id} className="rounded-md border border-gray-100 p-3">
+                <p className="text-sm font-medium text-gray-800">Order #{review.orderId.slice(0, 8).toUpperCase()}</p>
+                <p className="text-xs text-orange-600">Rating: {review.rating} / 5</p>
+                {review.comment && <p className="mt-1 text-sm text-gray-600">{review.comment}</p>}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

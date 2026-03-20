@@ -86,6 +86,7 @@ const PublicMenuPage = () => {
         <p className="text-orange-100 text-sm mt-1">{restaurant?.address ?? 'Fresh. Delicious. Made for you.'}</p>
         {restaurant?.phone && <p className="text-orange-100 text-xs mt-1">Call: {restaurant.phone}</p>}
         {restaurant?.operatingHours && <p className="text-orange-100 text-xs mt-1">Hours: {restaurant.operatingHours}</p>}
+        {restaurant && <p className="text-orange-100 text-xs mt-1">Rating: {restaurant.averageRating.toFixed(1)} / 5</p>}
         {tableNumber && <p className="text-orange-100 text-xs mt-1">Table {tableNumber}</p>}
         <button
           onClick={() => navigate(`/menu/${tenantId}/track`)}

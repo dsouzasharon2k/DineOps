@@ -21,6 +21,7 @@ test('public menu to place order to track status', async ({ page }) => {
         fssaiLicense: null,
         gstNumber: null,
         operatingHours: '10:00 - 22:00',
+        averageRating: 4.5,
         status: 'ACTIVE',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
