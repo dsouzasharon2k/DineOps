@@ -105,6 +105,11 @@ export const initiatePaymentApi = async (
   return res.data
 }
 
+export const downloadInvoiceApi = async (orderId: string): Promise<Blob> => {
+  const res = await axiosInstance.get(`/api/v1/orders/${orderId}/invoice`, { responseType: 'blob' })
+  return res.data as Blob
+}
+
 // Get all active orders for a restaurant (kitchen view)
 export const getActiveOrdersApi = async (tenantId: string, token: string): Promise<Order[]> => {
   const res = await axiosInstance.get<Order[]>(`/api/v1/orders/active?tenantId=${tenantId}`, {

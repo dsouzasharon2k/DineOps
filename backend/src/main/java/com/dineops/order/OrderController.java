@@ -7,7 +7,11 @@ import com.dineops.dto.InitiatePaymentRequest;
 import com.dineops.dto.InitiatePaymentResponse;
 import com.dineops.dto.PaymentWebhookRequest;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+
+import java.util.Objects;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.UUID;
@@ -86,5 +90,14 @@ public class OrderController {
                 request.providerPaymentRef(),
                 request.success()
         ));
+    }
+
+    @GetMapping("/{orderId}/invoice")
+    public ResponseEntity<byte[]> downloadInvoice(@PathVariable UUID orderId) {
+        byte[] invoiceBytes = orderService.generateInvoicePdf(orderId);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=invoice-" + orderId + ".pdf")
+                .contentType(Objects.requireNonNull(MediaType.APPLICATION_PDF))
+                .body(invoiceBytes);
     }
 }

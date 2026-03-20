@@ -1806,7 +1806,7 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-069 — feat/DOPS-069-restaurant-onboarding
 [x] DOPS-070 — feat/DOPS-070-frontend-auth-context
 [x] DOPS-071 — feat/DOPS-071-payment-integration
-[ ] DOPS-072 — feat/DOPS-072-gst-invoicing
+[x] DOPS-072 — feat/DOPS-072-gst-invoicing
 [x] DOPS-073 — refactor/DOPS-073-cleanup-layouts
 [x] DOPS-074 — feat/DOPS-074-typescript-interfaces
 [x] DOPS-075 — feat/DOPS-075-api-base-url-env

@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.nio.charset.StandardCharsets;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class OrderService {
 
     private static final Logger log = LoggerFactory.getLogger(OrderService.class);
+    private static final int GST_PERCENT = 5;
     private static final Map<OrderStatus, Set<OrderStatus>> ALLOWED_TRANSITIONS =
             new EnumMap<>(OrderStatus.class);
 
@@ -242,6 +244,42 @@ public class OrderService {
         return orderStatusHistoryRepository.findByOrderIdOrderByChangedAtAsc(orderId).stream()
                 .map(this::toStatusHistoryResponse)
                 .toList();
+    }
+
+    public byte[] generateInvoicePdf(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new EntityNotFoundException("Order not found"));
+
+        int totalPaise = order.getTotalAmount();
+        int taxableAmountPaise = (int) Math.round(totalPaise / (1 + (GST_PERCENT / 100.0)));
+        int gstAmountPaise = totalPaise - taxableAmountPaise;
+
+        StringBuilder invoice = new StringBuilder();
+        invoice.append("DineOps Invoice\n");
+        invoice.append("====================\n");
+        invoice.append("Order ID: ").append(order.getId()).append('\n');
+        invoice.append("Date: ").append(order.getCreatedAt()).append("\n\n");
+        invoice.append("Restaurant: ").append(order.getTenant().getName()).append('\n');
+        invoice.append("FSSAI: ").append(order.getTenant().getFssaiLicense() == null ? "N/A" : order.getTenant().getFssaiLicense()).append('\n');
+        invoice.append("GSTIN: ").append(order.getTenant().getGstNumber() == null ? "N/A" : order.getTenant().getGstNumber()).append("\n\n");
+        invoice.append("Items:\n");
+        for (OrderItem item : order.getItems()) {
+            int lineAmountPaise = item.getPrice() * item.getQuantity();
+            invoice.append("- ")
+                    .append(item.getName())
+                    .append(" x ")
+                    .append(item.getQuantity())
+                    .append(" = INR ")
+                    .append(String.format("%.2f", lineAmountPaise / 100.0))
+                    .append('\n');
+        }
+        invoice.append('\n');
+        invoice.append("Taxable Amount: INR ").append(String.format("%.2f", taxableAmountPaise / 100.0)).append('\n');
+        invoice.append("GST (").append(GST_PERCENT).append("%): INR ").append(String.format("%.2f", gstAmountPaise / 100.0)).append('\n');
+        invoice.append("Grand Total: INR ").append(String.format("%.2f", totalPaise / 100.0)).append('\n');
+        invoice.append("Payment: ").append(order.getPaymentMethod()).append(" / ").append(order.getPaymentStatus()).append('\n');
+
+        return invoice.toString().getBytes(StandardCharsets.UTF_8);
     }
 
     private boolean isTransitionAllowed(OrderStatus from, OrderStatus to) {

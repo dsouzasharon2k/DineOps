@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { cancelOrderApi, getOrderApi, getOrderHistoryApi } from '../../api/menu';
+import { cancelOrderApi, downloadInvoiceApi, getOrderApi, getOrderHistoryApi } from '../../api/menu';
 import { getRestaurantByIdApi } from '../../api/restaurants';
 import type { Order, OrderStatus, OrderStatusHistoryEntry } from '../../types/order';
 import type { Restaurant } from '../../types/restaurant';
@@ -26,6 +26,7 @@ export default function OrderStatusPage() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
+  const [downloadingInvoice, setDownloadingInvoice] = useState(false);
   const [error, setError] = useState('');
 
   const fetchOrder = useCallback(async () => {
@@ -90,6 +91,27 @@ export default function OrderStatusPage() {
       setError(getApiErrorMessage(err, 'Unable to cancel order.'));
     } finally {
       setCancelling(false);
+    }
+  };
+
+  const handleDownloadInvoice = async () => {
+    if (!orderId) return;
+    setDownloadingInvoice(true);
+    setError('');
+    try {
+      const blob = await downloadInvoiceApi(orderId);
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `invoice-${orderId}.pdf`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Unable to download invoice.'));
+    } finally {
+      setDownloadingInvoice(false);
     }
   };
 
@@ -210,6 +232,14 @@ export default function OrderStatusPage() {
         </div>
 
         {/* Order again button */}
+        <button
+          onClick={handleDownloadInvoice}
+          disabled={downloadingInvoice}
+          className="mb-3 w-full py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 disabled:opacity-60"
+        >
+          {downloadingInvoice ? 'Downloading invoice...' : 'Download Invoice'}
+        </button>
+
         <button
           onClick={() => navigate(`/menu/${tenantId}`)}
           className="w-full py-3 border-2 border-orange-500 text-orange-500 rounded-xl font-semibold hover:bg-orange-50"
