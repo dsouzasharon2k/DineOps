@@ -16,6 +16,7 @@ const DashboardLayout = () => {
     { to: '/dashboard/restaurants', label: '🏠 Restaurants' },
     { to: '/dashboard/menu', label: '🍽️ Menu' },
     { to: '/dashboard/kitchen', label: '👨‍🍳 Kitchen' },
+    { to: '/dashboard/inventory', label: '📦 Inventory' },
     { to: '/dashboard/tables', label: '🪑 Tables' },
   ]
 
