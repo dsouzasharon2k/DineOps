@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { loginApi } from '../../api/auth'
 import { useAuth } from '../../context/AuthContext'
 import { getApiErrorMessage } from '../../api/error'
@@ -104,6 +104,13 @@ const LoginPage = () => {
         >
           {loading ? 'Logging in...' : 'Login'}
         </button>
+
+        <p className="mt-4 text-center text-xs text-gray-500">
+          By continuing, you agree to our{' '}
+          <Link to="/terms" className="text-orange-600 hover:underline">Terms</Link>{' '}
+          and{' '}
+          <Link to="/privacy" className="text-orange-600 hover:underline">Privacy Policy</Link>.
+        </p>
 
       </div>
     </div>

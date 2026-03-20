@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getCategoriesApi, getItemsApi } from '../../api/menu'
 import { getRestaurantByIdApi } from '../../api/restaurants'
 import { useCart } from '../../hooks/useCart'
@@ -227,6 +227,12 @@ const PublicMenuPage = () => {
           </button>
         </div>
       )}
+
+      <footer className="px-4 py-6 text-center text-xs text-gray-500">
+        <Link to="/privacy" className="text-orange-600 hover:underline">Privacy Policy</Link>
+        <span className="mx-2">•</span>
+        <Link to="/terms" className="text-orange-600 hover:underline">Terms of Service</Link>
+      </footer>
     </div>
   )
 }
