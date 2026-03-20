@@ -4,6 +4,7 @@ import com.dineops.entity.AuditableEntity;
 import com.dineops.restaurant.Restaurant;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -37,6 +38,12 @@ public class User extends AuditableEntity {
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 
+    @Column(name = "deletion_requested_at")
+    private LocalDateTime deletionRequestedAt;
+
+    @Column(name = "deletion_scheduled_for")
+    private LocalDateTime deletionScheduledFor;
+
     // Getters and Setters
     public UUID getId() { return id; }
     public Restaurant getTenant() { return tenant; }
@@ -53,4 +60,8 @@ public class User extends AuditableEntity {
     public void setRole(UserRole role) { this.role = role; }
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { isActive = active; }
+    public LocalDateTime getDeletionRequestedAt() { return deletionRequestedAt; }
+    public void setDeletionRequestedAt(LocalDateTime deletionRequestedAt) { this.deletionRequestedAt = deletionRequestedAt; }
+    public LocalDateTime getDeletionScheduledFor() { return deletionScheduledFor; }
+    public void setDeletionScheduledFor(LocalDateTime deletionScheduledFor) { this.deletionScheduledFor = deletionScheduledFor; }
 }

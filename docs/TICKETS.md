@@ -1833,7 +1833,7 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-096 — perf/DOPS-096-indexes-constraints
 [x] DOPS-097 — feat/DOPS-097-updated-at-trigger
 [x] DOPS-098 — feat/DOPS-098-legal-pages
-[ ] DOPS-099 — feat/DOPS-099-data-deletion
+[x] DOPS-099 — feat/DOPS-099-data-deletion
 [x] DOPS-100 — feat/DOPS-100-fssai-gst-fields
 [x] DOPS-101 — feat/DOPS-101-table-management
 [x] DOPS-102 — feat/DOPS-102-customer-cancellation

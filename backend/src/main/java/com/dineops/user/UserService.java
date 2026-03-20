@@ -1,8 +1,13 @@
 package com.dineops.user;
 
+import com.dineops.exception.EntityNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -26,5 +31,31 @@ public class UserService {
 
     public boolean checkPassword(String rawPassword, String storedHash) {
         return passwordEncoder.matches(rawPassword, storedHash);
+    }
+
+    public User deactivateAndAnonymizeByEmail(String email) {
+        String safeEmail = Objects.requireNonNull(email, "email cannot be null");
+        User user = userRepository.findByEmail(safeEmail)
+                .orElseThrow(() -> new EntityNotFoundException("Authenticated user not found."));
+        applyDeletion(user);
+        return userRepository.save(user);
+    }
+
+    public User deactivateAndAnonymizeById(UUID userId) {
+        UUID safeUserId = Objects.requireNonNull(userId, "userId cannot be null");
+        User user = userRepository.findById(safeUserId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found."));
+        applyDeletion(user);
+        return userRepository.save(user);
+    }
+
+    private void applyDeletion(User user) {
+        LocalDateTime now = LocalDateTime.now();
+        user.setActive(false);
+        user.setDeletionRequestedAt(now);
+        user.setDeletionScheduledFor(now.plusDays(7));
+        user.setName("Deleted User");
+        user.setPhone(null);
+        user.setEmail("deleted_" + user.getId() + "@anon.local");
     }
 }
