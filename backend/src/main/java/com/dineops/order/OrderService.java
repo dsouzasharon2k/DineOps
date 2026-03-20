@@ -5,13 +5,31 @@ import com.dineops.menu.MenuItem;
 import com.dineops.menu.MenuItemRepository;
 import com.dineops.restaurant.Restaurant;
 import com.dineops.restaurant.RestaurantRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
 public class OrderService {
+
+    private static final Logger log = LoggerFactory.getLogger(OrderService.class);
+    private static final Map<OrderStatus, Set<OrderStatus>> ALLOWED_TRANSITIONS =
+            new EnumMap<>(OrderStatus.class);
+
+    static {
+        ALLOWED_TRANSITIONS.put(OrderStatus.PENDING, Set.of(OrderStatus.CONFIRMED, OrderStatus.CANCELLED));
+        ALLOWED_TRANSITIONS.put(OrderStatus.CONFIRMED, Set.of(OrderStatus.PREPARING, OrderStatus.CANCELLED));
+        ALLOWED_TRANSITIONS.put(OrderStatus.PREPARING, Set.of(OrderStatus.READY, OrderStatus.CANCELLED));
+        ALLOWED_TRANSITIONS.put(OrderStatus.READY, Set.of(OrderStatus.DELIVERED, OrderStatus.CANCELLED));
+        ALLOWED_TRANSITIONS.put(OrderStatus.DELIVERED, Set.of());
+        ALLOWED_TRANSITIONS.put(OrderStatus.CANCELLED, Set.of());
+    }
 
     private final OrderRepository orderRepository;
     private final MenuItemRepository menuItemRepository;
@@ -81,7 +99,17 @@ public class OrderService {
     public Order updateStatus(UUID orderId, OrderStatus newStatus) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found"));
+        OrderStatus currentStatus = order.getStatus();
+        if (currentStatus != newStatus && !isTransitionAllowed(currentStatus, newStatus)) {
+            throw new IllegalArgumentException(
+                    "Invalid order status transition: " + currentStatus + " -> " + newStatus);
+        }
         order.setStatus(newStatus);
+        log.info("Order status changed: orderId={}, from={}, to={}", orderId, currentStatus, newStatus);
         return orderRepository.save(order);
+    }
+
+    private boolean isTransitionAllowed(OrderStatus from, OrderStatus to) {
+        return ALLOWED_TRANSITIONS.getOrDefault(from, Set.of()).contains(to);
     }
 }

@@ -1800,7 +1800,7 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-063 — feat/DOPS-063-jpa-auditing
 [ ] DOPS-064 — refactor/DOPS-064-response-dtos
 [ ] DOPS-065 — feat/DOPS-065-structured-logging
-[ ] DOPS-066 — feat/DOPS-066-order-status-validation
+[x] DOPS-066 — feat/DOPS-066-order-status-validation
 [ ] DOPS-067 — feat/DOPS-067-user-registration
 [ ] DOPS-068 — feat/DOPS-068-jwt-refresh-token
 [ ] DOPS-069 — feat/DOPS-069-restaurant-onboarding
