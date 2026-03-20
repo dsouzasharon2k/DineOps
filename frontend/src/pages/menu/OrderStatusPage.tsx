@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getOrderApi } from '../../api/menu';
 import type { Order, OrderStatus } from '../../types/order';
@@ -23,23 +23,28 @@ export default function OrderStatusPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchOrder();
-    // Poll every 10 seconds for status updates
-    const interval = setInterval(fetchOrder, 10000);
-    return () => clearInterval(interval);
-  }, [orderId]);
-
-  const fetchOrder = async () => {
+  const fetchOrder = useCallback(async () => {
+    if (!orderId) {
+      setLoading(false);
+      setError('Order not found.');
+      return;
+    }
     try {
-      const data = await getOrderApi(orderId!);
+      const data = await getOrderApi(orderId);
       setOrder(data);
     } catch (err) {
       setError(getApiErrorMessage(err, 'Failed to fetch order.'));
     } finally {
       setLoading(false);
     }
-  };
+  }, [orderId]);
+
+  useEffect(() => {
+    fetchOrder();
+    // Poll every 10 seconds for status updates
+    const interval = setInterval(fetchOrder, 10000);
+    return () => clearInterval(interval);
+  }, [fetchOrder]);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">

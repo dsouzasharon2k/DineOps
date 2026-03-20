@@ -1,7 +1,7 @@
 // React hook that wraps cartStore with state management
 // Components use this hook to interact with the cart
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { cartStore } from '../store/cartStore';
 import type { Cart, CartItem } from '../store/cartStore';
 
@@ -12,11 +12,7 @@ export function useCart(tenantId: string) {
     return stored?.tenantId === tenantId ? stored : null;
   });
 
-  // Sync cart state when tenantId changes
-  useEffect(() => {
-    const stored = cartStore.getCart();
-    setCart(stored?.tenantId === tenantId ? stored : null);
-  }, [tenantId]);
+  const tenantCart = cart?.tenantId === tenantId ? cart : null;
 
   const addItem = (item: Omit<CartItem, 'quantity'>) => {
     const updated = cartStore.addItem(tenantId, item);
@@ -34,12 +30,12 @@ export function useCart(tenantId: string) {
   };
 
   const getQuantity = (menuItemId: string): number => {
-    return cart?.items.find(i => i.menuItemId === menuItemId)?.quantity ?? 0;
+    return tenantCart?.items.find(i => i.menuItemId === menuItemId)?.quantity ?? 0;
   };
 
-  const total = cart ? cartStore.getTotal(cart) : 0;
-  const itemCount = cart ? cartStore.getItemCount(cart) : 0;
+  const total = tenantCart ? cartStore.getTotal(tenantCart) : 0;
+  const itemCount = tenantCart ? cartStore.getItemCount(tenantCart) : 0;
 
-  return { cart, addItem, removeItem, clearCart, getQuantity, total, itemCount };
+  return { cart: tenantCart, addItem, removeItem, clearCart, getQuantity, total, itemCount };
 }
 
