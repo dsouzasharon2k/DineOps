@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getOrderApi } from '../../api/menu'
+import type { Order, OrderStatus } from '../../types/order'
+import { getApiErrorMessage } from '../../api/error'
 
 const STATUS_LABELS: Record<
-  string,
+  OrderStatus,
   { label: string; icon: string; color: string }
 > = {
   PENDING: {
@@ -38,22 +40,6 @@ const STATUS_LABELS: Record<
   },
 }
 
-interface OrderItem {
-  id: string
-  name: string
-  quantity: number
-  price: number
-}
-
-interface Order {
-  id: string
-  status: string
-  totalAmount: number
-  notes: string
-  createdAt: string
-  items: OrderItem[]
-}
-
 export default function OrderHistoryPage() {
   const { tenantId } = useParams<{ tenantId: string }>()
   const navigate = useNavigate()
@@ -71,8 +57,8 @@ export default function OrderHistoryPage() {
     try {
       const data = await getOrderApi(trimmed)
       setOrder(data)
-    } catch {
-      setError('Order not found. Please check the ID and try again.')
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Order not found. Please check the ID and try again.'))
     } finally {
       setLoading(false)
     }

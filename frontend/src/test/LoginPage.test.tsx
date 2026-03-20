@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import LoginPage from '../pages/auth/LoginPage'
+import { AuthProvider } from '../context/AuthContext'
 
 // Mock the auth API so we don't make real HTTP calls in tests
 vi.mock('../api/auth', () => ({
@@ -13,9 +14,11 @@ describe('LoginPage', () => {
 
   test('renders login form correctly', () => {
     render(
-      <MemoryRouter>
-        <LoginPage />
-      </MemoryRouter>
+      <AuthProvider>
+        <MemoryRouter>
+          <LoginPage />
+        </MemoryRouter>
+      </AuthProvider>
     )
 
     // Check that key elements are present
@@ -26,14 +29,16 @@ describe('LoginPage', () => {
 
   test('shows error message on failed login', async () => {
     // Make the mock API reject with an error
-    (loginApi as any).mockRejectedValueOnce({
-      response: { data: { error: 'Invalid credentials' } }
+    vi.mocked(loginApi).mockRejectedValueOnce({
+      response: { data: { message: 'Invalid credentials' } }
     })
 
     render(
-      <MemoryRouter>
-        <LoginPage />
-      </MemoryRouter>
+      <AuthProvider>
+        <MemoryRouter>
+          <LoginPage />
+        </MemoryRouter>
+      </AuthProvider>
     )
 
     // Fill in the form
@@ -54,9 +59,11 @@ describe('LoginPage', () => {
 
   test('toggles password visibility', () => {
     render(
-      <MemoryRouter>
-        <LoginPage />
-      </MemoryRouter>
+      <AuthProvider>
+        <MemoryRouter>
+          <LoginPage />
+        </MemoryRouter>
+      </AuthProvider>
     )
 
     const passwordInput = screen.getByPlaceholderText('••••••••')

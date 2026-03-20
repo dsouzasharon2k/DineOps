@@ -1,15 +1,22 @@
 import { useEffect, useState, useCallback } from 'react'
 import { getActiveOrdersApi, updateOrderStatusApi } from '../../api/menu'
+import type { Order, OrderStatus } from '../../types/order'
+import { useAuth } from '../../context/AuthContext'
+import { getApiErrorMessage } from '../../api/error'
+import LoadingState from '../../components/LoadingState'
+import EmptyState from '../../components/EmptyState'
 
 // The status flow for an order in the kitchen
-const STATUS_FLOW: Record<string, string> = {
+const STATUS_FLOW: Record<OrderStatus, OrderStatus | undefined> = {
   PENDING: 'CONFIRMED',
   CONFIRMED: 'PREPARING',
   PREPARING: 'READY',
   READY: 'DELIVERED',
+  DELIVERED: undefined,
+  CANCELLED: undefined,
 }
 
-const STATUS_STYLES: Record<string, { bg: string; text: string; badge: string }> = {
+const STATUS_STYLES: Record<OrderStatus, { bg: string; text: string; badge: string }> = {
   PENDING: {
     bg: 'border-yellow-400',
     text: 'text-yellow-700',
@@ -30,36 +37,34 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; badge: string }>
     text: 'text-green-700',
     badge: 'bg-green-100 text-green-700',
   },
+  DELIVERED: {
+    bg: 'border-gray-300',
+    text: 'text-gray-700',
+    badge: 'bg-gray-100 text-gray-700',
+  },
+  CANCELLED: {
+    bg: 'border-red-400',
+    text: 'text-red-700',
+    badge: 'bg-red-100 text-red-700',
+  },
 }
 
-const STATUS_LABELS: Record<string, string> = {
+const STATUS_LABELS: Record<OrderStatus, string> = {
   PENDING: 'New Order',
   CONFIRMED: 'Confirmed',
   PREPARING: 'Preparing',
   READY: 'Ready',
+  DELIVERED: 'Delivered',
+  CANCELLED: 'Cancelled',
 }
 
-const NEXT_ACTION_LABELS: Record<string, string> = {
+const NEXT_ACTION_LABELS: Record<OrderStatus, string> = {
   PENDING: '✅ Confirm',
   CONFIRMED: '👨‍🍳 Start Preparing',
   PREPARING: '🛎️ Mark Ready',
   READY: '✓ Delivered',
-}
-
-interface OrderItem {
-  id: string
-  name: string
-  quantity: number
-  price: number
-}
-
-interface Order {
-  id: string
-  status: string
-  totalAmount: number
-  notes: string
-  createdAt: string
-  items: OrderItem[]
+  DELIVERED: 'Completed',
+  CANCELLED: 'Cancelled',
 }
 
 // Format time elapsed since order was placed
@@ -75,17 +80,18 @@ export default function KitchenPage() {
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState<string | null>(null)
   const [lastRefresh, setLastRefresh] = useState(new Date())
+  const [error, setError] = useState('')
 
-  const token = localStorage.getItem('token') ?? ''
+  const { token } = useAuth()
   const tenantId = 'a085284e-ca00-4f64-a2c7-42fc0572bb97'
 
   const fetchOrders = useCallback(async () => {
     try {
-      const data = await getActiveOrdersApi(tenantId, token)
+      const data = await getActiveOrdersApi(tenantId, token ?? '')
       setOrders(data)
       setLastRefresh(new Date())
     } catch (err) {
-      console.error('Failed to fetch orders', err)
+      setError(getApiErrorMessage(err, 'Failed to fetch kitchen orders.'))
     } finally {
       setLoading(false)
     }
@@ -97,37 +103,33 @@ export default function KitchenPage() {
     return () => clearInterval(interval)
   }, [fetchOrders])
 
-  const handleStatusUpdate = async (orderId: string, nextStatus: string) => {
+  const handleStatusUpdate = async (orderId: string, nextStatus: OrderStatus) => {
     setUpdating(orderId)
     try {
-      const updated = await updateOrderStatusApi(orderId, nextStatus, token)
+      const updated = await updateOrderStatusApi(orderId, nextStatus, token ?? '')
       if (nextStatus === 'DELIVERED') {
         setOrders((prev) => prev.filter((o) => o.id !== orderId))
       } else {
         setOrders((prev) => prev.map((o) => (o.id === orderId ? updated : o)))
       }
     } catch (err) {
-      console.error('Failed to update status', err)
+      setError(getApiErrorMessage(err, 'Failed to update order status.'))
     } finally {
       setUpdating(null)
     }
   }
 
-  const columns = ['PENDING', 'CONFIRMED', 'PREPARING', 'READY']
+  const columns: OrderStatus[] = ['PENDING', 'CONFIRMED', 'PREPARING', 'READY']
   const ordersByStatus = columns.reduce(
     (acc, status) => {
       acc[status] = orders.filter((o) => o.status === status)
       return acc
     },
-    {} as Record<string, Order[]>
+    {} as Record<OrderStatus, Order[]>
   )
 
   if (loading)
-    return (
-      <div className="flex items-center justify-center h-64 text-gray-400">
-        Loading kitchen orders...
-      </div>
-    )
+    return <LoadingState message="Loading kitchen orders..." />
 
   return (
     <div className="p-4">
@@ -146,12 +148,12 @@ export default function KitchenPage() {
           🔄 Refresh
         </button>
       </div>
+      {error && (
+        <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+      )}
 
       {orders.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-64 text-gray-400 gap-3">
-          <span className="text-5xl">🍽️</span>
-          <p>No active orders right now.</p>
-        </div>
+        <EmptyState icon="🍽️" title="No active orders" description="New orders will appear here automatically." />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           {columns.map((status) => {
@@ -217,9 +219,12 @@ export default function KitchenPage() {
                         </span>
                         {STATUS_FLOW[status] && (
                           <button
-                            onClick={() =>
-                              handleStatusUpdate(order.id, STATUS_FLOW[status])
-                            }
+                            onClick={() => {
+                              const nextStatus = STATUS_FLOW[status]
+                              if (nextStatus) {
+                                handleStatusUpdate(order.id, nextStatus)
+                              }
+                            }}
                             disabled={updating === order.id}
                             className="text-xs px-3 py-1.5 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 disabled:opacity-50"
                           >

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import PublicLayout from './layouts/PublicLayout'
 import DashboardLayout from './layouts/DashboardLayout'
 import ProtectedRoute from './routes/ProtectedRoute'
@@ -11,40 +11,67 @@ import PublicMenuPage from './pages/menu/PublicMenuPage'
 import OrderConfirmPage from './pages/menu/OrderConfirmPage'
 import OrderStatusPage from './pages/menu/OrderStatusPage'
 import OrderHistoryPage from './pages/menu/OrderHistoryPage'
+import ErrorBoundary from './components/ErrorBoundary'
+import SectionErrorFallback from './components/SectionErrorFallback'
+import NotFoundPage from './pages/NotFoundPage'
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Routes>
 
-        {/* Public routes - no login required */}
-        <Route element={<PublicLayout />}>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/menu/:tenantId" element={<PublicMenuPage />} />
-          <Route path="/menu/:tenantId/confirm" element={<OrderConfirmPage />} />
-          <Route path="/menu/:tenantId/order/:orderId" element={<OrderStatusPage />} />
-          <Route path="/menu/:tenantId/track" element={<OrderHistoryPage />} />
-        </Route>
-
-        {/* Protected routes - login required */}
-        <Route
-          element={
-            <ProtectedRoute>
-              <DashboardLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="/dashboard" element={<DashboardHome />} />
-          <Route path="/dashboard/restaurants" element={<RestaurantsPage />} />
-          <Route path="/dashboard/menu" element={<MenuPage />} />
-          <Route path="/dashboard/kitchen" element={<KitchenPage />} />
+          {/* Public routes - no login required */}
+          <Route
+            element={
+              <ErrorBoundary
+                fallback={
+                  <SectionErrorFallback
+                    title="Public page unavailable"
+                    description="Please refresh and try again."
+                  />
+                }
+              >
+                <PublicLayout />
+              </ErrorBoundary>
+            }
+          >
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/menu/:tenantId" element={<PublicMenuPage />} />
+            <Route path="/menu/:tenantId/confirm" element={<OrderConfirmPage />} />
+            <Route path="/menu/:tenantId/order/:orderId" element={<OrderStatusPage />} />
+            <Route path="/menu/:tenantId/track" element={<OrderHistoryPage />} />
           </Route>
 
-        {/* Default redirect */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+          {/* Protected routes - login required */}
+          <Route
+            element={
+              <ErrorBoundary
+                fallback={
+                  <SectionErrorFallback
+                    title="Dashboard temporarily unavailable"
+                    description="Please reload and sign in again if needed."
+                  />
+                }
+              >
+                <ProtectedRoute>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              </ErrorBoundary>
+            }
+          >
+            <Route path="/dashboard" element={<DashboardHome />} />
+            <Route path="/dashboard/restaurants" element={<RestaurantsPage />} />
+            <Route path="/dashboard/menu" element={<MenuPage />} />
+            <Route path="/dashboard/kitchen" element={<KitchenPage />} />
+          </Route>
 
-      </Routes>
-    </BrowserRouter>
+          {/* 404 route */}
+          <Route path="*" element={<NotFoundPage />} />
+
+        </Routes>
+      </BrowserRouter>
+    </ErrorBoundary>
   )
 }
 

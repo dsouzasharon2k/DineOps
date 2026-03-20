@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 const DashboardLayout = () => {
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { logout } = useAuth()
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
+    logout()
     navigate('/login')
   }
 

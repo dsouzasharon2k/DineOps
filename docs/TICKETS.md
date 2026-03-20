@@ -1804,16 +1804,16 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-067 — feat/DOPS-067-user-registration
 [ ] DOPS-068 — feat/DOPS-068-jwt-refresh-token
 [ ] DOPS-069 — feat/DOPS-069-restaurant-onboarding
-[ ] DOPS-070 — feat/DOPS-070-frontend-auth-context
+[x] DOPS-070 — feat/DOPS-070-frontend-auth-context
 [ ] DOPS-071 — feat/DOPS-071-payment-integration
 [ ] DOPS-072 — feat/DOPS-072-gst-invoicing
-[ ] DOPS-073 — refactor/DOPS-073-cleanup-layouts
-[ ] DOPS-074 — feat/DOPS-074-typescript-interfaces
-[ ] DOPS-075 — feat/DOPS-075-api-base-url-env
-[ ] DOPS-076 — feat/DOPS-076-global-error-handling
-[ ] DOPS-077 — feat/DOPS-077-loading-empty-states
-[ ] DOPS-078 — feat/DOPS-078-icons-and-404
-[ ] DOPS-079 — feat/DOPS-079-error-boundaries
+[x] DOPS-073 — refactor/DOPS-073-cleanup-layouts
+[x] DOPS-074 — feat/DOPS-074-typescript-interfaces
+[x] DOPS-075 — feat/DOPS-075-api-base-url-env
+[x] DOPS-076 — feat/DOPS-076-global-error-handling
+[x] DOPS-077 — feat/DOPS-077-loading-empty-states
+[x] DOPS-078 — feat/DOPS-078-icons-and-404
+[x] DOPS-079 — feat/DOPS-079-error-boundaries
 [ ] DOPS-080 — feat/DOPS-080-websocket-orders
 [ ] DOPS-081 — feat/DOPS-081-notifications
 [ ] DOPS-082 — feat/DOPS-082-order-status-history

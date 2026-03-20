@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { loginApi } from '../../api/auth'
+import { useAuth } from '../../context/AuthContext'
+import { getApiErrorMessage } from '../../api/error'
 
 const LoginPage = () => {
   // State for form fields and error message
@@ -10,6 +12,7 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false)
 
   const navigate = useNavigate()
+  const { login } = useAuth()
 
   const [showPassword, setShowPassword] = useState(false)
   
@@ -22,24 +25,23 @@ const LoginPage = () => {
 
       // Store the JWT token in localStorage
       // This token will be attached to all future API requests by axiosInstance
-      localStorage.setItem('token', data.token)
+      login(data.token)
 
       // Redirect to dashboard after successful login
       navigate('/dashboard')
-    } catch (err: any) {
-      // Show error message if login fails
-      setError(err.response?.data?.error || 'Login failed. Please try again.')
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Login failed. Please try again.'))
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    // Full screen centered layout - works on mobile and desktop
-    <div className="w-full max-w-md px-6">
+    // Login page controls its own centering so other public pages can be full-width.
+    <div className="min-h-screen flex items-center justify-center px-4 py-10">
 
       {/* Card */}
-      <div className="bg-white rounded-2xl shadow-md p-8">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-md p-8">
 
         {/* Logo / Title */}
         <h1 className="text-3xl font-bold text-orange-500 text-center mb-1">

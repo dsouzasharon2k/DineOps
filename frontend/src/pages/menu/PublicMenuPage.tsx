@@ -2,30 +2,20 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getCategoriesApi, getItemsApi } from '../../api/menu'
 import { useCart } from '../../hooks/useCart'
-
-interface Category {
-  id: string
-  name: string
-  description: string
-}
-
-interface MenuItem {
-  id: string
-  name: string
-  description: string
-  price: number
-  vegetarian: boolean
-  available: boolean
-}
+import type { MenuCategory, MenuItem } from '../../types/menu'
+import { getApiErrorMessage } from '../../api/error'
+import LoadingState from '../../components/LoadingState'
+import EmptyState from '../../components/EmptyState'
 
 const PublicMenuPage = () => {
   const { tenantId } = useParams<{ tenantId: string }>()
   const navigate = useNavigate()
   const { addItem, removeItem, getQuantity, total, itemCount } = useCart(tenantId!)
-  const [categories, setCategories] = useState<Category[]>([])
+  const [categories, setCategories] = useState<MenuCategory[]>([])
   const [itemsByCategory, setItemsByCategory] = useState<Record<string, MenuItem[]>>({})
   const [loading, setLoading] = useState(true)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     const loadMenu = async () => {
@@ -40,7 +30,7 @@ const PublicMenuPage = () => {
           // Fetch items for each category in parallel
           const itemsMap: Record<string, MenuItem[]> = {}
           await Promise.all(
-            cats.map(async (cat: Category) => {
+            cats.map(async (cat) => {
               const items = await getItemsApi(tenantId!, cat.id)
               itemsMap[cat.id] = items
             })
@@ -48,7 +38,7 @@ const PublicMenuPage = () => {
           setItemsByCategory(itemsMap)
         }
       } catch (err) {
-        console.error('Failed to load menu')
+        setError(getApiErrorMessage(err, 'Failed to load menu.'))
       } finally {
         setLoading(false)
       }
@@ -58,19 +48,14 @@ const PublicMenuPage = () => {
   }, [tenantId])
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-gray-400">
-        Loading menu...
-      </div>
-    )
+    return <LoadingState fullPage message="Loading menu..." />
   }
 
   if (categories.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-400">
-        <div className="text-center">
-          <p className="text-4xl mb-3">🍽️</p>
-          <p>Menu not available yet.</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="w-full max-w-md">
+          <EmptyState icon="🍽️" title="Menu not available" description="This restaurant has no published categories yet." />
         </div>
       </div>
     )
@@ -114,15 +99,16 @@ const PublicMenuPage = () => {
 
       {/* Menu items for active category */}
       <div className="max-w-2xl mx-auto px-4 py-6 pb-32">
+        {error && (
+          <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+        )}
         {activeCategory && (
           <h2 className="text-lg font-bold text-gray-800 mb-4">
             {categories.find((cat) => cat.id === activeCategory)?.name}
           </h2>
         )}
         {activeItems.length === 0 ? (
-          <p className="text-gray-400 text-sm text-center py-8">
-            No items in this category yet.
-          </p>
+          <EmptyState compact icon="🧾" title="No items yet" description="Try another category or check back soon." />
         ) : (
           <div className="flex flex-col gap-3">
             {activeItems.map((item) => {
@@ -138,12 +124,12 @@ const PublicMenuPage = () => {
                       {/* Green square = veg, Red square = non-veg (Indian standard) */}
                       <span
                         className={`w-4 h-4 rounded-sm border-2 flex items-center justify-center ${
-                          item.vegetarian ? 'border-green-500' : 'border-red-500'
+                          item.isVegetarian ? 'border-green-500' : 'border-red-500'
                         }`}
                       >
                         <span
                           className={`w-2 h-2 rounded-full ${
-                            item.vegetarian ? 'bg-green-500' : 'bg-red-500'
+                            item.isVegetarian ? 'bg-green-500' : 'bg-red-500'
                           }`}
                         />
                       </span>
@@ -170,7 +156,7 @@ const PublicMenuPage = () => {
                             menuItemId: item.id,
                             name: item.name,
                             price: item.price,
-                            isVegetarian: item.vegetarian,
+                            isVegetarian: item.isVegetarian,
                           })
                         }
                         className="px-4 py-1.5 rounded-full text-sm font-medium bg-orange-500 text-white hover:bg-orange-600"
@@ -192,7 +178,7 @@ const PublicMenuPage = () => {
                               menuItemId: item.id,
                               name: item.name,
                               price: item.price,
-                              isVegetarian: item.vegetarian,
+                              isVegetarian: item.isVegetarian,
                             })
                           }
                           className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-lg font-bold hover:bg-orange-600"
