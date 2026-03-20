@@ -1766,10 +1766,10 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-32 — dockerignore files for backend and frontend
 [x] DOPS-33 — k6 duplicate BASE_URL bug + env-driven base URL
 [ ] DOPS-34 — Bean Validation on request DTOs (+ @Valid)
-[ ] DOPS-35 — @ControllerAdvice global exception handler
+[x] DOPS-35 — @ControllerAdvice global exception handler
 [ ] DOPS-36 — OrderService validation
 [ ] DOPS-37 — updateStatus null/invalid fix
-[ ] DOPS-38 — Response DTOs for Order/MenuItem/etc
+[x] DOPS-38 — Response DTOs for Order/MenuItem/etc
 [ ] DOPS-39 — Axios 401 interceptor + redirect to `/login`
 [ ] DOPS-40 — `VITE_API_URL` env var in axiosInstance (remove localhost hardcode)
 [ ] DOPS-41 — K8s Secrets for DB password and JWT secret
