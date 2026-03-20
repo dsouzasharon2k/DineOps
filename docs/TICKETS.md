@@ -1809,7 +1809,7 @@ Marking items based on your board screenshots and the code changes already made:
 [ ] DOPS-072 — feat/DOPS-072-gst-invoicing
 [x] DOPS-073 — refactor/DOPS-073-cleanup-layouts
 [ ] DOPS-074 — feat/DOPS-074-typescript-interfaces
-[ ] DOPS-075 — feat/DOPS-075-api-base-url-env
+[x] DOPS-075 — feat/DOPS-075-api-base-url-env
 [ ] DOPS-076 — feat/DOPS-076-global-error-handling
 [ ] DOPS-077 — feat/DOPS-077-loading-empty-states
 [ ] DOPS-078 — feat/DOPS-078-icons-and-404
