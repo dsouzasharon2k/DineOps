@@ -3,6 +3,7 @@ package com.dineops.config;
 import com.dineops.auth.JwtAuthFilter;
 import com.dineops.auth.TenantAuthorizationFilter;
 import com.dineops.logging.RequestContextFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -28,13 +29,25 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private final TenantAuthorizationFilter tenantAuthorizationFilter;
     private final RequestContextFilter requestContextFilter;
+    private final List<String> allowedOrigins;
+    private final List<String> allowedMethods;
+    private final List<String> allowedHeaders;
+    private final long maxAgeSeconds;
 
     public SecurityConfig(JwtAuthFilter jwtAuthFilter,
                           TenantAuthorizationFilter tenantAuthorizationFilter,
-                          RequestContextFilter requestContextFilter) {
+                          RequestContextFilter requestContextFilter,
+                          @Value("#{'${app.cors.allowed-origins:http://localhost:5173,http://localhost:3000}'.split(',')}") List<String> allowedOrigins,
+                          @Value("#{'${app.cors.allowed-methods:GET,POST,PUT,DELETE,OPTIONS,PATCH}'.split(',')}") List<String> allowedMethods,
+                          @Value("#{'${app.cors.allowed-headers:*}'.split(',')}") List<String> allowedHeaders,
+                          @Value("${app.cors.max-age-seconds:3600}") long maxAgeSeconds) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.tenantAuthorizationFilter = tenantAuthorizationFilter;
         this.requestContextFilter = requestContextFilter;
+        this.allowedOrigins = allowedOrigins.stream().map(String::trim).toList();
+        this.allowedMethods = allowedMethods.stream().map(String::trim).toList();
+        this.allowedHeaders = allowedHeaders.stream().map(String::trim).toList();
+        this.maxAgeSeconds = maxAgeSeconds;
     }
 
     @Bean
@@ -84,11 +97,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        config.setAllowedHeaders(List.of("*"));
+        config.setAllowedOrigins(allowedOrigins);
+        config.setAllowedMethods(allowedMethods);
+        config.setAllowedHeaders(allowedHeaders);
         config.setAllowCredentials(true);
-        config.setMaxAge(3600L);
+        config.setMaxAge(maxAgeSeconds);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
