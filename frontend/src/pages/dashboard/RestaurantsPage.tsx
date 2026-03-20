@@ -86,6 +86,12 @@ const RestaurantsPage = () => {
               <p className="text-sm text-gray-500">
                 📞 {restaurant.phone || 'N/A'}
               </p>
+              <p className="text-sm text-gray-500">
+                📄 FSSAI: {restaurant.fssaiLicense || 'N/A'}
+              </p>
+              <p className="text-sm text-gray-500">
+                🧾 GST: {restaurant.gstNumber || 'N/A'}
+              </p>
             </div>
           ))}
         </div>

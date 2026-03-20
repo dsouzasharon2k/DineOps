@@ -27,6 +27,12 @@ public class Restaurant extends AuditableEntity {
     @Column(name = "logo_url")
     private String logoUrl;
 
+    @Column(name = "fssai_license", length = 20)
+    private String fssaiLicense;
+
+    @Column(name = "gst_number", length = 20)
+    private String gstNumber;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RestaurantStatus status = RestaurantStatus.PENDING;
@@ -45,6 +51,10 @@ public class Restaurant extends AuditableEntity {
     public void setCuisineType(String cuisineType) { this.cuisineType = cuisineType; }
     public String getLogoUrl() { return logoUrl; }
     public void setLogoUrl(String logoUrl) { this.logoUrl = logoUrl; }
+    public String getFssaiLicense() { return fssaiLicense; }
+    public void setFssaiLicense(String fssaiLicense) { this.fssaiLicense = fssaiLicense; }
+    public String getGstNumber() { return gstNumber; }
+    public void setGstNumber(String gstNumber) { this.gstNumber = gstNumber; }
     public RestaurantStatus getStatus() { return status; }
     public void setStatus(RestaurantStatus status) { this.status = status; }
 }

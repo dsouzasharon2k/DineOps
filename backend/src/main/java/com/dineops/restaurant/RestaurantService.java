@@ -42,6 +42,8 @@ public class RestaurantService {
                 restaurant.getPhone(),
                 restaurant.getCuisineType(),
                 restaurant.getLogoUrl(),
+                restaurant.getFssaiLicense(),
+                restaurant.getGstNumber(),
                 restaurant.getStatus(),
                 restaurant.getCreatedAt(),
                 restaurant.getUpdatedAt()
