@@ -88,6 +88,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/restaurants/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/v1/orders/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN", "STAFF")
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/orders/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN", "STAFF")
+                .requestMatchers(HttpMethod.GET, "/api/v1/audit-log/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN")
                 .anyRequest().authenticated()
             )
                     .addFilterBefore(requestContextFilter, UsernamePasswordAuthenticationFilter.class)

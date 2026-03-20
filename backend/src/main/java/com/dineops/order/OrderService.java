@@ -1,5 +1,6 @@
 package com.dineops.order;
 
+import com.dineops.audit.AuditedAction;
 import com.dineops.dto.OrderItemResponse;
 import com.dineops.dto.OrderResponse;
 import com.dineops.dto.OrderStatusHistoryResponse;
@@ -72,6 +73,7 @@ public class OrderService {
     // Place a new order - validates items, calculates total, saves everything
     @CacheEvict(cacheNames = {"orders:by-id", "orders:active-by-tenant", "orders:by-tenant"}, allEntries = true)
     @Transactional
+    @AuditedAction(entityType = "ORDER", action = "CREATE")
     public Order placeOrder(PlaceOrderRequest request) {
         Restaurant restaurant = restaurantRepository.findById(request.tenantId())
                 .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
@@ -166,6 +168,7 @@ public class OrderService {
 
     // Update order status - used by kitchen staff to move order through lifecycle
     @CacheEvict(cacheNames = {"orders:by-id", "orders:active-by-tenant", "orders:by-tenant"}, allEntries = true)
+    @AuditedAction(entityType = "ORDER", action = "STATUS_UPDATE")
     public Order updateStatus(UUID orderId, OrderStatus newStatus) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found"));
@@ -187,6 +190,7 @@ public class OrderService {
     }
 
     @CacheEvict(cacheNames = {"orders:by-id", "orders:active-by-tenant", "orders:by-tenant"}, allEntries = true)
+    @AuditedAction(entityType = "ORDER", action = "CUSTOMER_CANCEL")
     public OrderResponse customerCancelOrder(UUID orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found"));
@@ -206,6 +210,7 @@ public class OrderService {
     }
 
     @CacheEvict(cacheNames = {"orders:by-id", "orders:active-by-tenant", "orders:by-tenant"}, allEntries = true)
+    @AuditedAction(entityType = "PAYMENT", action = "INITIATE")
     public InitiatePaymentResponse initiatePayment(UUID orderId, PaymentMethod paymentMethod) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found"));
@@ -228,6 +233,7 @@ public class OrderService {
     }
 
     @CacheEvict(cacheNames = {"orders:by-id", "orders:active-by-tenant", "orders:by-tenant"}, allEntries = true)
+    @AuditedAction(entityType = "PAYMENT", action = "WEBHOOK")
     public OrderResponse handlePaymentWebhook(String providerOrderRef, String providerPaymentRef, boolean success) {
         String safeProviderOrderRef = Objects.requireNonNull(providerOrderRef, "providerOrderRef cannot be null");
         Order order = orderRepository.findByPaymentProviderOrderRef(safeProviderOrderRef)
