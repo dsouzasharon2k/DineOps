@@ -13,6 +13,9 @@ public record RestaurantResponse(
         String phone,
         String cuisineType,
         String logoUrl,
+        String fssaiLicense,
+        String gstNumber,
+        String operatingHours,
         RestaurantStatus status,
         LocalDateTime createdAt,
         LocalDateTime updatedAt

@@ -13,7 +13,8 @@ class RestaurantServiceTest {
     @Test
     void getAllRestaurants_returnsListFromRepository() {
         RestaurantRepository repo = Mockito.mock(RestaurantRepository.class);
-        RestaurantService service = new RestaurantService(repo);
+        com.dineops.user.UserRepository userRepository = Mockito.mock(com.dineops.user.UserRepository.class);
+        RestaurantService service = new RestaurantService(repo, userRepository);
 
         when(repo.findAll()).thenReturn(Collections.emptyList());
 

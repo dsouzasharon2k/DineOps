@@ -78,6 +78,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/restaurants/**").permitAll()
                 // Public order placement and status tracking (customers not logged in)
                 .requestMatchers(HttpMethod.POST, "/api/v1/orders").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/orders/*/cancel").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/api/v1/orders", "/api/v1/orders/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/orders/{orderId}").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/restaurants/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN")

@@ -1,6 +1,6 @@
 import axiosInstance from './axiosInstance'
 import type { MenuCategory, MenuItem } from '../types/menu'
-import type { Order, OrderStatus } from '../types/order'
+import type { Order, OrderStatus, OrderStatusHistoryEntry } from '../types/order'
 
 // --- Categories ---
 
@@ -65,16 +65,27 @@ export const deleteItemApi = async (
 // Place a new order
 export const placeOrderApi = async (
   tenantId: string,
+  tableNumber: string | null,
   notes: string,
   items: { menuItemId: string; quantity: number }[]
 ): Promise<Order> => {
-  const res = await axiosInstance.post<Order>('/api/v1/orders', { tenantId, notes, items })
+  const res = await axiosInstance.post<Order>('/api/v1/orders', { tenantId, tableNumber, notes, items })
   return res.data
 }
 
 // Get order by ID (for status tracking)
 export const getOrderApi = async (orderId: string): Promise<Order> => {
   const res = await axiosInstance.get<Order>(`/api/v1/orders/${orderId}`)
+  return res.data
+}
+
+export const getOrderHistoryApi = async (orderId: string): Promise<OrderStatusHistoryEntry[]> => {
+  const res = await axiosInstance.get<OrderStatusHistoryEntry[]>(`/api/v1/orders/${orderId}/history`)
+  return res.data
+}
+
+export const cancelOrderApi = async (orderId: string): Promise<Order> => {
+  const res = await axiosInstance.post<Order>(`/api/v1/orders/${orderId}/cancel`)
   return res.data
 }
 

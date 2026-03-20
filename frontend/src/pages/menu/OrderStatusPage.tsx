@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getOrderApi } from '../../api/menu';
-import type { Order, OrderStatus } from '../../types/order';
+import { cancelOrderApi, getOrderApi, getOrderHistoryApi } from '../../api/menu';
+import { getRestaurantByIdApi } from '../../api/restaurants';
+import type { Order, OrderStatus, OrderStatusHistoryEntry } from '../../types/order';
+import type { Restaurant } from '../../types/restaurant';
 import { getApiErrorMessage } from '../../api/error';
 
 // Maps status to display label and progress step
@@ -20,26 +22,40 @@ export default function OrderStatusPage() {
   const { tenantId, orderId } = useParams<{ tenantId: string; orderId: string }>();
   const navigate = useNavigate();
   const [order, setOrder] = useState<Order | null>(null);
+  const [history, setHistory] = useState<OrderStatusHistoryEntry[]>([]);
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState('');
+
+  const fetchOrder = useCallback(async () => {
+    if (!orderId) {
+      setLoading(false);
+      setError('Order not found.');
+      return;
+    }
+    try {
+      const data = await getOrderApi(orderId);
+      setOrder(data);
+      if (tenantId) {
+        const restaurantData = await getRestaurantByIdApi(tenantId);
+        setRestaurant(restaurantData);
+      }
+      const timeline = await getOrderHistoryApi(orderId);
+      setHistory(timeline);
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Failed to fetch order.'));
+    } finally {
+      setLoading(false);
+    }
+  }, [orderId, tenantId]);
 
   useEffect(() => {
     fetchOrder();
     // Poll every 10 seconds for status updates
     const interval = setInterval(fetchOrder, 10000);
     return () => clearInterval(interval);
-  }, [orderId]);
-
-  const fetchOrder = async () => {
-    try {
-      const data = await getOrderApi(orderId!);
-      setOrder(data);
-    } catch (err) {
-      setError(getApiErrorMessage(err, 'Failed to fetch order.'));
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchOrder]);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
@@ -61,6 +77,21 @@ export default function OrderStatusPage() {
 
   const statusInfo = STATUS_LABELS[order.status] ?? STATUS_LABELS['PENDING'];
   const currentStep = STATUS_STEPS.indexOf(order.status);
+  const canCustomerCancel = order.status === 'PENDING';
+
+  const handleCancelOrder = async () => {
+    if (!orderId) return;
+    setCancelling(true);
+    setError('');
+    try {
+      await cancelOrderApi(orderId);
+      await fetchOrder();
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Unable to cancel order.'));
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -86,7 +117,7 @@ export default function OrderStatusPage() {
                     {idx < currentStep ? '✓' : idx + 1}
                   </div>
                   <p className="text-xs text-gray-500 mt-1 text-center leading-tight">
-                    {STATUS_LABELS[step].label}
+                    {STATUS_LABELS[step as OrderStatus].label}
                   </p>
                   {idx < 3 && (
                     <div className={`absolute top-4 left-0 right-0 h-0.5 ${
@@ -123,6 +154,59 @@ export default function OrderStatusPage() {
             <span>Total</span>
             <span>₹{order.totalAmount / 100}</span>
           </div>
+        </div>
+
+        {restaurant && (
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-4">
+            <div className="px-4 py-3 border-b border-gray-100">
+              <p className="font-semibold text-gray-700">Contact Restaurant</p>
+            </div>
+            <div className="px-4 py-3 text-sm text-gray-600">
+              <p className="font-medium text-gray-800">{restaurant.name}</p>
+              {restaurant.address && <p>{restaurant.address}</p>}
+              {restaurant.phone && (
+                <p className="mt-1">
+                  <a className="text-orange-600 underline" href={`tel:${restaurant.phone}`}>
+                    {restaurant.phone}
+                  </a>
+                </p>
+              )}
+              {restaurant.operatingHours && <p className="mt-1">Hours: {restaurant.operatingHours}</p>}
+            </div>
+          </div>
+        )}
+
+        {canCustomerCancel && (
+          <button
+            onClick={handleCancelOrder}
+            disabled={cancelling}
+            className="mb-4 w-full rounded-xl border-2 border-red-300 py-3 font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
+          >
+            {cancelling ? 'Cancelling...' : 'Cancel Order'}
+          </button>
+        )}
+
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-4">
+          <div className="px-4 py-3 border-b border-gray-100">
+            <p className="font-semibold text-gray-700">Status Timeline</p>
+          </div>
+          {history.length === 0 ? (
+            <p className="px-4 py-3 text-sm text-gray-500">No status changes recorded yet.</p>
+          ) : (
+            history.map((entry, idx) => (
+              <div
+                key={entry.id}
+                className={`px-4 py-3 ${idx < history.length - 1 ? 'border-b border-gray-100' : ''}`}
+              >
+                <p className="text-sm font-medium text-gray-800">
+                  {entry.oldStatus} → {entry.newStatus}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {new Date(entry.changedAt).toLocaleString()} by {entry.changedBy ?? 'system'}
+                </p>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Order again button */}

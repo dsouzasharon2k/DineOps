@@ -1803,7 +1803,7 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-066 — feat/DOPS-066-order-status-validation
 [x] DOPS-067 — feat/DOPS-067-user-registration
 [x] DOPS-068 — feat/DOPS-068-jwt-refresh-token
-[ ] DOPS-069 — feat/DOPS-069-restaurant-onboarding
+[x] DOPS-069 — feat/DOPS-069-restaurant-onboarding
 [x] DOPS-070 — feat/DOPS-070-frontend-auth-context
 [ ] DOPS-071 — feat/DOPS-071-payment-integration
 [ ] DOPS-072 — feat/DOPS-072-gst-invoicing
@@ -1816,7 +1816,7 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-079 — feat/DOPS-079-error-boundaries
 [ ] DOPS-080 — feat/DOPS-080-websocket-orders
 [ ] DOPS-081 — feat/DOPS-081-notifications
-[ ] DOPS-082 — feat/DOPS-082-order-status-history
+[x] DOPS-082 — feat/DOPS-082-order-status-history
 [ ] DOPS-083 — feat/DOPS-083-audit-log
 [ ] DOPS-084 — feat/DOPS-084-analytics-dashboard
 [x] DOPS-085 — chore/DOPS-085-complete-docker-k8s
@@ -1834,10 +1834,10 @@ Marking items based on your board screenshots and the code changes already made:
 [ ] DOPS-097 — feat/DOPS-097-updated-at-trigger
 [ ] DOPS-098 — feat/DOPS-098-legal-pages
 [ ] DOPS-099 — feat/DOPS-099-data-deletion
-[ ] DOPS-100 — feat/DOPS-100-fssai-gst-fields
-[ ] DOPS-101 — feat/DOPS-101-table-management
-[ ] DOPS-102 — feat/DOPS-102-customer-cancellation
-[ ] DOPS-103 — feat/DOPS-103-restaurant-contact-info
+[x] DOPS-100 — feat/DOPS-100-fssai-gst-fields
+[x] DOPS-101 — feat/DOPS-101-table-management
+[x] DOPS-102 — feat/DOPS-102-customer-cancellation
+[x] DOPS-103 — feat/DOPS-103-restaurant-contact-info
 [ ] DOPS-104 — feat/DOPS-104-phone-order-lookup
 [ ] DOPS-105 — feat/DOPS-105-ratings-reviews
 [ ] DOPS-106 — feat/DOPS-106-prep-time-estimate

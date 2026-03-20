@@ -1,0 +1,3 @@
+ALTER TABLE restaurants
+    ADD COLUMN IF NOT EXISTS fssai_license VARCHAR(20),
+    ADD COLUMN IF NOT EXISTS gst_number VARCHAR(20);

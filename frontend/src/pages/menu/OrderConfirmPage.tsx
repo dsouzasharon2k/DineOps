@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useCart } from '../../hooks/useCart';
 import { placeOrderApi } from '../../api/menu';
 import { getApiErrorMessage } from '../../api/error';
 
 export default function OrderConfirmPage() {
   const { tenantId } = useParams<{ tenantId: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const tableNumber = searchParams.get('table');
   const { cart, total, itemCount, clearCart } = useCart(tenantId!);
   const [notes, setNotes] = useState('');
   const [placing, setPlacing] = useState(false);
@@ -35,7 +37,7 @@ export default function OrderConfirmPage() {
         menuItemId: i.menuItemId,
         quantity: i.quantity
       }));
-      const order = await placeOrderApi(tenantId!, notes, orderItems);
+      const order = await placeOrderApi(tenantId!, tableNumber, notes, orderItems);
       clearCart();
       navigate(`/menu/${tenantId}/order/${order.id}`);
     } catch (err) {
@@ -83,6 +85,12 @@ export default function OrderConfirmPage() {
         {/* Bill summary */}
         <div className="bg-white rounded-xl shadow-sm px-4 py-4 mb-4">
           <h3 className="font-semibold text-gray-700 mb-3">Bill Summary</h3>
+          {tableNumber && (
+            <div className="flex justify-between text-gray-600 mb-2">
+              <span>Table</span>
+              <span>{tableNumber}</span>
+            </div>
+          )}
           <div className="flex justify-between text-gray-600 mb-2">
             <span>Item total ({itemCount} items)</span>
             <span>₹{total / 100}</span>
