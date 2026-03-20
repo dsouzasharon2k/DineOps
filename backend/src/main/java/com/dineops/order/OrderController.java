@@ -3,8 +3,15 @@ package com.dineops.order;
 import com.dineops.dto.PageResponse;
 import com.dineops.dto.OrderResponse;
 import com.dineops.dto.OrderStatusHistoryResponse;
+import com.dineops.dto.InitiatePaymentRequest;
+import com.dineops.dto.InitiatePaymentResponse;
+import com.dineops.dto.PaymentWebhookRequest;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+
+import java.util.Objects;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.UUID;
@@ -67,5 +74,30 @@ public class OrderController {
     @PostMapping("/{orderId}/cancel")
     public ResponseEntity<OrderResponse> customerCancelOrder(@PathVariable UUID orderId) {
         return ResponseEntity.ok(orderService.customerCancelOrder(orderId));
+    }
+
+    @PostMapping("/{orderId}/pay")
+    public ResponseEntity<InitiatePaymentResponse> initiatePayment(
+            @PathVariable UUID orderId,
+            @RequestBody @Valid InitiatePaymentRequest request) {
+        return ResponseEntity.ok(orderService.initiatePayment(orderId, request.paymentMethod()));
+    }
+
+    @PostMapping("/payments/webhook")
+    public ResponseEntity<OrderResponse> paymentWebhook(@RequestBody @Valid PaymentWebhookRequest request) {
+        return ResponseEntity.ok(orderService.handlePaymentWebhook(
+                request.providerOrderRef(),
+                request.providerPaymentRef(),
+                request.success()
+        ));
+    }
+
+    @GetMapping("/{orderId}/invoice")
+    public ResponseEntity<byte[]> downloadInvoice(@PathVariable UUID orderId) {
+        byte[] invoiceBytes = orderService.generateInvoicePdf(orderId);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=invoice-" + orderId + ".pdf")
+                .contentType(Objects.requireNonNull(MediaType.APPLICATION_PDF))
+                .body(invoiceBytes);
     }
 }

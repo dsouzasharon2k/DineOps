@@ -3,6 +3,7 @@ package com.dineops.order;
 import com.dineops.dto.OrderItemResponse;
 import com.dineops.dto.OrderResponse;
 import com.dineops.dto.OrderStatusHistoryResponse;
+import com.dineops.dto.InitiatePaymentResponse;
 import com.dineops.dto.UserResponse;
 import com.dineops.exception.EntityNotFoundException;
 import com.dineops.menu.MenuItem;
@@ -22,11 +23,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.nio.charset.StandardCharsets;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Objects;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -35,6 +38,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class OrderService {
 
     private static final Logger log = LoggerFactory.getLogger(OrderService.class);
+    private static final int GST_PERCENT = 5;
     private static final Map<OrderStatus, Set<OrderStatus>> ALLOWED_TRANSITIONS =
             new EnumMap<>(OrderStatus.class);
 
@@ -201,6 +205,38 @@ public class OrderService {
         throw new IllegalArgumentException("Cancellation window has passed for this order.");
     }
 
+    @CacheEvict(cacheNames = {"orders:by-id", "orders:active-by-tenant", "orders:by-tenant"}, allEntries = true)
+    public InitiatePaymentResponse initiatePayment(UUID orderId, PaymentMethod paymentMethod) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new EntityNotFoundException("Order not found"));
+
+        PaymentMethod safeMethod = Objects.requireNonNull(paymentMethod, "paymentMethod cannot be null");
+        order.setPaymentMethod(safeMethod);
+
+        if (safeMethod == PaymentMethod.CASH) {
+            order.setPaymentStatus(PaymentStatus.UNPAID);
+            Order saved = orderRepository.save(order);
+            return new InitiatePaymentResponse(saved.getId(), saved.getPaymentStatus(), saved.getPaymentMethod(), null, null);
+        }
+
+        String providerOrderRef = "pay_" + UUID.randomUUID().toString().replace("-", "");
+        order.setPaymentStatus(PaymentStatus.PENDING);
+        order.setPaymentProviderOrderRef(providerOrderRef);
+        Order saved = orderRepository.save(order);
+        String checkoutUrl = "/pay/checkout/" + saved.getId() + "?ref=" + providerOrderRef;
+        return new InitiatePaymentResponse(saved.getId(), saved.getPaymentStatus(), saved.getPaymentMethod(), providerOrderRef, checkoutUrl);
+    }
+
+    @CacheEvict(cacheNames = {"orders:by-id", "orders:active-by-tenant", "orders:by-tenant"}, allEntries = true)
+    public OrderResponse handlePaymentWebhook(String providerOrderRef, String providerPaymentRef, boolean success) {
+        String safeProviderOrderRef = Objects.requireNonNull(providerOrderRef, "providerOrderRef cannot be null");
+        Order order = orderRepository.findByPaymentProviderOrderRef(safeProviderOrderRef)
+                .orElseThrow(() -> new EntityNotFoundException("Order not found for providerOrderRef: " + safeProviderOrderRef));
+        order.setPaymentProviderPaymentRef(providerPaymentRef);
+        order.setPaymentStatus(success ? PaymentStatus.PAID : PaymentStatus.FAILED);
+        return toResponse(orderRepository.save(order));
+    }
+
     public List<OrderStatusHistoryResponse> getStatusHistory(UUID orderId) {
         if (!orderRepository.existsById(orderId)) {
             throw new EntityNotFoundException("Order not found");
@@ -208,6 +244,42 @@ public class OrderService {
         return orderStatusHistoryRepository.findByOrderIdOrderByChangedAtAsc(orderId).stream()
                 .map(this::toStatusHistoryResponse)
                 .toList();
+    }
+
+    public byte[] generateInvoicePdf(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new EntityNotFoundException("Order not found"));
+
+        int totalPaise = order.getTotalAmount();
+        int taxableAmountPaise = (int) Math.round(totalPaise / (1 + (GST_PERCENT / 100.0)));
+        int gstAmountPaise = totalPaise - taxableAmountPaise;
+
+        StringBuilder invoice = new StringBuilder();
+        invoice.append("DineOps Invoice\n");
+        invoice.append("====================\n");
+        invoice.append("Order ID: ").append(order.getId()).append('\n');
+        invoice.append("Date: ").append(order.getCreatedAt()).append("\n\n");
+        invoice.append("Restaurant: ").append(order.getTenant().getName()).append('\n');
+        invoice.append("FSSAI: ").append(order.getTenant().getFssaiLicense() == null ? "N/A" : order.getTenant().getFssaiLicense()).append('\n');
+        invoice.append("GSTIN: ").append(order.getTenant().getGstNumber() == null ? "N/A" : order.getTenant().getGstNumber()).append("\n\n");
+        invoice.append("Items:\n");
+        for (OrderItem item : order.getItems()) {
+            int lineAmountPaise = item.getPrice() * item.getQuantity();
+            invoice.append("- ")
+                    .append(item.getName())
+                    .append(" x ")
+                    .append(item.getQuantity())
+                    .append(" = INR ")
+                    .append(String.format("%.2f", lineAmountPaise / 100.0))
+                    .append('\n');
+        }
+        invoice.append('\n');
+        invoice.append("Taxable Amount: INR ").append(String.format("%.2f", taxableAmountPaise / 100.0)).append('\n');
+        invoice.append("GST (").append(GST_PERCENT).append("%): INR ").append(String.format("%.2f", gstAmountPaise / 100.0)).append('\n');
+        invoice.append("Grand Total: INR ").append(String.format("%.2f", totalPaise / 100.0)).append('\n');
+        invoice.append("Payment: ").append(order.getPaymentMethod()).append(" / ").append(order.getPaymentStatus()).append('\n');
+
+        return invoice.toString().getBytes(StandardCharsets.UTF_8);
     }
 
     private boolean isTransitionAllowed(OrderStatus from, OrderStatus to) {
@@ -239,6 +311,8 @@ public class OrderService {
                 toUserResponse(order.getCustomer()),
                 order.getTable() != null ? order.getTable().getTableNumber() : null,
                 order.getStatus(),
+                order.getPaymentStatus(),
+                order.getPaymentMethod(),
                 order.getTotalAmount(),
                 order.getNotes(),
                 order.getItems().stream().map(this::toItemResponse).toList(),

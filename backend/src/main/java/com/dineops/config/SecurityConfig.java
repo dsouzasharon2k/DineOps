@@ -79,6 +79,8 @@ public class SecurityConfig {
                 // Public order placement and status tracking (customers not logged in)
                 .requestMatchers(HttpMethod.POST, "/api/v1/orders").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/orders/*/cancel").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/orders/*/pay").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/orders/payments/webhook").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/api/v1/orders", "/api/v1/orders/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/orders/{orderId}").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/restaurants/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN")

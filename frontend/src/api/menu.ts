@@ -1,6 +1,6 @@
 import axiosInstance from './axiosInstance'
 import type { MenuCategory, MenuItem } from '../types/menu'
-import type { Order, OrderStatus, OrderStatusHistoryEntry } from '../types/order'
+import type { Order, OrderStatus, OrderStatusHistoryEntry, PaymentMethod, PaymentStatus } from '../types/order'
 
 // --- Categories ---
 
@@ -87,6 +87,27 @@ export const getOrderHistoryApi = async (orderId: string): Promise<OrderStatusHi
 export const cancelOrderApi = async (orderId: string): Promise<Order> => {
   const res = await axiosInstance.post<Order>(`/api/v1/orders/${orderId}/cancel`)
   return res.data
+}
+
+export interface InitiatePaymentResponse {
+  orderId: string
+  paymentStatus: PaymentStatus
+  paymentMethod: PaymentMethod
+  providerOrderRef: string | null
+  checkoutUrl: string | null
+}
+
+export const initiatePaymentApi = async (
+  orderId: string,
+  paymentMethod: PaymentMethod
+): Promise<InitiatePaymentResponse> => {
+  const res = await axiosInstance.post<InitiatePaymentResponse>(`/api/v1/orders/${orderId}/pay`, { paymentMethod })
+  return res.data
+}
+
+export const downloadInvoiceApi = async (orderId: string): Promise<Blob> => {
+  const res = await axiosInstance.get(`/api/v1/orders/${orderId}/invoice`, { responseType: 'blob' })
+  return res.data as Blob
 }
 
 // Get all active orders for a restaurant (kitchen view)

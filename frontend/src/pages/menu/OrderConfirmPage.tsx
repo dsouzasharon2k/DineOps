@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useCart } from '../../hooks/useCart';
-import { placeOrderApi } from '../../api/menu';
+import { initiatePaymentApi, placeOrderApi } from '../../api/menu';
 import { getApiErrorMessage } from '../../api/error';
+import type { PaymentMethod } from '../../types/order';
 
 export default function OrderConfirmPage() {
   const { tenantId } = useParams<{ tenantId: string }>();
@@ -11,6 +12,7 @@ export default function OrderConfirmPage() {
   const tableNumber = searchParams.get('table');
   const { cart, total, itemCount, clearCart } = useCart(tenantId!);
   const [notes, setNotes] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState('');
 
@@ -38,6 +40,9 @@ export default function OrderConfirmPage() {
         quantity: i.quantity
       }));
       const order = await placeOrderApi(tenantId!, tableNumber, notes, orderItems);
+      if (paymentMethod !== 'CASH') {
+        await initiatePaymentApi(order.id, paymentMethod);
+      }
       clearCart();
       navigate(`/menu/${tenantId}/order/${order.id}`);
     } catch (err) {
@@ -80,6 +85,31 @@ export default function OrderConfirmPage() {
               <p className="font-semibold text-gray-800">₹{(item.price * item.quantity) / 100}</p>
             </div>
           ))}
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm px-4 py-4 mb-4">
+          <h3 className="font-semibold text-gray-700 mb-2">Payment Method</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {(['CASH', 'UPI', 'CARD', 'ONLINE'] as PaymentMethod[]).map((method) => (
+              <button
+                key={method}
+                type="button"
+                onClick={() => setPaymentMethod(method)}
+                className={`rounded-lg border px-3 py-2 text-sm ${
+                  paymentMethod === method
+                    ? 'border-orange-500 bg-orange-50 text-orange-600'
+                    : 'border-gray-200 text-gray-600'
+                }`}
+              >
+                {method}
+              </button>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-gray-500">
+            {paymentMethod === 'CASH'
+              ? 'Pay at restaurant.'
+              : 'Online payment will be initiated after placing your order.'}
+          </p>
         </div>
 
         {/* Bill summary */}
@@ -125,7 +155,9 @@ export default function OrderConfirmPage() {
           disabled={placing}
           className="w-full bg-orange-500 text-white rounded-xl py-4 px-6 flex items-center justify-between shadow-lg hover:bg-orange-600 disabled:opacity-60"
         >
-          <span className="font-semibold">{placing ? 'Placing order...' : 'Place Order'}</span>
+          <span className="font-semibold">
+            {placing ? 'Placing order...' : paymentMethod === 'CASH' ? 'Place Order' : 'Place Order & Pay'}
+          </span>
           <span className="font-bold">₹{total / 100}</span>
         </button>
       </div>

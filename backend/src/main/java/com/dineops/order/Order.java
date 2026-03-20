@@ -42,6 +42,20 @@ public class Order extends AuditableEntity {
     @JoinColumn(name = "table_id")
     private DiningTable table;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status", nullable = false)
+    private PaymentStatus paymentStatus = PaymentStatus.UNPAID;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method", nullable = false)
+    private PaymentMethod paymentMethod = PaymentMethod.CASH;
+
+    @Column(name = "payment_provider_order_ref")
+    private String paymentProviderOrderRef;
+
+    @Column(name = "payment_provider_payment_ref")
+    private String paymentProviderPaymentRef;
+
     // One order has many order items - cascade means items are saved with the order
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<OrderItem> items = new ArrayList<>();
@@ -60,6 +74,14 @@ public class Order extends AuditableEntity {
     public void setNotes(String notes) { this.notes = notes; }
     public DiningTable getTable() { return table; }
     public void setTable(DiningTable table) { this.table = table; }
+    public PaymentStatus getPaymentStatus() { return paymentStatus; }
+    public void setPaymentStatus(PaymentStatus paymentStatus) { this.paymentStatus = paymentStatus; }
+    public PaymentMethod getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(PaymentMethod paymentMethod) { this.paymentMethod = paymentMethod; }
+    public String getPaymentProviderOrderRef() { return paymentProviderOrderRef; }
+    public void setPaymentProviderOrderRef(String paymentProviderOrderRef) { this.paymentProviderOrderRef = paymentProviderOrderRef; }
+    public String getPaymentProviderPaymentRef() { return paymentProviderPaymentRef; }
+    public void setPaymentProviderPaymentRef(String paymentProviderPaymentRef) { this.paymentProviderPaymentRef = paymentProviderPaymentRef; }
     public List<OrderItem> getItems() { return items; }
     public void setItems(List<OrderItem> items) { this.items = items; }
 }

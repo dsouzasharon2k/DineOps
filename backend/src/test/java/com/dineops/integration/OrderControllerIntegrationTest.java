@@ -4,6 +4,8 @@ import com.dineops.dto.OrderItemResponse;
 import com.dineops.dto.OrderResponse;
 import com.dineops.order.OrderService;
 import com.dineops.order.OrderStatus;
+import com.dineops.order.PaymentMethod;
+import com.dineops.order.PaymentStatus;
 import com.dineops.security.AccountLockoutService;
 import com.dineops.security.RateLimitService;
 import org.junit.jupiter.api.Test;
@@ -61,6 +63,8 @@ class OrderControllerIntegrationTest {
                 null,
                 null,
                 OrderStatus.PENDING,
+                PaymentStatus.UNPAID,
+                PaymentMethod.CASH,
                 50000,
                 "Less spicy",
                 List.of(new OrderItemResponse(
@@ -106,6 +110,8 @@ class OrderControllerIntegrationTest {
                 null,
                 null,
                 OrderStatus.CONFIRMED,
+                PaymentStatus.PAID,
+                PaymentMethod.ONLINE,
                 30000,
                 null,
                 List.of(),
