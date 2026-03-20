@@ -1828,7 +1828,7 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-091 — test/DOPS-091-integration-tests
 [x] DOPS-092 — test/DOPS-092-service-unit-tests
 [ ] DOPS-093 — test/DOPS-093-e2e-playwright
-[ ] DOPS-094 — test/DOPS-094-frontend-component-tests
+[x] DOPS-094 — test/DOPS-094-frontend-component-tests
 [ ] DOPS-095 — chore/DOPS-095-coverage-thresholds
 [ ] DOPS-096 — perf/DOPS-096-indexes-constraints
 [ ] DOPS-097 — feat/DOPS-097-updated-at-trigger
