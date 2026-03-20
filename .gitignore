@@ -25,3 +25,6 @@ replay_pid*
 
 # Environment files
 .env
+
+# Local backups
+backups/

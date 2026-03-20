@@ -77,6 +77,8 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/**").hasRole("SUPER_ADMIN")
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").hasRole("SUPER_ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/v1/restaurants/**").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/users/me").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/users/*").hasRole("SUPER_ADMIN")
                 // Public order placement and status tracking (customers not logged in)
                 .requestMatchers(HttpMethod.POST, "/api/v1/orders").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/orders/*/cancel").permitAll()

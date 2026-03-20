@@ -13,6 +13,8 @@ import PublicMenuPage from './pages/menu/PublicMenuPage'
 import OrderConfirmPage from './pages/menu/OrderConfirmPage'
 import OrderStatusPage from './pages/menu/OrderStatusPage'
 import OrderHistoryPage from './pages/menu/OrderHistoryPage'
+import PrivacyPage from './pages/legal/PrivacyPage'
+import TermsPage from './pages/legal/TermsPage'
 import ErrorBoundary from './components/ErrorBoundary'
 import SectionErrorFallback from './components/SectionErrorFallback'
 import NotFoundPage from './pages/NotFoundPage'
@@ -43,6 +45,8 @@ function App() {
             <Route path="/menu/:tenantId/confirm" element={<OrderConfirmPage />} />
             <Route path="/menu/:tenantId/order/:orderId" element={<OrderStatusPage />} />
             <Route path="/menu/:tenantId/track" element={<OrderHistoryPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
           </Route>
 
           {/* Protected routes - login required */}

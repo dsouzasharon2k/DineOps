@@ -56,16 +56,17 @@ export default function OrderConfirmPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-50" aria-labelledby="confirm-order-title">
       {/* Header */}
       <div className="bg-white shadow-sm px-4 py-4 flex items-center gap-3">
         <button
           onClick={() => navigate(`/menu/${tenantId}`)}
+          aria-label="Back to menu"
           className="text-gray-500 hover:text-gray-700 text-xl"
         >
           ←
         </button>
-        <h1 className="text-lg font-bold text-gray-800">Your Order</h1>
+        <h1 id="confirm-order-title" className="text-lg font-bold text-gray-800">Your Order</h1>
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-6 pb-32">
@@ -93,19 +94,25 @@ export default function OrderConfirmPage() {
         <div className="bg-white rounded-xl shadow-sm px-4 py-4 mb-4">
           <h3 className="font-semibold text-gray-700 mb-2">Contact Details</h3>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <label htmlFor="customerName" className="sr-only">Customer name</label>
             <input
+              id="customerName"
               value={customerName}
               onChange={e => setCustomerName(e.target.value)}
               placeholder="Your name (optional)"
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-orange-400"
             />
+            <label htmlFor="customerPhone" className="sr-only">Customer phone</label>
             <input
+              id="customerPhone"
               value={customerPhone}
               onChange={e => setCustomerPhone(e.target.value)}
               placeholder="Phone for order lookup"
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-orange-400"
             />
+            <label htmlFor="customerEmail" className="sr-only">Customer email</label>
             <input
+              id="customerEmail"
               value={customerEmail}
               onChange={e => setCustomerEmail(e.target.value)}
               placeholder="Email for order notifications"
@@ -171,7 +178,7 @@ export default function OrderConfirmPage() {
         </div>
 
         {error && (
-          <p className="text-red-500 text-sm text-center mb-4">{error}</p>
+          <p role="alert" aria-live="polite" className="text-red-700 text-sm text-center mb-4">{error}</p>
         )}
       </div>
 
@@ -188,7 +195,7 @@ export default function OrderConfirmPage() {
           <span className="font-bold">₹{total / 100}</span>
         </button>
       </div>
-    </div>
+    </main>
   );
 }
 

@@ -1821,7 +1821,7 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-084 — feat/DOPS-084-analytics-dashboard
 [x] DOPS-085 — chore/DOPS-085-complete-docker-k8s
 [x] DOPS-086 — chore/DOPS-086-resource-limits
-[ ] DOPS-087 — chore/DOPS-087-database-backup
+[x] DOPS-087 — chore/DOPS-087-database-backup
 [x] DOPS-088 — chore/DOPS-088-frontend-ci
 [x] DOPS-089 — feat/DOPS-089-configurable-cors
 [x] DOPS-090 — chore/DOPS-090-hikaricp-config
@@ -1832,8 +1832,8 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-095 — chore/DOPS-095-coverage-thresholds
 [x] DOPS-096 — perf/DOPS-096-indexes-constraints
 [x] DOPS-097 — feat/DOPS-097-updated-at-trigger
-[ ] DOPS-098 — feat/DOPS-098-legal-pages
-[ ] DOPS-099 — feat/DOPS-099-data-deletion
+[x] DOPS-098 — feat/DOPS-098-legal-pages
+[x] DOPS-099 — feat/DOPS-099-data-deletion
 [x] DOPS-100 — feat/DOPS-100-fssai-gst-fields
 [x] DOPS-101 — feat/DOPS-101-table-management
 [x] DOPS-102 — feat/DOPS-102-customer-cancellation
@@ -1843,7 +1843,7 @@ Marking items based on your board screenshots and the code changes already made:
 [ ] DOPS-106 — feat/DOPS-106-prep-time-estimate
 [ ] DOPS-107 — feat/DOPS-107-inventory-management
 [ ] DOPS-108 — feat/DOPS-108-subscription-billing
-[ ] DOPS-109 — feat/DOPS-109-accessibility
+[x] DOPS-109 — feat/DOPS-109-accessibility
 [x] DOPS-110 — fix/DOPS-110-k6-base-url-cleanup
 [x] DOPS-111 — security/DOPS-111-backend-non-root
 [x] DOPS-112 — chore/DOPS-112-nginx-hardening
