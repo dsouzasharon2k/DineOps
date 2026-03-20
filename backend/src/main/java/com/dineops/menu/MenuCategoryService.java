@@ -7,6 +7,7 @@ import com.dineops.restaurant.RestaurantRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -62,6 +63,7 @@ public class MenuCategoryService {
         MenuCategory category = menuCategoryRepository.findById(categoryId)
                 .orElseThrow(() -> new EntityNotFoundException("Category not found"));
         category.setActive(false);
+        category.setDeletedAt(LocalDateTime.now());
         menuCategoryRepository.save(category);
     }
 

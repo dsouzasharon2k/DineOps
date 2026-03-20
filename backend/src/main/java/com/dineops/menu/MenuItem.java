@@ -3,10 +3,12 @@ package com.dineops.menu;
 import com.dineops.entity.AuditableEntity;
 import com.dineops.restaurant.Restaurant;
 import jakarta.persistence.*;
+import org.hibernate.annotations.SQLRestriction;
 import java.util.UUID;
 
 @Entity
 @Table(name = "menu_items")
+@SQLRestriction("deleted_at IS NULL")
 public class MenuItem extends AuditableEntity {
 
     @Id

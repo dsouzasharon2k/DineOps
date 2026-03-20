@@ -3,12 +3,14 @@ package com.dineops.subscription;
 import com.dineops.entity.AuditableEntity;
 import com.dineops.restaurant.Restaurant;
 import jakarta.persistence.*;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "subscriptions")
+@SQLRestriction("deleted_at IS NULL")
 public class Subscription extends AuditableEntity {
 
     @Id

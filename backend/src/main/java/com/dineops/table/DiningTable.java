@@ -3,6 +3,7 @@ package com.dineops.table;
 import com.dineops.entity.AuditableEntity;
 import com.dineops.restaurant.Restaurant;
 import jakarta.persistence.*;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.util.UUID;
 
@@ -10,6 +11,7 @@ import java.util.UUID;
 @Table(name = "dining_tables", uniqueConstraints = {
         @UniqueConstraint(name = "uk_dining_tables_tenant_table_number", columnNames = {"tenant_id", "table_number"})
 })
+@SQLRestriction("deleted_at IS NULL")
 public class DiningTable extends AuditableEntity {
 
     @Id

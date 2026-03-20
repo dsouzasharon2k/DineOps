@@ -7,6 +7,7 @@ import com.dineops.restaurant.RestaurantRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -77,6 +78,7 @@ public class MenuItemService {
         MenuItem item = menuItemRepository.findById(itemId)
                 .orElseThrow(() -> new EntityNotFoundException("Item not found"));
         item.setAvailable(false);
+        item.setDeletedAt(LocalDateTime.now());
         menuItemRepository.save(item);
     }
 

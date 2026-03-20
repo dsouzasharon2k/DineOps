@@ -4,11 +4,13 @@ import com.dineops.entity.AuditableEntity;
 import com.dineops.restaurant.Restaurant;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import org.hibernate.annotations.SQLRestriction;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "users")
+@SQLRestriction("deleted_at IS NULL")
 public class User extends AuditableEntity {
 
     @Id

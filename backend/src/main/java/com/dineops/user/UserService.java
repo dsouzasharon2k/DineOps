@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@SuppressWarnings("null")
 public class UserService {
 
     private final UserRepository userRepository;
@@ -38,7 +39,7 @@ public class UserService {
         User user = userRepository.findByEmail(safeEmail)
                 .orElseThrow(() -> new EntityNotFoundException("Authenticated user not found."));
         applyDeletion(user);
-        return userRepository.save(user);
+        return Objects.requireNonNull(userRepository.save(user));
     }
 
     public User deactivateAndAnonymizeById(UUID userId) {
@@ -46,7 +47,7 @@ public class UserService {
         User user = userRepository.findById(safeUserId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found."));
         applyDeletion(user);
-        return userRepository.save(user);
+        return Objects.requireNonNull(userRepository.save(user));
     }
 
     private void applyDeletion(User user) {
@@ -57,5 +58,6 @@ public class UserService {
         user.setName("Deleted User");
         user.setPhone(null);
         user.setEmail("deleted_" + user.getId() + "@anon.local");
+        user.setDeletedAt(now);
     }
 }
