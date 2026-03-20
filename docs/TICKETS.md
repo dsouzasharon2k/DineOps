@@ -1787,7 +1787,7 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-050 — fix/DOPS-050-menu-item-controller-return
 [x] DOPS-051 — fix/DOPS-051-restaurant-status-enum
 [x] DOPS-052 — security/DOPS-052-hide-password-hash
-[ ] DOPS-053 — security/DOPS-053-externalize-secrets
+[x] DOPS-053 — security/DOPS-053-externalize-secrets
 [ ] DOPS-054 — security/DOPS-054-tenant-isolation
 [ ] DOPS-055 — security/DOPS-055-restrict-actuator-swagger
 [ ] DOPS-056 — security/DOPS-056-rate-limiting

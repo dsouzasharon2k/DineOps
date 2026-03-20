@@ -3,10 +3,12 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: dineops-postgres
+    env_file:
+      - .env
     environment:
-      POSTGRES_DB: dineops
-      POSTGRES_USER: dineops
-      POSTGRES_PASSWORD: dineops123
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -33,11 +35,19 @@ services:
   backend:
     build: ./backend
     container_name: dineops-backend
+    env_file:
+      - .env
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/dineops
-      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      DB_USERNAME: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
     depends_on:
       postgres:
         condition: service_healthy
@@ -61,11 +71,13 @@ services:
   grafana:
     image: grafana/grafana:latest
     container_name: dineops-grafana
+    env_file:
+      - .env
     ports:
       - "3001:3000"
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=dineops123
+      - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
     volumes:
       - grafana_data:/var/lib/grafana
     depends_on:
