@@ -68,6 +68,7 @@ export const placeOrderApi = async (
   tableNumber: string | null,
   customerName: string,
   customerPhone: string,
+  customerEmail: string,
   notes: string,
   items: { menuItemId: string; quantity: number }[]
 ): Promise<Order> => {
@@ -76,6 +77,7 @@ export const placeOrderApi = async (
     tableNumber,
     customerName: customerName.trim() || null,
     customerPhone: customerPhone.trim() || null,
+    customerEmail: customerEmail.trim() || null,
     notes,
     items,
   })

@@ -1,6 +1,7 @@
 package com.dineops.order;
 
 import com.dineops.menu.MenuItemRepository;
+import com.dineops.notification.NotificationService;
 import com.dineops.restaurant.Restaurant;
 import com.dineops.restaurant.RestaurantRepository;
 import com.dineops.table.DiningTableService;
@@ -42,12 +43,14 @@ class OrderServiceTest {
         MenuItemRepository menuItemRepository = Mockito.mock(MenuItemRepository.class);
         RestaurantRepository restaurantRepository = Mockito.mock(RestaurantRepository.class);
         DiningTableService diningTableService = Mockito.mock(DiningTableService.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
         orderService = new OrderService(
                 orderRepository,
                 menuItemRepository,
                 restaurantRepository,
                 orderStatusHistoryRepository,
-                diningTableService
+                diningTableService,
+                notificationService
         );
     }
 

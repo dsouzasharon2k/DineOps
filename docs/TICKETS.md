@@ -1814,8 +1814,8 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-077 — feat/DOPS-077-loading-empty-states
 [x] DOPS-078 — feat/DOPS-078-icons-and-404
 [x] DOPS-079 — feat/DOPS-079-error-boundaries
-[ ] DOPS-080 — feat/DOPS-080-websocket-orders
-[ ] DOPS-081 — feat/DOPS-081-notifications
+[x] DOPS-080 — feat/DOPS-080-websocket-orders
+[x] DOPS-081 — feat/DOPS-081-notifications
 [x] DOPS-082 — feat/DOPS-082-order-status-history
 [x] DOPS-083 — feat/DOPS-083-audit-log
 [x] DOPS-084 — feat/DOPS-084-analytics-dashboard
@@ -1827,11 +1827,11 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-090 — chore/DOPS-090-hikaricp-config
 [x] DOPS-091 — test/DOPS-091-integration-tests
 [x] DOPS-092 — test/DOPS-092-service-unit-tests
-[ ] DOPS-093 — test/DOPS-093-e2e-playwright
+[x] DOPS-093 — test/DOPS-093-e2e-playwright
 [x] DOPS-094 — test/DOPS-094-frontend-component-tests
 [x] DOPS-095 — chore/DOPS-095-coverage-thresholds
-[ ] DOPS-096 — perf/DOPS-096-indexes-constraints
-[ ] DOPS-097 — feat/DOPS-097-updated-at-trigger
+[x] DOPS-096 — perf/DOPS-096-indexes-constraints
+[x] DOPS-097 — feat/DOPS-097-updated-at-trigger
 [ ] DOPS-098 — feat/DOPS-098-legal-pages
 [ ] DOPS-099 — feat/DOPS-099-data-deletion
 [x] DOPS-100 — feat/DOPS-100-fssai-gst-fields

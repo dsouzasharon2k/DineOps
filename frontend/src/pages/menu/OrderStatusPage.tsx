@@ -5,6 +5,7 @@ import { getRestaurantByIdApi } from '../../api/restaurants';
 import type { Order, OrderStatus, OrderStatusHistoryEntry } from '../../types/order';
 import type { Restaurant } from '../../types/restaurant';
 import { getApiErrorMessage } from '../../api/error';
+import { subscribeOrderStatus } from '../../realtime/ordersSocket';
 
 // Maps status to display label and progress step
 const STATUS_STEPS = ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'DELIVERED'];
@@ -27,6 +28,7 @@ export default function OrderStatusPage() {
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
   const [downloadingInvoice, setDownloadingInvoice] = useState(false);
+  const [wsConnected, setWsConnected] = useState(false);
   const [error, setError] = useState('');
 
   const fetchOrder = useCallback(async () => {
@@ -53,10 +55,27 @@ export default function OrderStatusPage() {
 
   useEffect(() => {
     fetchOrder();
-    // Poll every 10 seconds for status updates
-    const interval = setInterval(fetchOrder, 10000);
-    return () => clearInterval(interval);
-  }, [fetchOrder]);
+    if (!orderId) return;
+    const unsubscribe = subscribeOrderStatus(
+      orderId,
+      async (updatedOrder) => {
+        setWsConnected(true);
+        setOrder(updatedOrder);
+        const timeline = await getOrderHistoryApi(orderId);
+        setHistory(timeline);
+      },
+      () => setWsConnected(false)
+    );
+    const interval = setInterval(() => {
+      if (!wsConnected) {
+        fetchOrder();
+      }
+    }, 10000);
+    return () => {
+      unsubscribe();
+      clearInterval(interval);
+    };
+  }, [fetchOrder, orderId, wsConnected]);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
@@ -122,6 +141,7 @@ export default function OrderStatusPage() {
         <div className="text-5xl mb-2">{statusInfo.icon}</div>
         <h1 className="text-2xl font-bold">{statusInfo.label}</h1>
         <p className="text-orange-100 mt-1">{statusInfo.message}</p>
+        <p className="text-orange-100 text-xs mt-1">{wsConnected ? 'Live updates connected' : 'Polling fallback active'}</p>
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-6">

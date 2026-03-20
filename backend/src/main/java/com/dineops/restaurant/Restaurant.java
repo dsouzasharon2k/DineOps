@@ -36,6 +36,12 @@ public class Restaurant extends AuditableEntity {
     @Column(name = "operating_hours", columnDefinition = "TEXT")
     private String operatingHours;
 
+    @Column(name = "notify_customer_email", nullable = false)
+    private boolean notifyCustomerEmail = true;
+
+    @Column(name = "notify_customer_sms", nullable = false)
+    private boolean notifyCustomerSms = false;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RestaurantStatus status = RestaurantStatus.PENDING;
@@ -60,6 +66,10 @@ public class Restaurant extends AuditableEntity {
     public void setGstNumber(String gstNumber) { this.gstNumber = gstNumber; }
     public String getOperatingHours() { return operatingHours; }
     public void setOperatingHours(String operatingHours) { this.operatingHours = operatingHours; }
+    public boolean isNotifyCustomerEmail() { return notifyCustomerEmail; }
+    public void setNotifyCustomerEmail(boolean notifyCustomerEmail) { this.notifyCustomerEmail = notifyCustomerEmail; }
+    public boolean isNotifyCustomerSms() { return notifyCustomerSms; }
+    public void setNotifyCustomerSms(boolean notifyCustomerSms) { this.notifyCustomerSms = notifyCustomerSms; }
     public RestaurantStatus getStatus() { return status; }
     public void setStatus(RestaurantStatus status) { this.status = status; }
 }

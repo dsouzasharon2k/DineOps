@@ -9,6 +9,7 @@ import com.dineops.dto.UserResponse;
 import com.dineops.exception.EntityNotFoundException;
 import com.dineops.menu.MenuItem;
 import com.dineops.menu.MenuItemRepository;
+import com.dineops.notification.NotificationService;
 import com.dineops.restaurant.Restaurant;
 import com.dineops.restaurant.RestaurantRepository;
 import com.dineops.table.DiningTableService;
@@ -33,6 +34,8 @@ import java.util.UUID;
 import java.util.Objects;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @Service
 @SuppressWarnings("null")
@@ -57,17 +60,22 @@ public class OrderService {
     private final RestaurantRepository restaurantRepository;
     private final OrderStatusHistoryRepository orderStatusHistoryRepository;
     private final DiningTableService diningTableService;
+    private final NotificationService notificationService;
+    @Autowired(required = false)
+    private SimpMessagingTemplate messagingTemplate;
 
     public OrderService(OrderRepository orderRepository,
                         MenuItemRepository menuItemRepository,
                         RestaurantRepository restaurantRepository,
                         OrderStatusHistoryRepository orderStatusHistoryRepository,
-                        DiningTableService diningTableService) {
+                        DiningTableService diningTableService,
+                        NotificationService notificationService) {
         this.orderRepository = orderRepository;
         this.menuItemRepository = menuItemRepository;
         this.restaurantRepository = restaurantRepository;
         this.orderStatusHistoryRepository = orderStatusHistoryRepository;
         this.diningTableService = diningTableService;
+        this.notificationService = notificationService;
     }
 
     // Place a new order - validates items, calculates total, saves everything
@@ -85,6 +93,7 @@ public class OrderService {
         }
         order.setCustomerName(trimToNull(request.customerName()));
         order.setCustomerPhone(trimToNull(request.customerPhone()));
+        order.setCustomerEmail(trimToNull(request.customerEmail()));
         order.setNotes(request.notes());
 
         int total = 0;
@@ -108,6 +117,7 @@ public class OrderService {
 
         order.setTotalAmount(total);
         Order saved = orderRepository.save(order);
+        notificationService.sendOrderPlacedNotification(saved);
         log.info("order_placed orderId={} tenantId={} totalAmount={} itemCount={}",
                 saved.getId(),
                 saved.getTenant().getId(),
@@ -117,7 +127,9 @@ public class OrderService {
     }
 
     public OrderResponse placeOrderResponse(PlaceOrderRequest request) {
-        return toResponse(placeOrder(request));
+        OrderResponse response = toResponse(placeOrder(request));
+        publishRealtimeUpdate(response);
+        return response;
     }
 
     // Get a single order by ID (for customer status tracking - public)
@@ -181,6 +193,7 @@ public class OrderService {
         }
         if (currentStatus != newStatus) {
             saveStatusHistory(order, currentStatus, newStatus);
+            notificationService.sendOrderStatusNotification(order, currentStatus, newStatus);
         }
         order.setStatus(newStatus);
         log.info("Order status changed: orderId={}, from={}, to={}", orderId, currentStatus, newStatus);
@@ -188,7 +201,9 @@ public class OrderService {
     }
 
     public OrderResponse updateStatusResponse(UUID orderId, OrderStatus newStatus) {
-        return toResponse(updateStatus(orderId, newStatus));
+        OrderResponse response = toResponse(updateStatus(orderId, newStatus));
+        publishRealtimeUpdate(response);
+        return response;
     }
 
     @CacheEvict(cacheNames = {"orders:by-id", "orders:active-by-tenant", "orders:by-tenant"}, allEntries = true)
@@ -201,7 +216,9 @@ public class OrderService {
         if (currentStatus == OrderStatus.PENDING) {
             saveStatusHistory(order, currentStatus, OrderStatus.CANCELLED);
             order.setStatus(OrderStatus.CANCELLED);
-            return toResponse(orderRepository.save(order));
+            OrderResponse response = toResponse(orderRepository.save(order));
+            publishRealtimeUpdate(response);
+            return response;
         }
 
         if (currentStatus == OrderStatus.CONFIRMED) {
@@ -384,5 +401,13 @@ public class OrderService {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private void publishRealtimeUpdate(OrderResponse response) {
+        if (messagingTemplate == null || response == null) {
+            return;
+        }
+        messagingTemplate.convertAndSend("/topic/orders/" + response.tenantId(), response);
+        messagingTemplate.convertAndSend("/topic/order/" + response.id(), response);
     }
 }

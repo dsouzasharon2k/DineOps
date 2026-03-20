@@ -13,6 +13,7 @@ export default function OrderConfirmPage() {
   const { cart, total, itemCount, clearCart } = useCart(tenantId!);
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
   const [notes, setNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
   const [placing, setPlacing] = useState(false);
@@ -41,7 +42,7 @@ export default function OrderConfirmPage() {
         menuItemId: i.menuItemId,
         quantity: i.quantity
       }));
-      const order = await placeOrderApi(tenantId!, tableNumber, customerName, customerPhone, notes, orderItems);
+      const order = await placeOrderApi(tenantId!, tableNumber, customerName, customerPhone, customerEmail, notes, orderItems);
       if (paymentMethod !== 'CASH') {
         await initiatePaymentApi(order.id, paymentMethod);
       }
@@ -103,6 +104,12 @@ export default function OrderConfirmPage() {
               onChange={e => setCustomerPhone(e.target.value)}
               placeholder="Phone for order lookup"
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-orange-400"
+            />
+            <input
+              value={customerEmail}
+              onChange={e => setCustomerEmail(e.target.value)}
+              placeholder="Email for order notifications"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-orange-400 sm:col-span-2"
             />
           </div>
         </div>
