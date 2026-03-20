@@ -1822,7 +1822,7 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-085 — chore/DOPS-085-complete-docker-k8s
 [x] DOPS-086 — chore/DOPS-086-resource-limits
 [ ] DOPS-087 — chore/DOPS-087-database-backup
-[ ] DOPS-088 — chore/DOPS-088-frontend-ci
+[x] DOPS-088 — chore/DOPS-088-frontend-ci
 [x] DOPS-089 — feat/DOPS-089-configurable-cors
 [x] DOPS-090 — chore/DOPS-090-hikaricp-config
 [ ] DOPS-091 — test/DOPS-091-integration-tests
