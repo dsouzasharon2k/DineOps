@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getOrderApi, getOrderHistoryApi } from '../../api/menu';
+import { cancelOrderApi, getOrderApi, getOrderHistoryApi } from '../../api/menu';
 import type { Order, OrderStatus, OrderStatusHistoryEntry } from '../../types/order';
 import { getApiErrorMessage } from '../../api/error';
 
@@ -22,6 +22,7 @@ export default function OrderStatusPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [history, setHistory] = useState<OrderStatusHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState('');
 
   const fetchOrder = useCallback(async () => {
@@ -69,6 +70,21 @@ export default function OrderStatusPage() {
 
   const statusInfo = STATUS_LABELS[order.status] ?? STATUS_LABELS['PENDING'];
   const currentStep = STATUS_STEPS.indexOf(order.status);
+  const canCustomerCancel = order.status === 'PENDING';
+
+  const handleCancelOrder = async () => {
+    if (!orderId) return;
+    setCancelling(true);
+    setError('');
+    try {
+      await cancelOrderApi(orderId);
+      await fetchOrder();
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Unable to cancel order.'));
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -132,6 +148,16 @@ export default function OrderStatusPage() {
             <span>₹{order.totalAmount / 100}</span>
           </div>
         </div>
+
+        {canCustomerCancel && (
+          <button
+            onClick={handleCancelOrder}
+            disabled={cancelling}
+            className="mb-4 w-full rounded-xl border-2 border-red-300 py-3 font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
+          >
+            {cancelling ? 'Cancelling...' : 'Cancel Order'}
+          </button>
+        )}
 
         <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-4">
           <div className="px-4 py-3 border-b border-gray-100">

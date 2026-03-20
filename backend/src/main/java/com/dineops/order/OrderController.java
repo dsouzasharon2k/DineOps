@@ -63,4 +63,9 @@ public class OrderController {
         OrderStatus newStatus = OrderStatus.valueOf(body.get("status"));
         return ResponseEntity.ok(orderService.updateStatusResponse(orderId, newStatus));
     }
+
+    @PostMapping("/{orderId}/cancel")
+    public ResponseEntity<OrderResponse> customerCancelOrder(@PathVariable UUID orderId) {
+        return ResponseEntity.ok(orderService.customerCancelOrder(orderId));
+    }
 }

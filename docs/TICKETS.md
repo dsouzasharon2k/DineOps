@@ -1836,7 +1836,7 @@ Marking items based on your board screenshots and the code changes already made:
 [ ] DOPS-099 — feat/DOPS-099-data-deletion
 [x] DOPS-100 — feat/DOPS-100-fssai-gst-fields
 [x] DOPS-101 — feat/DOPS-101-table-management
-[ ] DOPS-102 — feat/DOPS-102-customer-cancellation
+[x] DOPS-102 — feat/DOPS-102-customer-cancellation
 [ ] DOPS-103 — feat/DOPS-103-restaurant-contact-info
 [ ] DOPS-104 — feat/DOPS-104-phone-order-lookup
 [ ] DOPS-105 — feat/DOPS-105-ratings-reviews

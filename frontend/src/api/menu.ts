@@ -84,6 +84,11 @@ export const getOrderHistoryApi = async (orderId: string): Promise<OrderStatusHi
   return res.data
 }
 
+export const cancelOrderApi = async (orderId: string): Promise<Order> => {
+  const res = await axiosInstance.post<Order>(`/api/v1/orders/${orderId}/cancel`)
+  return res.data
+}
+
 // Get all active orders for a restaurant (kitchen view)
 export const getActiveOrdersApi = async (tenantId: string, token: string): Promise<Order[]> => {
   const res = await axiosInstance.get<Order[]>(`/api/v1/orders/active?tenantId=${tenantId}`, {

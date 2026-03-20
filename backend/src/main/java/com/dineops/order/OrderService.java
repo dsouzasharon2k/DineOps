@@ -182,6 +182,25 @@ public class OrderService {
         return toResponse(updateStatus(orderId, newStatus));
     }
 
+    @CacheEvict(cacheNames = {"orders:by-id", "orders:active-by-tenant", "orders:by-tenant"}, allEntries = true)
+    public OrderResponse customerCancelOrder(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new EntityNotFoundException("Order not found"));
+        OrderStatus currentStatus = order.getStatus();
+
+        if (currentStatus == OrderStatus.PENDING) {
+            saveStatusHistory(order, currentStatus, OrderStatus.CANCELLED);
+            order.setStatus(OrderStatus.CANCELLED);
+            return toResponse(orderRepository.save(order));
+        }
+
+        if (currentStatus == OrderStatus.CONFIRMED) {
+            throw new IllegalArgumentException("Order is confirmed and now requires kitchen approval for cancellation.");
+        }
+
+        throw new IllegalArgumentException("Cancellation window has passed for this order.");
+    }
+
     public List<OrderStatusHistoryResponse> getStatusHistory(UUID orderId) {
         if (!orderRepository.existsById(orderId)) {
             throw new EntityNotFoundException("Order not found");
