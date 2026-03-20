@@ -31,6 +31,7 @@ const MenuPage = () => {
   const [newItemName, setNewItemName] = useState('')
   const [newItemDesc, setNewItemDesc] = useState('')
   const [newItemPrice, setNewItemPrice] = useState('')
+  const [newItemPrepTime, setNewItemPrepTime] = useState('')
   const [newItemVeg, setNewItemVeg] = useState(false)
   const [showItemForm, setShowItemForm] = useState(false)
 
@@ -100,10 +101,12 @@ const MenuPage = () => {
         price: Math.round(parseFloat(newItemPrice) * 100),
         isVegetarian: newItemVeg,
         imageUrl: null,
+        prepTimeMinutes: newItemPrepTime ? parseInt(newItemPrepTime, 10) : null,
       })
       setNewItemName('')
       setNewItemDesc('')
       setNewItemPrice('')
+      setNewItemPrepTime('')
       setNewItemVeg(false)
       setShowItemForm(false)
       fetchItems(selectedCategory!.id)
@@ -235,6 +238,12 @@ const MenuPage = () => {
                     onChange={(e) => setNewItemPrice(e.target.value)}
                   />
                   <input
+                    className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    placeholder="Prep time in min (optional)"
+                    value={newItemPrepTime}
+                    onChange={(e) => setNewItemPrepTime(e.target.value)}
+                  />
+                  <input
                     className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 sm:col-span-2"
                     placeholder="Description (optional)"
                     value={newItemDesc}
@@ -274,6 +283,9 @@ const MenuPage = () => {
                           )}
                         </div>
                         <p className="text-xs text-gray-400 mt-0.5">{item.description}</p>
+                        {item.prepTimeMinutes && (
+                          <p className="text-xs text-gray-400 mt-0.5">Prep: ~{item.prepTimeMinutes} min</p>
+                        )}
                       </div>
                       <div className="flex items-center gap-3">
                         {/* Convert paise to rupees for display */}

@@ -11,6 +11,8 @@ export interface Restaurant {
   fssaiLicense: string | null
   gstNumber: string | null
   operatingHours: string | null
+  defaultPrepTimeMinutes: number
+  averageRating: number
   status: RestaurantStatus
   createdAt: string
   updatedAt: string

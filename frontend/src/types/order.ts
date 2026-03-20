@@ -29,6 +29,7 @@ export interface Order {
   status: OrderStatus
   paymentStatus: PaymentStatus
   paymentMethod: PaymentMethod
+  estimatedReadyMinutes?: number
   totalAmount: number
   notes: string | null
   items: OrderItem[]
