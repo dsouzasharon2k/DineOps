@@ -1801,7 +1801,7 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-064 — refactor/DOPS-064-response-dtos
 [x] DOPS-065 — feat/DOPS-065-structured-logging
 [x] DOPS-066 — feat/DOPS-066-order-status-validation
-[ ] DOPS-067 — feat/DOPS-067-user-registration
+[x] DOPS-067 — feat/DOPS-067-user-registration
 [ ] DOPS-068 — feat/DOPS-068-jwt-refresh-token
 [ ] DOPS-069 — feat/DOPS-069-restaurant-onboarding
 [ ] DOPS-070 — feat/DOPS-070-frontend-auth-context

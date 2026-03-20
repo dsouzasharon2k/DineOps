@@ -15,12 +15,14 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import org.springframework.web.server.ResponseStatusException;
 
 class AuthControllerTest {
 
@@ -89,6 +91,42 @@ class AuthControllerTest {
         assertTrue(body.containsKey("error"));
         assertEquals("Invalid credentials", body.get("error"));
         verify(jwtUtils, never()).generateToken(nullable(UUID.class), anyString(), anyString(), nullable(UUID.class));
+    }
+
+    @Test
+    void register_duplicateEmail_returnsConflict() {
+        User existing = buildUser(true);
+        when(userService.findByEmail(existing.getEmail())).thenReturn(Optional.of(existing));
+
+        ResponseStatusException ex = assertThrows(
+                ResponseStatusException.class,
+                () -> authController.register(new RegisterUserRequest(
+                        "Customer One",
+                        existing.getEmail(),
+                        "PasswordA1",
+                        "9999999999")));
+
+        assertEquals(409, ex.getStatusCode().value());
+        verify(userService, never()).createUser(org.mockito.ArgumentMatchers.any(User.class), anyString());
+    }
+
+    @Test
+    void register_newCustomer_returnsCreatedUserResponse() {
+        when(userService.findByEmail("new@dineops.com")).thenReturn(Optional.empty());
+        User saved = buildUser(true);
+        saved.setName("New Customer");
+        saved.setEmail("new@dineops.com");
+        saved.setRole(UserRole.CUSTOMER);
+        when(userService.createUser(org.mockito.ArgumentMatchers.any(User.class), anyString())).thenReturn(saved);
+
+        ResponseEntity<?> response = authController.register(new RegisterUserRequest(
+                "New Customer",
+                "new@dineops.com",
+                "PasswordA1",
+                "9999999999"));
+
+        assertEquals(201, response.getStatusCode().value());
+        assertNotNull(response.getBody());
     }
 
     private User buildUser(boolean active) {
