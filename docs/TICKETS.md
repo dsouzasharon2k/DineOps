@@ -1797,7 +1797,7 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-060 — feat/DOPS-060-request-validation
 [ ] DOPS-061 — feat/DOPS-061-pagination
 [ ] DOPS-062 — feat/DOPS-062-redis-caching
-[ ] DOPS-063 — feat/DOPS-063-jpa-auditing
+[x] DOPS-063 — feat/DOPS-063-jpa-auditing
 [ ] DOPS-064 — refactor/DOPS-064-response-dtos
 [ ] DOPS-065 — feat/DOPS-065-structured-logging
 [ ] DOPS-066 — feat/DOPS-066-order-status-validation

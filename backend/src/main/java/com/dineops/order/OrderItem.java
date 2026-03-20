@@ -1,15 +1,15 @@
 package com.dineops.order;
 
+import com.dineops.entity.AuditableEntity;
 import com.dineops.menu.MenuItem;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "order_items")
-public class OrderItem {
+public class OrderItem extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -40,9 +40,6 @@ public class OrderItem {
     @Column(nullable = false)
     private Integer quantity;
 
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
-
     // Getters and Setters
     public UUID getId() { return id; }
     public Order getOrder() { return order; }
@@ -55,5 +52,4 @@ public class OrderItem {
     public void setPrice(Integer price) { this.price = price; }
     public Integer getQuantity() { return quantity; }
     public void setQuantity(Integer quantity) { this.quantity = quantity; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
 }

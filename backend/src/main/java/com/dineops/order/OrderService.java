@@ -82,7 +82,6 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found"));
         order.setStatus(newStatus);
-        order.setUpdatedAt(java.time.LocalDateTime.now());
         return orderRepository.save(order);
     }
 }

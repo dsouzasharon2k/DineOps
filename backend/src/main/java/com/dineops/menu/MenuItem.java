@@ -1,14 +1,14 @@
 package com.dineops.menu;
 
+import com.dineops.entity.AuditableEntity;
 import com.dineops.restaurant.Restaurant;
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
-import java.util.UUID;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
+import java.util.UUID;
 
 @Entity
 @Table(name = "menu_items")
-public class MenuItem {
+public class MenuItem extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -48,12 +48,6 @@ public class MenuItem {
     @Column(name = "display_order")
     private Integer displayOrder = 0;
 
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt = LocalDateTime.now();
-
     // Getters and Setters
     public UUID getId() { return id; }
     public Restaurant getTenant() { return tenant; }
@@ -74,7 +68,4 @@ public class MenuItem {
     public void setAvailable(boolean available) { isAvailable = available; }
     public Integer getDisplayOrder() { return displayOrder; }
     public void setDisplayOrder(Integer displayOrder) { this.displayOrder = displayOrder; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

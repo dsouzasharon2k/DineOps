@@ -1,12 +1,12 @@
 package com.dineops.restaurant;
 
+import com.dineops.entity.AuditableEntity;
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "restaurants")
-public class Restaurant {
+public class Restaurant extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -31,12 +31,6 @@ public class Restaurant {
     @Column(nullable = false)
     private RestaurantStatus status = RestaurantStatus.PENDING;
 
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt = LocalDateTime.now();
-
     // Getters and Setters
     public UUID getId() { return id; }
     public String getName() { return name; }
@@ -53,6 +47,4 @@ public class Restaurant {
     public void setLogoUrl(String logoUrl) { this.logoUrl = logoUrl; }
     public RestaurantStatus getStatus() { return status; }
     public void setStatus(RestaurantStatus status) { this.status = status; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }
