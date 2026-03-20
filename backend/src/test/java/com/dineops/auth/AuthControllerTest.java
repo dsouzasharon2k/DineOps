@@ -65,7 +65,6 @@ class AuthControllerTest {
         Map<String, String> body = (Map<String, String>) response.getBody();
         assertNotNull(body);
         assertEquals("jwt-token", body.get("token"));
-        assertEquals("refresh-token", body.get("refreshToken"));
         verify(accountLockoutService).clearFailures(activeUser.getEmail());
     }
 
@@ -191,7 +190,7 @@ class AuthControllerTest {
         when(jwtUtils.generateRefreshToken(nullable(UUID.class), anyString()))
                 .thenReturn("new-refresh");
 
-        ResponseEntity<?> response = authController.refresh(new RefreshTokenRequest("valid-refresh"));
+        ResponseEntity<?> response = authController.refresh("valid-refresh");
 
         assertEquals(200, response.getStatusCode().value());
         assertInstanceOf(Map.class, response.getBody());
@@ -199,14 +198,13 @@ class AuthControllerTest {
         Map<String, String> body = (Map<String, String>) response.getBody();
         assertNotNull(body);
         assertEquals("new-access", body.get("token"));
-        assertEquals("new-refresh", body.get("refreshToken"));
     }
 
     @Test
     void refresh_invalidRefreshToken_returnsUnauthorized() {
         when(jwtUtils.validateRefreshToken("invalid-refresh")).thenReturn(false);
 
-        ResponseEntity<?> response = authController.refresh(new RefreshTokenRequest("invalid-refresh"));
+        ResponseEntity<?> response = authController.refresh("invalid-refresh");
 
         assertEquals(401, response.getStatusCode().value());
         assertInstanceOf(Map.class, response.getBody());
@@ -215,6 +213,18 @@ class AuthControllerTest {
         assertNotNull(body);
         assertEquals("Invalid refresh token", body.get("error"));
         verify(userService, never()).findByEmail(anyString());
+    }
+
+    @Test
+    void refresh_missingCookie_returnsUnauthorized() {
+        ResponseEntity<?> response = authController.refresh(null);
+
+        assertEquals(401, response.getStatusCode().value());
+        assertInstanceOf(Map.class, response.getBody());
+        @SuppressWarnings("unchecked")
+        Map<String, String> body = (Map<String, String>) response.getBody();
+        assertNotNull(body);
+        assertEquals("Invalid refresh token", body.get("error"));
     }
 
     private User buildUser(boolean active) {

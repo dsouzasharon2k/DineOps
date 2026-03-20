@@ -9,3 +9,12 @@ export const loginApi = async (email: string, password: string): Promise<LoginRe
   })
   return response.data
 }
+
+export const refreshTokenApi = async (): Promise<LoginResponse> => {
+  const response = await axiosInstance.post<LoginResponse>('/api/v1/auth/refresh')
+  return response.data
+}
+
+export const logoutApi = async (): Promise<void> => {
+  await axiosInstance.post('/api/v1/auth/logout')
+}

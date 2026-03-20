@@ -14,7 +14,7 @@ describe('LoginPage', () => {
 
   test('renders login form correctly', () => {
     render(
-      <AuthProvider>
+      <AuthProvider skipBootstrap>
         <MemoryRouter>
           <LoginPage />
         </MemoryRouter>
@@ -34,7 +34,7 @@ describe('LoginPage', () => {
     })
 
     render(
-      <AuthProvider>
+      <AuthProvider skipBootstrap>
         <MemoryRouter>
           <LoginPage />
         </MemoryRouter>
@@ -59,7 +59,7 @@ describe('LoginPage', () => {
 
   test('toggles password visibility', () => {
     render(
-      <AuthProvider>
+      <AuthProvider skipBootstrap>
         <MemoryRouter>
           <LoginPage />
         </MemoryRouter>

@@ -9,7 +9,9 @@ import com.dineops.user.UserRole;
 import com.dineops.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -17,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.Map;
 import java.util.Optional;
 import java.time.Duration;
+import java.util.Objects;
 
 // import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -28,6 +31,8 @@ public class AuthController {
     private static final int LOGIN_RATE_LIMIT = 10;
     private static final int REGISTER_RATE_LIMIT = 5;
     private static final Duration RATE_LIMIT_WINDOW = Duration.ofMinutes(1);
+    private static final Duration REFRESH_COOKIE_TTL = Duration.ofDays(7);
+    private static final String REFRESH_COOKIE_NAME = "refresh_token";
     private final UserService userService;
     private final JwtUtils jwtUtils;
     private final RateLimitService rateLimitService;
@@ -101,17 +106,20 @@ public class AuthController {
                 user.getTenant() != null ? user.getTenant().getId() : null);
         accountLockoutService.clearFailures(request.email());
 
-        return ResponseEntity.ok(Map.of("token", token, "refreshToken", refreshToken));
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, buildRefreshCookie(refreshToken).toString())
+                .body(Map.of("token", token));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(@RequestBody @Valid RefreshTokenRequest request) {
-        if (!jwtUtils.validateRefreshToken(request.refreshToken())) {
+    public ResponseEntity<?> refresh(
+            @CookieValue(name = REFRESH_COOKIE_NAME, required = false) String refreshTokenCookie) {
+        if (refreshTokenCookie == null || !jwtUtils.validateRefreshToken(refreshTokenCookie)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Invalid refresh token"));
         }
 
-        var claims = jwtUtils.parseToken(request.refreshToken());
+        var claims = jwtUtils.parseToken(refreshTokenCookie);
         String email = claims.getSubject();
         Optional<User> userOpt = userService.findByEmail(email);
         if (userOpt.isEmpty()) {
@@ -132,7 +140,16 @@ public class AuthController {
                 user.getTenant() != null ? user.getTenant().getId() : null
         );
         String refreshToken = jwtUtils.generateRefreshToken(user.getId(), user.getEmail());
-        return ResponseEntity.ok(Map.of("token", accessToken, "refreshToken", refreshToken));
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, buildRefreshCookie(refreshToken).toString())
+                .body(Map.of("token", accessToken));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, clearRefreshCookie().toString())
+                .body(Map.of("message", "Logged out"));
     }
 
     @PostMapping("/register")
@@ -179,6 +196,26 @@ public class AuthController {
 
     private String registerRateLimitKey(String email) {
         return "rate_limit:auth:register:" + email.trim().toLowerCase();
+    }
+
+    private ResponseCookie buildRefreshCookie(String refreshToken) {
+        return ResponseCookie.from(REFRESH_COOKIE_NAME, refreshToken)
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Lax")
+                .path("/api/v1/auth")
+                .maxAge(Objects.requireNonNull(REFRESH_COOKIE_TTL))
+                .build();
+    }
+
+    private ResponseCookie clearRefreshCookie() {
+        return ResponseCookie.from(REFRESH_COOKIE_NAME, "")
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Lax")
+                .path("/api/v1/auth")
+                .maxAge(0)
+                .build();
     }
 
     // @GetMapping("/hash")
