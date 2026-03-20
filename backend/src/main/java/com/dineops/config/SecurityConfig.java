@@ -1,6 +1,7 @@
 package com.dineops.config;
 
 import com.dineops.auth.JwtAuthFilter;
+import com.dineops.auth.TenantAuthorizationFilter;
 import com.dineops.logging.RequestContextFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,10 +24,14 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final TenantAuthorizationFilter tenantAuthorizationFilter;
     private final RequestContextFilter requestContextFilter;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter, RequestContextFilter requestContextFilter) {
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter,
+                          TenantAuthorizationFilter tenantAuthorizationFilter,
+                          RequestContextFilter requestContextFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.tenantAuthorizationFilter = tenantAuthorizationFilter;
         this.requestContextFilter = requestContextFilter;
     }
 
@@ -56,7 +61,8 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
                     .addFilterBefore(requestContextFilter, UsernamePasswordAuthenticationFilter.class)
-                    .addFilterAfter(jwtAuthFilter, RequestContextFilter.class);
+                    .addFilterAfter(jwtAuthFilter, RequestContextFilter.class)
+                    .addFilterAfter(tenantAuthorizationFilter, JwtAuthFilter.class);
         return http.build()
         ;
     }
