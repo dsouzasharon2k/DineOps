@@ -2,11 +2,17 @@ import axios from 'axios'
 import { getApiErrorMessage } from './error'
 import { tokenStore } from '../auth/tokenStore'
 
-// Base axios instance - all API calls go through this.
-// baseURL points to our Spring Boot backend.
-// The interceptor automatically attaches the JWT token to every request.
+type RetryableAxiosRequest = {
+  _retry?: boolean
+  headers?: Record<string, string>
+  url?: string
+}
+
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? '/api'
+let refreshRequest: Promise<string> | null = null
+
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8080',
+  baseURL: API_BASE_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -29,16 +35,24 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     if (axios.isAxiosError(error)) {
       const status = error.response?.status
-      const originalRequest = error.config as (typeof error.config & { _retry?: boolean }) | undefined
+      const originalRequest = error.config as (typeof error.config & RetryableAxiosRequest) | undefined
       const requestUrl = originalRequest?.url ?? ''
       const isAuthEndpoint = requestUrl.includes('/api/v1/auth/login') || requestUrl.includes('/api/v1/auth/refresh')
       if (status === 401 && originalRequest && !originalRequest._retry && !isAuthEndpoint) {
         originalRequest._retry = true
         try {
-          const refreshResponse = await axiosInstance.post<{ token: string }>('/api/v1/auth/refresh')
-          tokenStore.setToken(refreshResponse.data.token)
+          if (!refreshRequest) {
+            refreshRequest = axiosInstance
+              .post<{ token: string }>('/api/v1/auth/refresh')
+              .then((response) => response.data.token)
+              .finally(() => {
+                refreshRequest = null
+              })
+          }
+          const refreshedToken = await refreshRequest
+          tokenStore.setToken(refreshedToken)
           originalRequest.headers = originalRequest.headers ?? {}
-          originalRequest.headers.Authorization = `Bearer ${refreshResponse.data.token}`
+          originalRequest.headers.Authorization = `Bearer ${refreshedToken}`
           return axiosInstance(originalRequest)
         } catch {
           tokenStore.clear()
@@ -46,6 +60,12 @@ axiosInstance.interceptors.response.use(
           if (!isOnLoginPage) {
             window.location.href = '/login'
           }
+        }
+      } else if (status === 401 && isAuthEndpoint) {
+        tokenStore.clear()
+        const isOnLoginPage = window.location.pathname === '/login'
+        if (!isOnLoginPage) {
+          window.location.href = '/login'
         }
       }
 

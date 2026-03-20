@@ -1770,8 +1770,8 @@ Marking items based on your board screenshots and the code changes already made:
 [ ] DOPS-36 — OrderService validation
 [ ] DOPS-37 — updateStatus null/invalid fix
 [x] DOPS-38 — Response DTOs for Order/MenuItem/etc
-[ ] DOPS-39 — Axios 401 interceptor + redirect to `/login`
-[ ] DOPS-40 — `VITE_API_URL` env var in axiosInstance (remove localhost hardcode)
+[x] DOPS-39 — Axios 401 interceptor + redirect to `/login`
+[x] DOPS-40 — `VITE_API_URL` env var in axiosInstance (remove localhost hardcode)
 [ ] DOPS-41 — K8s Secrets for DB password and JWT secret
 [x] DOPS-42 — Dockerfile non-root user for backend
 [x] DOPS-43 — Nginx hardening (gzip/cache/security headers)
