@@ -35,11 +35,11 @@ const LoginPage = () => {
   }
 
   return (
-    // Full screen centered layout - works on mobile and desktop
-    <div className="w-full max-w-md px-6">
+    // Login page controls its own centering so other public pages can be full-width.
+    <div className="min-h-screen flex items-center justify-center px-4 py-10">
 
       {/* Card */}
-      <div className="bg-white rounded-2xl shadow-md p-8">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-md p-8">
 
         {/* Logo / Title */}
         <h1 className="text-3xl font-bold text-orange-500 text-center mb-1">
