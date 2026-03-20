@@ -1830,7 +1830,7 @@ Marking items based on your board screenshots and the code changes already made:
 [ ] DOPS-093 — test/DOPS-093-e2e-playwright
 [x] DOPS-094 — test/DOPS-094-frontend-component-tests
 [x] DOPS-095 — chore/DOPS-095-coverage-thresholds
-[ ] DOPS-096 — perf/DOPS-096-indexes-constraints
+[x] DOPS-096 — perf/DOPS-096-indexes-constraints
 [ ] DOPS-097 — feat/DOPS-097-updated-at-trigger
 [ ] DOPS-098 — feat/DOPS-098-legal-pages
 [ ] DOPS-099 — feat/DOPS-099-data-deletion
