@@ -9,6 +9,7 @@ import com.dineops.dto.UserResponse;
 import com.dineops.exception.EntityNotFoundException;
 import com.dineops.menu.MenuItem;
 import com.dineops.menu.MenuItemRepository;
+import com.dineops.notification.NotificationService;
 import com.dineops.restaurant.Restaurant;
 import com.dineops.restaurant.RestaurantRepository;
 import com.dineops.table.DiningTableService;
@@ -59,6 +60,7 @@ public class OrderService {
     private final RestaurantRepository restaurantRepository;
     private final OrderStatusHistoryRepository orderStatusHistoryRepository;
     private final DiningTableService diningTableService;
+    private final NotificationService notificationService;
     @Autowired(required = false)
     private SimpMessagingTemplate messagingTemplate;
 
@@ -66,12 +68,14 @@ public class OrderService {
                         MenuItemRepository menuItemRepository,
                         RestaurantRepository restaurantRepository,
                         OrderStatusHistoryRepository orderStatusHistoryRepository,
-                        DiningTableService diningTableService) {
+                        DiningTableService diningTableService,
+                        NotificationService notificationService) {
         this.orderRepository = orderRepository;
         this.menuItemRepository = menuItemRepository;
         this.restaurantRepository = restaurantRepository;
         this.orderStatusHistoryRepository = orderStatusHistoryRepository;
         this.diningTableService = diningTableService;
+        this.notificationService = notificationService;
     }
 
     // Place a new order - validates items, calculates total, saves everything
@@ -89,6 +93,7 @@ public class OrderService {
         }
         order.setCustomerName(trimToNull(request.customerName()));
         order.setCustomerPhone(trimToNull(request.customerPhone()));
+        order.setCustomerEmail(trimToNull(request.customerEmail()));
         order.setNotes(request.notes());
 
         int total = 0;
@@ -112,6 +117,7 @@ public class OrderService {
 
         order.setTotalAmount(total);
         Order saved = orderRepository.save(order);
+        notificationService.sendOrderPlacedNotification(saved);
         log.info("order_placed orderId={} tenantId={} totalAmount={} itemCount={}",
                 saved.getId(),
                 saved.getTenant().getId(),
@@ -187,6 +193,7 @@ public class OrderService {
         }
         if (currentStatus != newStatus) {
             saveStatusHistory(order, currentStatus, newStatus);
+            notificationService.sendOrderStatusNotification(order, currentStatus, newStatus);
         }
         order.setStatus(newStatus);
         log.info("Order status changed: orderId={}, from={}, to={}", orderId, currentStatus, newStatus);

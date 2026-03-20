@@ -13,6 +13,7 @@ public record PlaceOrderRequest(
         String tableNumber,
         String customerName,
         String customerPhone,
+        String customerEmail,
         String notes,
         @NotEmpty(message = "Order must contain at least one item") @Valid List<OrderItemRequest> items
 ) {

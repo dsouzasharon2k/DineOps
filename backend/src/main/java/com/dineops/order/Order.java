@@ -44,6 +44,9 @@ public class Order extends AuditableEntity {
     @Column(name = "customer_phone")
     private String customerPhone;
 
+    @Column(name = "customer_email")
+    private String customerEmail;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "table_id")
     private DiningTable table;
@@ -82,6 +85,8 @@ public class Order extends AuditableEntity {
     public void setCustomerName(String customerName) { this.customerName = customerName; }
     public String getCustomerPhone() { return customerPhone; }
     public void setCustomerPhone(String customerPhone) { this.customerPhone = customerPhone; }
+    public String getCustomerEmail() { return customerEmail; }
+    public void setCustomerEmail(String customerEmail) { this.customerEmail = customerEmail; }
     public DiningTable getTable() { return table; }
     public void setTable(DiningTable table) { this.table = table; }
     public PaymentStatus getPaymentStatus() { return paymentStatus; }
