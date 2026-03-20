@@ -2,27 +2,13 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getCategoriesApi, getItemsApi } from '../../api/menu'
 import { useCart } from '../../hooks/useCart'
-
-interface Category {
-  id: string
-  name: string
-  description: string
-}
-
-interface MenuItem {
-  id: string
-  name: string
-  description: string
-  price: number
-  vegetarian: boolean
-  available: boolean
-}
+import type { MenuCategory, MenuItem } from '../../types/menu'
 
 const PublicMenuPage = () => {
   const { tenantId } = useParams<{ tenantId: string }>()
   const navigate = useNavigate()
   const { addItem, removeItem, getQuantity, total, itemCount } = useCart(tenantId!)
-  const [categories, setCategories] = useState<Category[]>([])
+  const [categories, setCategories] = useState<MenuCategory[]>([])
   const [itemsByCategory, setItemsByCategory] = useState<Record<string, MenuItem[]>>({})
   const [loading, setLoading] = useState(true)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
@@ -40,7 +26,7 @@ const PublicMenuPage = () => {
           // Fetch items for each category in parallel
           const itemsMap: Record<string, MenuItem[]> = {}
           await Promise.all(
-            cats.map(async (cat: Category) => {
+            cats.map(async (cat) => {
               const items = await getItemsApi(tenantId!, cat.id)
               itemsMap[cat.id] = items
             })
@@ -138,12 +124,12 @@ const PublicMenuPage = () => {
                       {/* Green square = veg, Red square = non-veg (Indian standard) */}
                       <span
                         className={`w-4 h-4 rounded-sm border-2 flex items-center justify-center ${
-                          item.vegetarian ? 'border-green-500' : 'border-red-500'
+                          item.isVegetarian ? 'border-green-500' : 'border-red-500'
                         }`}
                       >
                         <span
                           className={`w-2 h-2 rounded-full ${
-                            item.vegetarian ? 'bg-green-500' : 'bg-red-500'
+                            item.isVegetarian ? 'bg-green-500' : 'bg-red-500'
                           }`}
                         />
                       </span>
@@ -170,7 +156,7 @@ const PublicMenuPage = () => {
                             menuItemId: item.id,
                             name: item.name,
                             price: item.price,
-                            isVegetarian: item.vegetarian,
+                            isVegetarian: item.isVegetarian,
                           })
                         }
                         className="px-4 py-1.5 rounded-full text-sm font-medium bg-orange-500 text-white hover:bg-orange-600"
@@ -192,7 +178,7 @@ const PublicMenuPage = () => {
                               menuItemId: item.id,
                               name: item.name,
                               price: item.price,
-                              isVegetarian: item.vegetarian,
+                            isVegetarian: item.isVegetarian,
                             })
                           }
                           className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-lg font-bold hover:bg-orange-600"

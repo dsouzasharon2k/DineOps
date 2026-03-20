@@ -1,16 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getRestaurantsApi } from '../../api/restaurants'
-
-// Shape of a restaurant object returned from the backend
-interface Restaurant {
-  id: string
-  name: string
-  slug: string
-  address: string
-  phone: string
-  cuisineType: string
-  status: string
-}
+import type { Restaurant } from '../../types/restaurant'
 
 const RestaurantsPage = () => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
@@ -78,7 +68,7 @@ const RestaurantsPage = () => {
                 </h2>
                 <span
                   className={`text-xs font-medium px-2 py-1 rounded-full ${
-                    restaurant.status === 'active'
+                    restaurant.status === 'ACTIVE'
                       ? 'bg-green-100 text-green-600'
                       : 'bg-gray-100 text-gray-500'
                   }`}

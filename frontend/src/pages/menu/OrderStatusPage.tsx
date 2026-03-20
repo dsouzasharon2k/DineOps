@@ -1,25 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getOrderApi } from '../../api/menu';
-
-interface OrderStatus {
-  id: string;
-  status: string;
-  totalAmount: number;
-  notes: string;
-  createdAt: string;
-  items: {
-    id: string;
-    name: string;
-    price: number;
-    quantity: number;
-  }[];
-}
+import type { Order, OrderStatus } from '../../types/order';
 
 // Maps status to display label and progress step
 const STATUS_STEPS = ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'DELIVERED'];
 
-const STATUS_LABELS: Record<string, { label: string; icon: string; message: string }> = {
+const STATUS_LABELS: Record<OrderStatus, { label: string; icon: string; message: string }> = {
   PENDING:   { label: 'Order Placed',    icon: '📋', message: 'Waiting for restaurant to confirm...' },
   CONFIRMED: { label: 'Confirmed',       icon: '✅', message: 'Restaurant has confirmed your order!' },
   PREPARING: { label: 'Being Prepared',  icon: '👨‍🍳', message: 'Kitchen is preparing your food...' },
@@ -31,7 +18,7 @@ const STATUS_LABELS: Record<string, { label: string; icon: string; message: stri
 export default function OrderStatusPage() {
   const { tenantId, orderId } = useParams<{ tenantId: string; orderId: string }>();
   const navigate = useNavigate();
-  const [order, setOrder] = useState<OrderStatus | null>(null);
+  const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

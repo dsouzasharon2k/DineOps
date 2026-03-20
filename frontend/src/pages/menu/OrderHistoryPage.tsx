@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getOrderApi } from '../../api/menu'
+import type { Order, OrderStatus } from '../../types/order'
 
 const STATUS_LABELS: Record<
-  string,
+  OrderStatus,
   { label: string; icon: string; color: string }
 > = {
   PENDING: {
@@ -36,22 +37,6 @@ const STATUS_LABELS: Record<
     icon: '❌',
     color: 'text-red-600 bg-red-50',
   },
-}
-
-interface OrderItem {
-  id: string
-  name: string
-  quantity: number
-  price: number
-}
-
-interface Order {
-  id: string
-  status: string
-  totalAmount: number
-  notes: string
-  createdAt: string
-  items: OrderItem[]
 }
 
 export default function OrderHistoryPage() {

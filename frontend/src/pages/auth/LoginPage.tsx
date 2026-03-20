@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import type { AxiosError } from 'axios'
 import { loginApi } from '../../api/auth'
+import type { ApiError } from '../../types/api'
 
 const LoginPage = () => {
   // State for form fields and error message
@@ -26,9 +28,10 @@ const LoginPage = () => {
 
       // Redirect to dashboard after successful login
       navigate('/dashboard')
-    } catch (err: any) {
+    } catch (err) {
+      const axiosError = err as AxiosError<ApiError>
       // Show error message if login fails
-      setError(err.response?.data?.error || 'Login failed. Please try again.')
+      setError(axiosError.response?.data?.message ?? 'Login failed. Please try again.')
     } finally {
       setLoading(false)
     }

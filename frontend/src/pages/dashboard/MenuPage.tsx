@@ -7,28 +7,14 @@ import {
   createItemApi,
   deleteItemApi,
 } from '../../api/menu'
+import type { MenuCategory, MenuItem } from '../../types/menu'
 
 // We hardcode the tenant ID for now - in Sprint 5 this will come from the JWT token
 const TENANT_ID = 'a085284e-ca00-4f64-a2c7-42fc0572bb97'
 
-interface Category {
-  id: string
-  name: string
-  description: string
-}
-
-interface MenuItem {
-  id: string
-  name: string
-  description: string
-  price: number
-  vegetarian: boolean
-  available: boolean
-}
-
 const MenuPage = () => {
-  const [categories, setCategories] = useState<Category[]>([])
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
+  const [categories, setCategories] = useState<MenuCategory[]>([])
+  const [selectedCategory, setSelectedCategory] = useState<MenuCategory | null>(null)
   const [items, setItems] = useState<MenuItem[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -275,7 +261,7 @@ const MenuPage = () => {
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-gray-800">{item.name}</span>
-                          {item.vegetarian && (
+                          {item.isVegetarian && (
                             <span className="text-xs bg-green-100 text-green-600 px-1.5 py-0.5 rounded">
                               🌿 Veg
                             </span>

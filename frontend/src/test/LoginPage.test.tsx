@@ -26,8 +26,8 @@ describe('LoginPage', () => {
 
   test('shows error message on failed login', async () => {
     // Make the mock API reject with an error
-    (loginApi as any).mockRejectedValueOnce({
-      response: { data: { error: 'Invalid credentials' } }
+    vi.mocked(loginApi).mockRejectedValueOnce({
+      response: { data: { message: 'Invalid credentials' } }
     })
 
     render(

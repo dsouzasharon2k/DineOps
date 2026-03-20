@@ -1,15 +1,18 @@
 import { useEffect, useState, useCallback } from 'react'
 import { getActiveOrdersApi, updateOrderStatusApi } from '../../api/menu'
+import type { Order, OrderStatus } from '../../types/order'
 
 // The status flow for an order in the kitchen
-const STATUS_FLOW: Record<string, string> = {
+const STATUS_FLOW: Record<OrderStatus, OrderStatus | undefined> = {
   PENDING: 'CONFIRMED',
   CONFIRMED: 'PREPARING',
   PREPARING: 'READY',
   READY: 'DELIVERED',
+  DELIVERED: undefined,
+  CANCELLED: undefined,
 }
 
-const STATUS_STYLES: Record<string, { bg: string; text: string; badge: string }> = {
+const STATUS_STYLES: Record<OrderStatus, { bg: string; text: string; badge: string }> = {
   PENDING: {
     bg: 'border-yellow-400',
     text: 'text-yellow-700',
@@ -30,36 +33,34 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; badge: string }>
     text: 'text-green-700',
     badge: 'bg-green-100 text-green-700',
   },
+  DELIVERED: {
+    bg: 'border-gray-300',
+    text: 'text-gray-700',
+    badge: 'bg-gray-100 text-gray-700',
+  },
+  CANCELLED: {
+    bg: 'border-red-400',
+    text: 'text-red-700',
+    badge: 'bg-red-100 text-red-700',
+  },
 }
 
-const STATUS_LABELS: Record<string, string> = {
+const STATUS_LABELS: Record<OrderStatus, string> = {
   PENDING: 'New Order',
   CONFIRMED: 'Confirmed',
   PREPARING: 'Preparing',
   READY: 'Ready',
+  DELIVERED: 'Delivered',
+  CANCELLED: 'Cancelled',
 }
 
-const NEXT_ACTION_LABELS: Record<string, string> = {
+const NEXT_ACTION_LABELS: Record<OrderStatus, string> = {
   PENDING: '✅ Confirm',
   CONFIRMED: '👨‍🍳 Start Preparing',
   PREPARING: '🛎️ Mark Ready',
   READY: '✓ Delivered',
-}
-
-interface OrderItem {
-  id: string
-  name: string
-  quantity: number
-  price: number
-}
-
-interface Order {
-  id: string
-  status: string
-  totalAmount: number
-  notes: string
-  createdAt: string
-  items: OrderItem[]
+  DELIVERED: 'Completed',
+  CANCELLED: 'Cancelled',
 }
 
 // Format time elapsed since order was placed
@@ -97,7 +98,7 @@ export default function KitchenPage() {
     return () => clearInterval(interval)
   }, [fetchOrders])
 
-  const handleStatusUpdate = async (orderId: string, nextStatus: string) => {
+  const handleStatusUpdate = async (orderId: string, nextStatus: OrderStatus) => {
     setUpdating(orderId)
     try {
       const updated = await updateOrderStatusApi(orderId, nextStatus, token)
@@ -113,13 +114,13 @@ export default function KitchenPage() {
     }
   }
 
-  const columns = ['PENDING', 'CONFIRMED', 'PREPARING', 'READY']
+  const columns: OrderStatus[] = ['PENDING', 'CONFIRMED', 'PREPARING', 'READY']
   const ordersByStatus = columns.reduce(
     (acc, status) => {
       acc[status] = orders.filter((o) => o.status === status)
       return acc
     },
-    {} as Record<string, Order[]>
+    {} as Record<OrderStatus, Order[]>
   )
 
   if (loading)
@@ -217,9 +218,12 @@ export default function KitchenPage() {
                         </span>
                         {STATUS_FLOW[status] && (
                           <button
-                            onClick={() =>
-                              handleStatusUpdate(order.id, STATUS_FLOW[status])
-                            }
+                            onClick={() => {
+                              const nextStatus = STATUS_FLOW[status]
+                              if (nextStatus) {
+                                handleStatusUpdate(order.id, nextStatus)
+                              }
+                            }}
                             disabled={updating === order.id}
                             className="text-xs px-3 py-1.5 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 disabled:opacity-50"
                           >

@@ -1,14 +1,20 @@
 import axiosInstance from './axiosInstance'
+import type { MenuCategory, MenuItem } from '../types/menu'
+import type { Order, OrderStatus } from '../types/order'
 
 // --- Categories ---
 
-export const getCategoriesApi = async (tenantId: string) => {
-  const response = await axiosInstance.get(`/api/v1/restaurants/${tenantId}/categories`)
+export const getCategoriesApi = async (tenantId: string): Promise<MenuCategory[]> => {
+  const response = await axiosInstance.get<MenuCategory[]>(`/api/v1/restaurants/${tenantId}/categories`)
   return response.data
 }
 
-export const createCategoryApi = async (tenantId: string, name: string, description: string) => {
-  const response = await axiosInstance.post(`/api/v1/restaurants/${tenantId}/categories`, {
+export const createCategoryApi = async (
+  tenantId: string,
+  name: string,
+  description: string
+): Promise<MenuCategory> => {
+  const response = await axiosInstance.post<MenuCategory>(`/api/v1/restaurants/${tenantId}/categories`, {
     name,
     description,
   })
@@ -21,8 +27,8 @@ export const deleteCategoryApi = async (tenantId: string, categoryId: string) =>
 
 // --- Menu Items ---
 
-export const getItemsApi = async (tenantId: string, categoryId: string) => {
-  const response = await axiosInstance.get(
+export const getItemsApi = async (tenantId: string, categoryId: string): Promise<MenuItem[]> => {
+  const response = await axiosInstance.get<MenuItem[]>(
     `/api/v1/restaurants/${tenantId}/categories/${categoryId}/items`
   )
   return response.data
@@ -38,8 +44,8 @@ export const createItemApi = async (
     isVegetarian: boolean
     imageUrl: string | null
   }
-) => {
-  const response = await axiosInstance.post(
+): Promise<MenuItem> => {
+  const response = await axiosInstance.post<MenuItem>(
     `/api/v1/restaurants/${tenantId}/categories/${categoryId}/items`,
     item
   )
@@ -61,20 +67,20 @@ export const placeOrderApi = async (
   tenantId: string,
   notes: string,
   items: { menuItemId: string; quantity: number }[]
-) => {
-  const res = await axiosInstance.post('/api/v1/orders', { tenantId, notes, items })
+): Promise<Order> => {
+  const res = await axiosInstance.post<Order>('/api/v1/orders', { tenantId, notes, items })
   return res.data
 }
 
 // Get order by ID (for status tracking)
-export const getOrderApi = async (orderId: string) => {
-  const res = await axiosInstance.get(`/api/v1/orders/${orderId}`)
+export const getOrderApi = async (orderId: string): Promise<Order> => {
+  const res = await axiosInstance.get<Order>(`/api/v1/orders/${orderId}`)
   return res.data
 }
 
 // Get all active orders for a restaurant (kitchen view)
-export const getActiveOrdersApi = async (tenantId: string, token: string) => {
-  const res = await axiosInstance.get(`/api/v1/orders/active?tenantId=${tenantId}`, {
+export const getActiveOrdersApi = async (tenantId: string, token: string): Promise<Order[]> => {
+  const res = await axiosInstance.get<Order[]>(`/api/v1/orders/active?tenantId=${tenantId}`, {
     headers: { Authorization: `Bearer ${token}` },
   })
   return res.data
@@ -83,10 +89,10 @@ export const getActiveOrdersApi = async (tenantId: string, token: string) => {
 // Update order status (kitchen staff action)
 export const updateOrderStatusApi = async (
   orderId: string,
-  status: string,
+  status: OrderStatus,
   token: string
-) => {
-  const res = await axiosInstance.patch(
+): Promise<Order> => {
+  const res = await axiosInstance.patch<Order>(
     `/api/v1/orders/${orderId}/status`,
     { status },
     {
