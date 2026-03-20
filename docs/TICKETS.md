@@ -1850,5 +1850,5 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-113 — security/DOPS-113-block-inactive-logins
 [x] DOPS-114 — refactor/DOPS-114-password-encoder-bean
 [x] DOPS-115 — security/DOPS-115-token-storage-hardening
-[ ] DOPS-116 — test/DOPS-116-isolated-test-db
+[x] DOPS-116 — test/DOPS-116-isolated-test-db
 
