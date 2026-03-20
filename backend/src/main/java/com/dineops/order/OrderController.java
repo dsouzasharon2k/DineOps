@@ -2,6 +2,7 @@ package com.dineops.order;
 
 import com.dineops.dto.PageResponse;
 import com.dineops.dto.OrderResponse;
+import com.dineops.dto.OrderStatusHistoryResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +30,11 @@ public class OrderController {
     @GetMapping("/{orderId}")
     public ResponseEntity<OrderResponse> getOrder(@PathVariable UUID orderId) {
         return ResponseEntity.ok(orderService.getOrderResponseById(orderId));
+    }
+
+    @GetMapping("/{orderId}/history")
+    public ResponseEntity<java.util.List<OrderStatusHistoryResponse>> getOrderHistory(@PathVariable UUID orderId) {
+        return ResponseEntity.ok(orderService.getStatusHistory(orderId));
     }
 
     // GET /api/v1/orders?tenantId=xxx - get all orders for a restaurant

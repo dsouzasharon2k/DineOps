@@ -17,6 +17,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings("null")
 class OrderServiceTest {
 
     private static final Map<OrderStatus, Set<OrderStatus>> EXPECTED_ALLOWED_TRANSITIONS = Map.of(
@@ -29,14 +30,16 @@ class OrderServiceTest {
     );
 
     private OrderRepository orderRepository;
+    private OrderStatusHistoryRepository orderStatusHistoryRepository;
     private OrderService orderService;
 
     @BeforeEach
     void setUp() {
         orderRepository = Mockito.mock(OrderRepository.class);
+        orderStatusHistoryRepository = Mockito.mock(OrderStatusHistoryRepository.class);
         MenuItemRepository menuItemRepository = Mockito.mock(MenuItemRepository.class);
         RestaurantRepository restaurantRepository = Mockito.mock(RestaurantRepository.class);
-        orderService = new OrderService(orderRepository, menuItemRepository, restaurantRepository);
+        orderService = new OrderService(orderRepository, menuItemRepository, restaurantRepository, orderStatusHistoryRepository);
     }
 
     @Test
@@ -52,6 +55,7 @@ class OrderServiceTest {
 
         assertEquals(OrderStatus.CONFIRMED, updated.getStatus());
         verify(orderRepository).save(order);
+        verify(orderStatusHistoryRepository).save(any(OrderStatusHistory.class));
     }
 
     @Test

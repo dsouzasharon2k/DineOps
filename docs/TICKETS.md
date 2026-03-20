@@ -1816,7 +1816,7 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-079 — feat/DOPS-079-error-boundaries
 [ ] DOPS-080 — feat/DOPS-080-websocket-orders
 [ ] DOPS-081 — feat/DOPS-081-notifications
-[ ] DOPS-082 — feat/DOPS-082-order-status-history
+[x] DOPS-082 — feat/DOPS-082-order-status-history
 [ ] DOPS-083 — feat/DOPS-083-audit-log
 [ ] DOPS-084 — feat/DOPS-084-analytics-dashboard
 [x] DOPS-085 — chore/DOPS-085-complete-docker-k8s

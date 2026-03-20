@@ -2,6 +2,7 @@ package com.dineops.order;
 
 import com.dineops.dto.OrderItemResponse;
 import com.dineops.dto.OrderResponse;
+import com.dineops.dto.OrderStatusHistoryResponse;
 import com.dineops.dto.UserResponse;
 import com.dineops.exception.EntityNotFoundException;
 import com.dineops.menu.MenuItem;
@@ -18,11 +19,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Service
 @SuppressWarnings("null")
@@ -44,13 +49,16 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final MenuItemRepository menuItemRepository;
     private final RestaurantRepository restaurantRepository;
+    private final OrderStatusHistoryRepository orderStatusHistoryRepository;
 
     public OrderService(OrderRepository orderRepository,
                         MenuItemRepository menuItemRepository,
-                        RestaurantRepository restaurantRepository) {
+                        RestaurantRepository restaurantRepository,
+                        OrderStatusHistoryRepository orderStatusHistoryRepository) {
         this.orderRepository = orderRepository;
         this.menuItemRepository = menuItemRepository;
         this.restaurantRepository = restaurantRepository;
+        this.orderStatusHistoryRepository = orderStatusHistoryRepository;
     }
 
     // Place a new order - validates items, calculates total, saves everything
@@ -155,6 +163,9 @@ public class OrderService {
             throw new IllegalArgumentException(
                     "Invalid order status transition: " + currentStatus + " -> " + newStatus);
         }
+        if (currentStatus != newStatus) {
+            saveStatusHistory(order, currentStatus, newStatus);
+        }
         order.setStatus(newStatus);
         log.info("Order status changed: orderId={}, from={}, to={}", orderId, currentStatus, newStatus);
         return orderRepository.save(order);
@@ -164,8 +175,35 @@ public class OrderService {
         return toResponse(updateStatus(orderId, newStatus));
     }
 
+    public List<OrderStatusHistoryResponse> getStatusHistory(UUID orderId) {
+        if (!orderRepository.existsById(orderId)) {
+            throw new EntityNotFoundException("Order not found");
+        }
+        return orderStatusHistoryRepository.findByOrderIdOrderByChangedAtAsc(orderId).stream()
+                .map(this::toStatusHistoryResponse)
+                .toList();
+    }
+
     private boolean isTransitionAllowed(OrderStatus from, OrderStatus to) {
         return ALLOWED_TRANSITIONS.getOrDefault(from, Set.of()).contains(to);
+    }
+
+    private void saveStatusHistory(Order order, OrderStatus oldStatus, OrderStatus newStatus) {
+        OrderStatusHistory history = new OrderStatusHistory();
+        history.setOrder(order);
+        history.setOldStatus(oldStatus);
+        history.setNewStatus(newStatus);
+        history.setChangedBy(resolveChangedBy());
+        history.setChangedAt(LocalDateTime.now());
+        orderStatusHistoryRepository.save(history);
+    }
+
+    private String resolveChangedBy() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+            return "system";
+        }
+        return authentication.getName();
     }
 
     private OrderResponse toResponse(Order order) {
@@ -208,6 +246,16 @@ public class OrderService {
                 user.isActive(),
                 user.getCreatedAt(),
                 user.getUpdatedAt()
+        );
+    }
+
+    private OrderStatusHistoryResponse toStatusHistoryResponse(OrderStatusHistory history) {
+        return new OrderStatusHistoryResponse(
+                history.getId(),
+                history.getOldStatus(),
+                history.getNewStatus(),
+                history.getChangedBy(),
+                history.getChangedAt()
         );
     }
 }

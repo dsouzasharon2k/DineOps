@@ -29,3 +29,11 @@ export interface Order {
   createdAt: string
   updatedAt: string
 }
+
+export interface OrderStatusHistoryEntry {
+  id: string
+  oldStatus: OrderStatus
+  newStatus: OrderStatus
+  changedBy: string | null
+  changedAt: string
+}

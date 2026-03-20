@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getOrderApi } from '../../api/menu';
-import type { Order, OrderStatus } from '../../types/order';
+import { getOrderApi, getOrderHistoryApi } from '../../api/menu';
+import type { Order, OrderStatus, OrderStatusHistoryEntry } from '../../types/order';
 import { getApiErrorMessage } from '../../api/error';
 
 // Maps status to display label and progress step
@@ -20,6 +20,7 @@ export default function OrderStatusPage() {
   const { tenantId, orderId } = useParams<{ tenantId: string; orderId: string }>();
   const navigate = useNavigate();
   const [order, setOrder] = useState<Order | null>(null);
+  const [history, setHistory] = useState<OrderStatusHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -32,6 +33,8 @@ export default function OrderStatusPage() {
     try {
       const data = await getOrderApi(orderId);
       setOrder(data);
+      const timeline = await getOrderHistoryApi(orderId);
+      setHistory(timeline);
     } catch (err) {
       setError(getApiErrorMessage(err, 'Failed to fetch order.'));
     } finally {
@@ -128,6 +131,29 @@ export default function OrderStatusPage() {
             <span>Total</span>
             <span>₹{order.totalAmount / 100}</span>
           </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-4">
+          <div className="px-4 py-3 border-b border-gray-100">
+            <p className="font-semibold text-gray-700">Status Timeline</p>
+          </div>
+          {history.length === 0 ? (
+            <p className="px-4 py-3 text-sm text-gray-500">No status changes recorded yet.</p>
+          ) : (
+            history.map((entry, idx) => (
+              <div
+                key={entry.id}
+                className={`px-4 py-3 ${idx < history.length - 1 ? 'border-b border-gray-100' : ''}`}
+              >
+                <p className="text-sm font-medium text-gray-800">
+                  {entry.oldStatus} → {entry.newStatus}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {new Date(entry.changedAt).toLocaleString()} by {entry.changedBy ?? 'system'}
+                </p>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Order again button */}

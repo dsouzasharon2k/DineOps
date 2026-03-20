@@ -1,6 +1,6 @@
 import axiosInstance from './axiosInstance'
 import type { MenuCategory, MenuItem } from '../types/menu'
-import type { Order, OrderStatus } from '../types/order'
+import type { Order, OrderStatus, OrderStatusHistoryEntry } from '../types/order'
 
 // --- Categories ---
 
@@ -75,6 +75,11 @@ export const placeOrderApi = async (
 // Get order by ID (for status tracking)
 export const getOrderApi = async (orderId: string): Promise<Order> => {
   const res = await axiosInstance.get<Order>(`/api/v1/orders/${orderId}`)
+  return res.data
+}
+
+export const getOrderHistoryApi = async (orderId: string): Promise<OrderStatusHistoryEntry[]> => {
+  const res = await axiosInstance.get<OrderStatusHistoryEntry[]>(`/api/v1/orders/${orderId}/history`)
   return res.data
 }
 
