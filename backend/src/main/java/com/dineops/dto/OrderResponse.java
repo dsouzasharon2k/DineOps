@@ -16,6 +16,7 @@ public record OrderResponse(
         OrderStatus status,
         PaymentStatus paymentStatus,
         PaymentMethod paymentMethod,
+        Integer estimatedReadyMinutes,
         Integer totalAmount,
         String notes,
         List<OrderItemResponse> items,

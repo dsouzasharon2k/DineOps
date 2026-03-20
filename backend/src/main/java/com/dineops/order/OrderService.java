@@ -13,6 +13,8 @@ import com.dineops.notification.NotificationService;
 import com.dineops.restaurant.Restaurant;
 import com.dineops.restaurant.RestaurantRepository;
 import com.dineops.table.DiningTableService;
+import com.dineops.inventory.InventoryService;
+import com.dineops.subscription.SubscriptionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
@@ -43,6 +45,7 @@ public class OrderService {
 
     private static final Logger log = LoggerFactory.getLogger(OrderService.class);
     private static final int GST_PERCENT = 5;
+    private static final int FALLBACK_PREP_TIME_MINUTES = 20;
     private static final Map<OrderStatus, Set<OrderStatus>> ALLOWED_TRANSITIONS =
             new EnumMap<>(OrderStatus.class);
 
@@ -61,6 +64,9 @@ public class OrderService {
     private final OrderStatusHistoryRepository orderStatusHistoryRepository;
     private final DiningTableService diningTableService;
     private final NotificationService notificationService;
+    private final SubscriptionService subscriptionService;
+    @Autowired(required = false)
+    private InventoryService inventoryService;
     @Autowired(required = false)
     private SimpMessagingTemplate messagingTemplate;
 
@@ -69,13 +75,15 @@ public class OrderService {
                         RestaurantRepository restaurantRepository,
                         OrderStatusHistoryRepository orderStatusHistoryRepository,
                         DiningTableService diningTableService,
-                        NotificationService notificationService) {
+                        NotificationService notificationService,
+                        SubscriptionService subscriptionService) {
         this.orderRepository = orderRepository;
         this.menuItemRepository = menuItemRepository;
         this.restaurantRepository = restaurantRepository;
         this.orderStatusHistoryRepository = orderStatusHistoryRepository;
         this.diningTableService = diningTableService;
         this.notificationService = notificationService;
+        this.subscriptionService = subscriptionService;
     }
 
     // Place a new order - validates items, calculates total, saves everything
@@ -85,6 +93,12 @@ public class OrderService {
     public Order placeOrder(PlaceOrderRequest request) {
         Restaurant restaurant = restaurantRepository.findById(request.tenantId())
                 .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+
+        long monthlyOrderCount = orderRepository.countByTenantIdAndCreatedAtGreaterThanEqual(
+                request.tenantId(),
+                LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0)
+        );
+        subscriptionService.validateTenantCanPlaceOrder(request.tenantId(), monthlyOrderCount);
 
         Order order = new Order();
         order.setTenant(restaurant);
@@ -110,6 +124,9 @@ public class OrderService {
             orderItem.setName(menuItem.getName());
             orderItem.setPrice(menuItem.getPrice());
             orderItem.setQuantity(itemReq.quantity());
+            if (inventoryService != null) {
+                inventoryService.consumeStockIfTracked(menuItem, itemReq.quantity());
+            }
 
             order.getItems().add(orderItem);
             total += menuItem.getPrice() * itemReq.quantity();
@@ -340,6 +357,7 @@ public class OrderService {
     }
 
     private OrderResponse toResponse(Order order) {
+        Integer estimatedReadyMinutes = estimateReadyMinutes(order);
         return new OrderResponse(
                 order.getId(),
                 order.getTenant().getId(),
@@ -348,12 +366,72 @@ public class OrderService {
                 order.getStatus(),
                 order.getPaymentStatus(),
                 order.getPaymentMethod(),
+                estimatedReadyMinutes,
                 order.getTotalAmount(),
                 order.getNotes(),
                 order.getItems().stream().map(this::toItemResponse).toList(),
                 order.getCreatedAt(),
                 order.getUpdatedAt()
         );
+    }
+
+    private Integer estimateReadyMinutes(Order order) {
+        if (order.getStatus() == OrderStatus.CANCELLED || order.getStatus() == OrderStatus.DELIVERED) {
+            return 0;
+        }
+
+        int estimatedTotal = resolveEstimatedPrepTotal(order);
+        long elapsed = Math.max(0, java.time.Duration.between(order.getCreatedAt(), LocalDateTime.now()).toMinutes());
+        int remaining = (int) Math.max(1, estimatedTotal - elapsed);
+        return remaining;
+    }
+
+    private int resolveEstimatedPrepTotal(Order order) {
+        int maxItemPrep = order.getItems().stream()
+                .map(OrderItem::getMenuItem)
+                .filter(Objects::nonNull)
+                .map(MenuItem::getPrepTimeMinutes)
+                .filter(Objects::nonNull)
+                .filter(value -> value > 0)
+                .max(Integer::compareTo)
+                .orElse(0);
+        if (maxItemPrep > 0) {
+            return maxItemPrep;
+        }
+
+        int historicalAverage = computeHistoricalAveragePrepMinutes(order.getTenant().getId());
+        if (historicalAverage > 0) {
+            return historicalAverage;
+        }
+
+        Integer restaurantDefault = order.getTenant().getDefaultPrepTimeMinutes();
+        if (restaurantDefault != null && restaurantDefault > 0) {
+            return restaurantDefault;
+        }
+        return FALLBACK_PREP_TIME_MINUTES;
+    }
+
+    private int computeHistoricalAveragePrepMinutes(UUID tenantId) {
+        List<OrderStatusHistory> history = orderStatusHistoryRepository.findByOrderTenantIdOrderByChangedAtAsc(tenantId);
+        Map<UUID, LocalDateTime> confirmedTimes = new java.util.HashMap<>();
+        List<Long> durations = new java.util.ArrayList<>();
+
+        for (OrderStatusHistory item : history) {
+            UUID orderId = item.getOrder().getId();
+            if (item.getNewStatus() == OrderStatus.CONFIRMED && !confirmedTimes.containsKey(orderId)) {
+                confirmedTimes.put(orderId, item.getChangedAt());
+            }
+            if (item.getNewStatus() == OrderStatus.READY) {
+                LocalDateTime confirmedAt = confirmedTimes.get(orderId);
+                if (confirmedAt != null && !item.getChangedAt().isBefore(confirmedAt)) {
+                    durations.add(java.time.Duration.between(confirmedAt, item.getChangedAt()).toMinutes());
+                }
+            }
+        }
+        if (durations.isEmpty()) {
+            return 0;
+        }
+        return (int) Math.round(durations.stream().mapToLong(Long::longValue).average().orElse(0));
     }
 
     private OrderItemResponse toItemResponse(OrderItem item) {

@@ -21,7 +21,7 @@
 | Code Quality | SonarQube Cloud | Free tier |
 | Monitoring | Prometheus + Grafana | - |
 | Load Testing | k6 | 0.50.x |
-| E2E Testing | Selenium | 4.x |
+| E2E Testing | Playwright | 1.x |
 
 ## Local Development
 

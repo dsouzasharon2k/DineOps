@@ -16,6 +16,8 @@ public record RestaurantResponse(
         String fssaiLicense,
         String gstNumber,
         String operatingHours,
+        Integer defaultPrepTimeMinutes,
+        Double averageRating,
         RestaurantStatus status,
         LocalDateTime createdAt,
         LocalDateTime updatedAt

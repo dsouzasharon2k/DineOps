@@ -45,6 +45,9 @@ public class MenuItem extends AuditableEntity {
     @Column(name = "display_order")
     private Integer displayOrder = 0;
 
+    @Column(name = "prep_time_minutes")
+    private Integer prepTimeMinutes;
+
     // Getters and Setters
     public UUID getId() { return id; }
     public Restaurant getTenant() { return tenant; }
@@ -65,4 +68,6 @@ public class MenuItem extends AuditableEntity {
     public void setAvailable(boolean available) { isAvailable = available; }
     public Integer getDisplayOrder() { return displayOrder; }
     public void setDisplayOrder(Integer displayOrder) { this.displayOrder = displayOrder; }
+    public Integer getPrepTimeMinutes() { return prepTimeMinutes; }
+    public void setPrepTimeMinutes(Integer prepTimeMinutes) { this.prepTimeMinutes = prepTimeMinutes; }
 }

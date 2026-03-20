@@ -3,6 +3,7 @@ package com.dineops.restaurant;
 import com.dineops.audit.AuditedAction;
 import com.dineops.dto.RestaurantResponse;
 import com.dineops.exception.EntityNotFoundException;
+import com.dineops.review.ReviewService;
 import com.dineops.user.User;
 import com.dineops.user.UserRepository;
 import com.dineops.user.UserRole;
@@ -21,10 +22,12 @@ public class RestaurantService {
 
     private final RestaurantRepository restaurantRepository;
     private final UserRepository userRepository;
+    private final ReviewService reviewService;
 
-    public RestaurantService(RestaurantRepository restaurantRepository, UserRepository userRepository) {
+    public RestaurantService(RestaurantRepository restaurantRepository, UserRepository userRepository, ReviewService reviewService) {
         this.restaurantRepository = restaurantRepository;
         this.userRepository = userRepository;
+        this.reviewService = reviewService;
     }
 
     public List<Restaurant> getAllRestaurants() {
@@ -66,6 +69,7 @@ public class RestaurantService {
         restaurant.setFssaiLicense(trimToNull(request.fssaiLicense()));
         restaurant.setGstNumber(trimToNull(request.gstNumber()));
         restaurant.setOperatingHours(trimToNull(request.operatingHours()));
+        restaurant.setDefaultPrepTimeMinutes(request.defaultPrepTimeMinutes() != null ? request.defaultPrepTimeMinutes() : 20);
 
         Restaurant savedRestaurant = restaurantRepository.save(restaurant);
         User owner = resolveOwner(actorEmail, request.ownerEmail(), actorIsSuperAdmin);
@@ -88,6 +92,8 @@ public class RestaurantService {
                 restaurant.getFssaiLicense(),
                 restaurant.getGstNumber(),
                 restaurant.getOperatingHours(),
+                restaurant.getDefaultPrepTimeMinutes(),
+                reviewService.getAverageRating(restaurant.getId()),
                 restaurant.getStatus(),
                 restaurant.getCreatedAt(),
                 restaurant.getUpdatedAt()

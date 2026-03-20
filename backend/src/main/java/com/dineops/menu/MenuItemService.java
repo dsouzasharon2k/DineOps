@@ -62,6 +62,7 @@ public class MenuItemService {
         item.setPrice(request.price()); // price in paise
         item.setVegetarian(request.isVegetarian());
         item.setImageUrl(request.imageUrl());
+        item.setPrepTimeMinutes(request.prepTimeMinutes());
 
         return menuItemRepository.save(item);
     }
@@ -91,6 +92,7 @@ public class MenuItemService {
                 item.isVegetarian(),
                 item.isAvailable(),
                 item.getDisplayOrder(),
+                item.getPrepTimeMinutes(),
                 item.getCreatedAt(),
                 item.getUpdatedAt()
         );

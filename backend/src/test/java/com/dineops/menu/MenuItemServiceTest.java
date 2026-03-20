@@ -60,7 +60,7 @@ class MenuItemServiceTest {
         when(menuItemRepository.save(any(MenuItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         CreateMenuItemRequest request = new CreateMenuItemRequest(
-                "Veg Biryani", "Serves 1", 29900, true, null);
+                "Veg Biryani", "Serves 1", 29900, true, null, null);
 
         MenuItem created = menuItemService.createItem(tenantId, categoryId, request);
 
@@ -79,7 +79,7 @@ class MenuItemServiceTest {
         when(restaurantRepository.findById(tenantId)).thenReturn(Optional.empty());
 
         CreateMenuItemRequest request = new CreateMenuItemRequest(
-                "Veg Biryani", "Serves 1", 29900, true, null);
+                "Veg Biryani", "Serves 1", 29900, true, null, null);
 
         EntityNotFoundException ex = assertThrows(
                 EntityNotFoundException.class,

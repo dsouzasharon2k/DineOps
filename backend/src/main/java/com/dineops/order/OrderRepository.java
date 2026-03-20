@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 import java.util.List;
 import java.util.UUID;
+import java.time.LocalDateTime;
 
 public interface OrderRepository extends JpaRepository<Order, UUID> {
 
@@ -25,4 +26,5 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
             UUID tenantId, List<OrderStatus> excludedStatuses, Pageable pageable);
 
     Optional<Order> findByPaymentProviderOrderRef(String paymentProviderOrderRef);
+    long countByTenantIdAndCreatedAtGreaterThanEqual(UUID tenantId, LocalDateTime createdAt);
 }

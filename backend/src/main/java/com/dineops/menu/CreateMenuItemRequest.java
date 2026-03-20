@@ -11,5 +11,6 @@ public record CreateMenuItemRequest(
         String description,
         @NotNull(message = "Price is required") @Min(value = 0, message = "Price must be non-negative") Integer price,
         boolean isVegetarian,
-        String imageUrl
+        String imageUrl,
+        @Min(value = 1, message = "Prep time must be at least 1 minute") Integer prepTimeMinutes
 ) {}

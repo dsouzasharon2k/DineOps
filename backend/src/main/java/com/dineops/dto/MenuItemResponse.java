@@ -14,6 +14,7 @@ public record MenuItemResponse(
         boolean isVegetarian,
         boolean isAvailable,
         Integer displayOrder,
+        Integer prepTimeMinutes,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {}
