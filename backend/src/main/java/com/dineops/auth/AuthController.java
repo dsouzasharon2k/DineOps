@@ -41,13 +41,20 @@ public class AuthController {
 
         User user = userOpt.get();
 
-        // Step 3: Check if the provided password matches the stored BCrypt hash
+        // Step 3: Reject inactive users with the same generic 401 response
+        // to avoid leaking account state details.
+        if (!user.isActive()) {
+            log.info("login_failed reason=inactive_user email={}", request.email());
+            return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
+        }
+
+        // Step 4: Check if the provided password matches the stored BCrypt hash
         if (!userService.checkPassword(request.password(), user.getPasswordHash())) {
             log.info("login_failed reason=invalid_password email={}", request.email());
             return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
         }
 
-        // Step 4: Generate a JWT token containing userId, email, role, and tenantId
+        // Step 5: Generate a JWT token containing userId, email, role, and tenantId
         // This token is returned to the client and used for all future requests
         String token = jwtUtils.generateToken(
                 user.getId(),
