@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { getRestaurantsApi } from '../../api/restaurants'
 import type { Restaurant } from '../../types/restaurant'
 import { getApiErrorMessage } from '../../api/error'
@@ -6,6 +7,7 @@ import LoadingState from '../../components/LoadingState'
 import EmptyState from '../../components/EmptyState'
 
 const RestaurantsPage = () => {
+  const navigate = useNavigate()
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -40,7 +42,10 @@ const RestaurantsPage = () => {
       {/* Page header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Restaurants</h1>
-        <button className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+        <button
+          onClick={() => navigate('/dashboard/onboarding')}
+          className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition"
+        >
           + Add Restaurant
         </button>
       </div>
