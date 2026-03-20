@@ -1,5 +1,7 @@
 package com.dineops.order;
 
+import com.dineops.dto.OrderResponse;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -18,35 +20,35 @@ public class OrderController {
 
     // POST /api/v1/orders - place a new order (public - no login needed)
     @PostMapping
-    public ResponseEntity<Order> placeOrder(@RequestBody PlaceOrderRequest request) {
-        Order order = orderService.placeOrder(request);
+    public ResponseEntity<OrderResponse> placeOrder(@RequestBody @Valid PlaceOrderRequest request) {
+        OrderResponse order = orderService.placeOrderResponse(request);
         return ResponseEntity.status(201).body(order);
     }
 
     // GET /api/v1/orders/{orderId} - get single order (public - for customer status tracking)
     @GetMapping("/{orderId}")
-    public ResponseEntity<Order> getOrder(@PathVariable UUID orderId) {
-        return ResponseEntity.ok(orderService.getOrderById(orderId));
+    public ResponseEntity<OrderResponse> getOrder(@PathVariable UUID orderId) {
+        return ResponseEntity.ok(orderService.getOrderResponseById(orderId));
     }
 
     // GET /api/v1/orders?tenantId=xxx - get all orders for a restaurant
     @GetMapping
-    public ResponseEntity<List<Order>> getOrders(@RequestParam UUID tenantId) {
-        return ResponseEntity.ok(orderService.getOrdersByTenant(tenantId));
+    public ResponseEntity<List<OrderResponse>> getOrders(@RequestParam UUID tenantId) {
+        return ResponseEntity.ok(orderService.getOrderResponsesByTenant(tenantId));
     }
 
     // GET /api/v1/orders/active?tenantId=xxx - get active orders (kitchen view)
     @GetMapping("/active")
-    public ResponseEntity<List<Order>> getActiveOrders(@RequestParam UUID tenantId) {
-        return ResponseEntity.ok(orderService.getActiveOrders(tenantId));
+    public ResponseEntity<List<OrderResponse>> getActiveOrders(@RequestParam UUID tenantId) {
+        return ResponseEntity.ok(orderService.getActiveOrderResponses(tenantId));
     }
 
     // PATCH /api/v1/orders/{orderId}/status - update order status
     @PatchMapping("/{orderId}/status")
-    public ResponseEntity<Order> updateStatus(
+    public ResponseEntity<OrderResponse> updateStatus(
             @PathVariable UUID orderId,
             @RequestBody Map<String, String> body) {
         OrderStatus newStatus = OrderStatus.valueOf(body.get("status"));
-        return ResponseEntity.ok(orderService.updateStatus(orderId, newStatus));
+        return ResponseEntity.ok(orderService.updateStatusResponse(orderId, newStatus));
     }
 }

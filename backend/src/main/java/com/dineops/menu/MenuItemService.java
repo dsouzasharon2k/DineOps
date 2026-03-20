@@ -1,5 +1,7 @@
 package com.dineops.menu;
 
+import com.dineops.dto.MenuItemResponse;
+import com.dineops.exception.EntityNotFoundException;
 import com.dineops.restaurant.Restaurant;
 import com.dineops.restaurant.RestaurantRepository;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,12 @@ public class MenuItemService {
                 .findByCategoryIdAndIsAvailableTrueOrderByDisplayOrderAsc(categoryId);
     }
 
+    public List<MenuItemResponse> getItemResponsesByCategory(UUID categoryId) {
+        return getItemsByCategory(categoryId).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     // Get full menu for a restaurant (all items grouped will be done on frontend)
     public List<MenuItem> getItemsByTenant(UUID tenantId) {
         return menuItemRepository
@@ -36,10 +44,10 @@ public class MenuItemService {
     // Create a new menu item
     public MenuItem createItem(UUID tenantId, UUID categoryId, CreateMenuItemRequest request) {
         Restaurant restaurant = restaurantRepository.findById(tenantId)
-                .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
 
         MenuCategory category = menuCategoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Category not found"));
 
         MenuItem item = new MenuItem();
         item.setTenant(restaurant);
@@ -53,11 +61,32 @@ public class MenuItemService {
         return menuItemRepository.save(item);
     }
 
+    public MenuItemResponse createItemResponse(UUID tenantId, UUID categoryId, CreateMenuItemRequest request) {
+        return toResponse(createItem(tenantId, categoryId, request));
+    }
+
     // Soft delete - mark as unavailable instead of deleting
     public void deleteItem(UUID itemId) {
         MenuItem item = menuItemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Item not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Item not found"));
         item.setAvailable(false);
         menuItemRepository.save(item);
+    }
+
+    private MenuItemResponse toResponse(MenuItem item) {
+        return new MenuItemResponse(
+                item.getId(),
+                item.getTenant().getId(),
+                item.getCategory().getId(),
+                item.getName(),
+                item.getDescription(),
+                item.getPrice(),
+                item.getImageUrl(),
+                item.isVegetarian(),
+                item.isAvailable(),
+                item.getDisplayOrder(),
+                item.getCreatedAt(),
+                item.getUpdatedAt()
+        );
     }
 }

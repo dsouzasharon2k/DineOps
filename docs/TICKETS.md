@@ -1793,14 +1793,14 @@ Marking items based on your board screenshots and the code changes already made:
 [ ] DOPS-056 — security/DOPS-056-rate-limiting
 [ ] DOPS-057 — security/DOPS-057-security-headers
 [ ] DOPS-058 — security/DOPS-058-account-lockout
-[ ] DOPS-059 — feat/DOPS-059-global-exception-handler
-[ ] DOPS-060 — feat/DOPS-060-request-validation
+[x] DOPS-059 — feat/DOPS-059-global-exception-handler
+[x] DOPS-060 — feat/DOPS-060-request-validation
 [ ] DOPS-061 — feat/DOPS-061-pagination
 [ ] DOPS-062 — feat/DOPS-062-redis-caching
-[ ] DOPS-063 — feat/DOPS-063-jpa-auditing
-[ ] DOPS-064 — refactor/DOPS-064-response-dtos
-[ ] DOPS-065 — feat/DOPS-065-structured-logging
-[ ] DOPS-066 — feat/DOPS-066-order-status-validation
+[x] DOPS-063 — feat/DOPS-063-jpa-auditing
+[x] DOPS-064 — refactor/DOPS-064-response-dtos
+[x] DOPS-065 — feat/DOPS-065-structured-logging
+[x] DOPS-066 — feat/DOPS-066-order-status-validation
 [ ] DOPS-067 — feat/DOPS-067-user-registration
 [ ] DOPS-068 — feat/DOPS-068-jwt-refresh-token
 [ ] DOPS-069 — feat/DOPS-069-restaurant-onboarding

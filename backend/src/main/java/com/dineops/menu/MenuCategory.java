@@ -1,14 +1,13 @@
 package com.dineops.menu;
 
+import com.dineops.entity.AuditableEntity;
 import com.dineops.restaurant.Restaurant;
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
 import java.util.UUID;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "menu_categories")
-public class MenuCategory {
+public class MenuCategory extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -16,7 +15,6 @@ public class MenuCategory {
 
     // Each category belongs to a specific restaurant (tenant)
     // This is how multi-tenancy works - every record is scoped to a tenant
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id", nullable = false)
     private Restaurant tenant;
@@ -33,12 +31,6 @@ public class MenuCategory {
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt = LocalDateTime.now();
-
     // Getters and Setters
     public UUID getId() { return id; }
     public Restaurant getTenant() { return tenant; }
@@ -51,7 +43,4 @@ public class MenuCategory {
     public void setDisplayOrder(Integer displayOrder) { this.displayOrder = displayOrder; }
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { isActive = active; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }
