@@ -83,6 +83,8 @@ public class OrderService {
         if (request.tableNumber() != null && !request.tableNumber().isBlank()) {
             order.setTable(diningTableService.findByTenantAndNumber(request.tenantId(), request.tableNumber()));
         }
+        order.setCustomerName(trimToNull(request.customerName()));
+        order.setCustomerPhone(trimToNull(request.customerPhone()));
         order.setNotes(request.notes());
 
         int total = 0;
@@ -252,6 +254,16 @@ public class OrderService {
                 .toList();
     }
 
+    public List<OrderResponse> lookupRecentOrdersByPhone(UUID tenantId, String phone) {
+        String normalizedPhone = trimToNull(phone);
+        if (normalizedPhone == null) {
+            throw new IllegalArgumentException("Phone is required for order lookup.");
+        }
+        return orderRepository.findTop10ByTenantIdAndCustomerPhoneOrderByCreatedAtDesc(tenantId, normalizedPhone).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     public byte[] generateInvoicePdf(UUID orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found"));
@@ -364,5 +376,13 @@ public class OrderService {
                 history.getChangedBy(),
                 history.getChangedAt()
         );
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

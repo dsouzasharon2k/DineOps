@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getOrderApi } from '../../api/menu'
+import { lookupOrdersByPhoneApi } from '../../api/menu'
 import type { Order, OrderStatus } from '../../types/order'
 import { getApiErrorMessage } from '../../api/error'
 
@@ -43,30 +43,29 @@ const STATUS_LABELS: Record<
 export default function OrderHistoryPage() {
   const { tenantId } = useParams<{ tenantId: string }>()
   const navigate = useNavigate()
-  const [orderId, setOrderId] = useState('')
-  const [order, setOrder] = useState<Order | null>(null)
+  const [phone, setPhone] = useState('')
+  const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const handleLookup = async () => {
-    const trimmed = orderId.trim()
+    const trimmed = phone.trim()
     if (!trimmed) return
     setLoading(true)
     setError('')
-    setOrder(null)
+    setOrders([])
     try {
-      const data = await getOrderApi(trimmed)
-      setOrder(data)
+      const data = await lookupOrdersByPhoneApi(tenantId!, trimmed)
+      setOrders(data)
+      if (data.length === 0) {
+        setError('No recent orders found for this phone number.')
+      }
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Order not found. Please check the ID and try again.'))
+      setError(getApiErrorMessage(err, 'Order lookup failed. Please try again.'))
     } finally {
       setLoading(false)
     }
   }
-
-  const statusInfo = order
-    ? (STATUS_LABELS[order.status] ?? STATUS_LABELS['PENDING'])
-    : null
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -85,91 +84,90 @@ export default function OrderHistoryPage() {
         {/* Lookup form */}
         <div className="bg-white rounded-xl shadow-sm p-5 mb-6">
           <p className="text-sm text-gray-500 mb-3">
-            Enter your Order ID to check the status of your order.
+            Enter your phone number to see your recent orders.
           </p>
           <div className="flex gap-2">
             <input
               type="text"
-              value={orderId}
-              onChange={(e) => setOrderId(e.target.value)}
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleLookup()}
-              placeholder="e.g. 6d62181c-f8a6-4b99-..."
+              placeholder="e.g. 9876543210"
               className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
             />
             <button
               onClick={handleLookup}
-              disabled={loading || !orderId.trim()}
+              disabled={loading || !phone.trim()}
               className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 disabled:opacity-50"
             >
-              {loading ? '...' : 'Track'}
+              {loading ? '...' : 'Lookup'}
             </button>
           </div>
           {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
         </div>
 
         {/* Order result */}
-        {order && statusInfo && (
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-            {/* Status banner */}
-            <div
-              className={`px-5 py-4 flex items-center gap-3 ${statusInfo.color}`}
-            >
-              <span className="text-2xl">{statusInfo.icon}</span>
-              <div>
-                <p className="font-bold">{statusInfo.label}</p>
-                <p className="text-xs opacity-75">
-                  Order #{order.id.slice(0, 8).toUpperCase()}
-                </p>
-              </div>
-              {!['DELIVERED', 'CANCELLED'].includes(order.status) && (
-                <button
-                  onClick={() =>
-                    navigate(`/menu/${tenantId}/order/${order.id}`)
-                  }
-                  className="ml-auto text-xs px-3 py-1 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600"
-                >
-                  Live Track →
-                </button>
-              )}
-            </div>
-
-            {/* Items */}
-            <div className="divide-y divide-gray-100">
-              {order.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between px-5 py-3"
-                >
-                  <div>
-                    <p className="font-medium text-gray-800 text-sm">
-                      {item.name}
-                    </p>
-                    <p className="text-xs text-gray-400">Qty: {item.quantity}</p>
+        {orders.length > 0 && (
+          <div className="space-y-4">
+            {orders.map((order) => {
+              const statusInfo = STATUS_LABELS[order.status] ?? STATUS_LABELS['PENDING']
+              return (
+                <div key={order.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
+                  <div className={`px-5 py-4 flex items-center gap-3 ${statusInfo.color}`}>
+                    <span className="text-2xl">{statusInfo.icon}</span>
+                    <div>
+                      <p className="font-bold">{statusInfo.label}</p>
+                      <p className="text-xs opacity-75">
+                        Order #{order.id.slice(0, 8).toUpperCase()}
+                      </p>
+                    </div>
+                    {!['DELIVERED', 'CANCELLED'].includes(order.status) && (
+                      <button
+                        onClick={() =>
+                          navigate(`/menu/${tenantId}/order/${order.id}`)
+                        }
+                        className="ml-auto text-xs px-3 py-1 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600"
+                      >
+                        Live Track →
+                      </button>
+                    )}
                   </div>
-                  <p className="font-semibold text-gray-800 text-sm">
-                    ₹{(item.price * item.quantity) / 100}
-                  </p>
+
+                  <div className="divide-y divide-gray-100">
+                    {order.items.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between px-5 py-3"
+                      >
+                        <div>
+                          <p className="font-medium text-gray-800 text-sm">
+                            {item.name}
+                          </p>
+                          <p className="text-xs text-gray-400">Qty: {item.quantity}</p>
+                        </div>
+                        <p className="font-semibold text-gray-800 text-sm">
+                          ₹{(item.price * item.quantity) / 100}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {order.notes && (
+                    <div className="px-5 py-3 border-t border-gray-100">
+                      <p className="text-xs text-gray-400 italic">
+                        &quot;{order.notes}&quot;
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="px-5 py-4 border-t border-gray-100 flex justify-between font-bold text-gray-800">
+                    <span>Total</span>
+                    <span>₹{order.totalAmount / 100}</span>
+                  </div>
                 </div>
-              ))}
-            </div>
-
-            {/* Notes */}
-            {order.notes && (
-              <div className="px-5 py-3 border-t border-gray-100">
-                <p className="text-xs text-gray-400 italic">
-                  &quot;{order.notes}&quot;
-                </p>
-              </div>
-            )}
-
-            {/* Total */}
-            <div className="px-5 py-4 border-t border-gray-100 flex justify-between font-bold text-gray-800">
-              <span>Total</span>
-              <span>₹{order.totalAmount / 100}</span>
-            </div>
-
-            {/* Order again */}
-            <div className="px-5 pb-5">
+              )
+            })}
+            <div className="px-5 pb-1">
               <button
                 onClick={() => navigate(`/menu/${tenantId}`)}
                 className="w-full py-3 border-2 border-orange-500 text-orange-500 rounded-xl font-semibold text-sm hover:bg-orange-50"

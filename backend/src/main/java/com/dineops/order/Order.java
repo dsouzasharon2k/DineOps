@@ -38,6 +38,12 @@ public class Order extends AuditableEntity {
 
     private String notes;
 
+    @Column(name = "customer_name")
+    private String customerName;
+
+    @Column(name = "customer_phone")
+    private String customerPhone;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "table_id")
     private DiningTable table;
@@ -72,6 +78,10 @@ public class Order extends AuditableEntity {
     public void setTotalAmount(Integer totalAmount) { this.totalAmount = totalAmount; }
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+    public String getCustomerName() { return customerName; }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
+    public String getCustomerPhone() { return customerPhone; }
+    public void setCustomerPhone(String customerPhone) { this.customerPhone = customerPhone; }
     public DiningTable getTable() { return table; }
     public void setTable(DiningTable table) { this.table = table; }
     public PaymentStatus getPaymentStatus() { return paymentStatus; }

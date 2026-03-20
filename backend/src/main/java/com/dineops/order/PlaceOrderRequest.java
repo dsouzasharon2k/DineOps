@@ -11,6 +11,8 @@ import java.util.UUID;
 public record PlaceOrderRequest(
         @NotNull(message = "Tenant ID is required") UUID tenantId,
         String tableNumber,
+        String customerName,
+        String customerPhone,
         String notes,
         @NotEmpty(message = "Order must contain at least one item") @Valid List<OrderItemRequest> items
 ) {

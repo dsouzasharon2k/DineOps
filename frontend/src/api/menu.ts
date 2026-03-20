@@ -66,16 +66,32 @@ export const deleteItemApi = async (
 export const placeOrderApi = async (
   tenantId: string,
   tableNumber: string | null,
+  customerName: string,
+  customerPhone: string,
   notes: string,
   items: { menuItemId: string; quantity: number }[]
 ): Promise<Order> => {
-  const res = await axiosInstance.post<Order>('/api/v1/orders', { tenantId, tableNumber, notes, items })
+  const res = await axiosInstance.post<Order>('/api/v1/orders', {
+    tenantId,
+    tableNumber,
+    customerName: customerName.trim() || null,
+    customerPhone: customerPhone.trim() || null,
+    notes,
+    items,
+  })
   return res.data
 }
 
 // Get order by ID (for status tracking)
 export const getOrderApi = async (orderId: string): Promise<Order> => {
   const res = await axiosInstance.get<Order>(`/api/v1/orders/${orderId}`)
+  return res.data
+}
+
+export const lookupOrdersByPhoneApi = async (tenantId: string, phone: string): Promise<Order[]> => {
+  const res = await axiosInstance.get<Order[]>(
+    `/api/v1/orders/lookup?tenantId=${tenantId}&phone=${encodeURIComponent(phone)}`
+  )
   return res.data
 }
 

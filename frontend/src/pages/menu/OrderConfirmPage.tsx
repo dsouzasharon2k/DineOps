@@ -11,6 +11,8 @@ export default function OrderConfirmPage() {
   const navigate = useNavigate();
   const tableNumber = searchParams.get('table');
   const { cart, total, itemCount, clearCart } = useCart(tenantId!);
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
   const [notes, setNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
   const [placing, setPlacing] = useState(false);
@@ -39,7 +41,7 @@ export default function OrderConfirmPage() {
         menuItemId: i.menuItemId,
         quantity: i.quantity
       }));
-      const order = await placeOrderApi(tenantId!, tableNumber, notes, orderItems);
+      const order = await placeOrderApi(tenantId!, tableNumber, customerName, customerPhone, notes, orderItems);
       if (paymentMethod !== 'CASH') {
         await initiatePaymentApi(order.id, paymentMethod);
       }
@@ -85,6 +87,24 @@ export default function OrderConfirmPage() {
               <p className="font-semibold text-gray-800">₹{(item.price * item.quantity) / 100}</p>
             </div>
           ))}
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm px-4 py-4 mb-4">
+          <h3 className="font-semibold text-gray-700 mb-2">Contact Details</h3>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <input
+              value={customerName}
+              onChange={e => setCustomerName(e.target.value)}
+              placeholder="Your name (optional)"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-orange-400"
+            />
+            <input
+              value={customerPhone}
+              onChange={e => setCustomerPhone(e.target.value)}
+              placeholder="Phone for order lookup"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-orange-400"
+            />
+          </div>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm px-4 py-4 mb-4">
