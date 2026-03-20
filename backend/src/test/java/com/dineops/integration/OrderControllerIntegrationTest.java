@@ -59,6 +59,7 @@ class OrderControllerIntegrationTest {
                 orderId,
                 tenantId,
                 null,
+                null,
                 OrderStatus.PENDING,
                 50000,
                 "Less spicy",
@@ -102,6 +103,7 @@ class OrderControllerIntegrationTest {
         OrderResponse response = new OrderResponse(
                 orderId,
                 tenantId,
+                null,
                 null,
                 OrderStatus.CONFIRMED,
                 30000,
