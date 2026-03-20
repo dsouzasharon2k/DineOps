@@ -33,6 +33,8 @@ import java.util.UUID;
 import java.util.Objects;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @Service
 @SuppressWarnings("null")
@@ -57,6 +59,8 @@ public class OrderService {
     private final RestaurantRepository restaurantRepository;
     private final OrderStatusHistoryRepository orderStatusHistoryRepository;
     private final DiningTableService diningTableService;
+    @Autowired(required = false)
+    private SimpMessagingTemplate messagingTemplate;
 
     public OrderService(OrderRepository orderRepository,
                         MenuItemRepository menuItemRepository,
@@ -117,7 +121,9 @@ public class OrderService {
     }
 
     public OrderResponse placeOrderResponse(PlaceOrderRequest request) {
-        return toResponse(placeOrder(request));
+        OrderResponse response = toResponse(placeOrder(request));
+        publishRealtimeUpdate(response);
+        return response;
     }
 
     // Get a single order by ID (for customer status tracking - public)
@@ -188,7 +194,9 @@ public class OrderService {
     }
 
     public OrderResponse updateStatusResponse(UUID orderId, OrderStatus newStatus) {
-        return toResponse(updateStatus(orderId, newStatus));
+        OrderResponse response = toResponse(updateStatus(orderId, newStatus));
+        publishRealtimeUpdate(response);
+        return response;
     }
 
     @CacheEvict(cacheNames = {"orders:by-id", "orders:active-by-tenant", "orders:by-tenant"}, allEntries = true)
@@ -201,7 +209,9 @@ public class OrderService {
         if (currentStatus == OrderStatus.PENDING) {
             saveStatusHistory(order, currentStatus, OrderStatus.CANCELLED);
             order.setStatus(OrderStatus.CANCELLED);
-            return toResponse(orderRepository.save(order));
+            OrderResponse response = toResponse(orderRepository.save(order));
+            publishRealtimeUpdate(response);
+            return response;
         }
 
         if (currentStatus == OrderStatus.CONFIRMED) {
@@ -384,5 +394,13 @@ public class OrderService {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private void publishRealtimeUpdate(OrderResponse response) {
+        if (messagingTemplate == null || response == null) {
+            return;
+        }
+        messagingTemplate.convertAndSend("/topic/orders/" + response.tenantId(), response);
+        messagingTemplate.convertAndSend("/topic/order/" + response.id(), response);
     }
 }

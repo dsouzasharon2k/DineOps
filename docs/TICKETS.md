@@ -1814,7 +1814,7 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-077 — feat/DOPS-077-loading-empty-states
 [x] DOPS-078 — feat/DOPS-078-icons-and-404
 [x] DOPS-079 — feat/DOPS-079-error-boundaries
-[ ] DOPS-080 — feat/DOPS-080-websocket-orders
+[x] DOPS-080 — feat/DOPS-080-websocket-orders
 [ ] DOPS-081 — feat/DOPS-081-notifications
 [x] DOPS-082 — feat/DOPS-082-order-status-history
 [x] DOPS-083 — feat/DOPS-083-audit-log

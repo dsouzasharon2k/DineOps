@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import { getApiErrorMessage } from '../../api/error'
 import LoadingState from '../../components/LoadingState'
 import EmptyState from '../../components/EmptyState'
+import { subscribeTenantOrders } from '../../realtime/ordersSocket'
 
 // The status flow for an order in the kitchen
 const STATUS_FLOW: Record<OrderStatus, OrderStatus | undefined> = {
@@ -81,6 +82,7 @@ export default function KitchenPage() {
   const [updating, setUpdating] = useState<string | null>(null)
   const [lastRefresh, setLastRefresh] = useState(new Date())
   const [error, setError] = useState('')
+  const [wsConnected, setWsConnected] = useState(false)
 
   const { token } = useAuth()
   const tenantId = 'a085284e-ca00-4f64-a2c7-42fc0572bb97'
@@ -99,9 +101,34 @@ export default function KitchenPage() {
 
   useEffect(() => {
     fetchOrders()
-    const interval = setInterval(fetchOrders, 15000)
-    return () => clearInterval(interval)
-  }, [fetchOrders])
+    const unsubscribe = subscribeTenantOrders(
+      tenantId,
+      (updatedOrder) => {
+        setWsConnected(true)
+        setOrders((prev) => {
+          const exists = prev.some((o) => o.id === updatedOrder.id)
+          if (updatedOrder.status === 'DELIVERED' || updatedOrder.status === 'CANCELLED') {
+            return prev.filter((o) => o.id !== updatedOrder.id)
+          }
+          if (exists) {
+            return prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o))
+          }
+          return [updatedOrder, ...prev]
+        })
+        setLastRefresh(new Date())
+      },
+      () => setWsConnected(false)
+    )
+    const interval = setInterval(() => {
+      if (!wsConnected) {
+        fetchOrders()
+      }
+    }, 15000)
+    return () => {
+      unsubscribe()
+      clearInterval(interval)
+    }
+  }, [fetchOrders, tenantId, wsConnected])
 
   const handleStatusUpdate = async (orderId: string, nextStatus: OrderStatus) => {
     setUpdating(orderId)
@@ -137,7 +164,7 @@ export default function KitchenPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Kitchen View</h1>
           <p className="text-sm text-gray-400 mt-0.5">
-            Auto-refreshes every 15s · Last updated{' '}
+            {wsConnected ? 'Live via WebSocket' : 'Polling every 15s'} · Last updated{' '}
             {lastRefresh.toLocaleTimeString()}
           </p>
         </div>
