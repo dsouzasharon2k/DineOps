@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import ProtectedRoute from '../routes/ProtectedRoute'
+import { AuthProvider } from '../context/AuthContext'
 
 describe('ProtectedRoute', () => {
 
@@ -9,19 +10,21 @@ describe('ProtectedRoute', () => {
     localStorage.removeItem('token')
 
     render(
-      <MemoryRouter initialEntries={['/dashboard']}>
-        <Routes>
-          <Route path="/login" element={<div>Login Page</div>} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <div>Dashboard</div>
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </MemoryRouter>
+      <AuthProvider>
+        <MemoryRouter initialEntries={['/dashboard']}>
+          <Routes>
+            <Route path="/login" element={<div>Login Page</div>} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <div>Dashboard</div>
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </MemoryRouter>
+      </AuthProvider>
     )
 
     // Should redirect to login, not show dashboard
@@ -34,19 +37,21 @@ describe('ProtectedRoute', () => {
     localStorage.setItem('token', 'fake-jwt-token')
 
     render(
-      <MemoryRouter initialEntries={['/dashboard']}>
-        <Routes>
-          <Route path="/login" element={<div>Login Page</div>} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <div>Dashboard</div>
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </MemoryRouter>
+      <AuthProvider>
+        <MemoryRouter initialEntries={['/dashboard']}>
+          <Routes>
+            <Route path="/login" element={<div>Login Page</div>} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <div>Dashboard</div>
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </MemoryRouter>
+      </AuthProvider>
     )
 
     // Should show dashboard

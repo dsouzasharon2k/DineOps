@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import type { AxiosError } from 'axios'
 import { loginApi } from '../../api/auth'
 import type { ApiError } from '../../types/api'
+import { useAuth } from '../../context/AuthContext'
 
 const LoginPage = () => {
   // State for form fields and error message
@@ -12,6 +13,7 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false)
 
   const navigate = useNavigate()
+  const { login } = useAuth()
 
   const [showPassword, setShowPassword] = useState(false)
   
@@ -24,7 +26,7 @@ const LoginPage = () => {
 
       // Store the JWT token in localStorage
       // This token will be attached to all future API requests by axiosInstance
-      localStorage.setItem('token', data.token)
+      login(data.token)
 
       // Redirect to dashboard after successful login
       navigate('/dashboard')

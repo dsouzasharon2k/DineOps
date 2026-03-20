@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { getActiveOrdersApi, updateOrderStatusApi } from '../../api/menu'
 import type { Order, OrderStatus } from '../../types/order'
+import { useAuth } from '../../context/AuthContext'
 
 // The status flow for an order in the kitchen
 const STATUS_FLOW: Record<OrderStatus, OrderStatus | undefined> = {
@@ -77,12 +78,12 @@ export default function KitchenPage() {
   const [updating, setUpdating] = useState<string | null>(null)
   const [lastRefresh, setLastRefresh] = useState(new Date())
 
-  const token = localStorage.getItem('token') ?? ''
+  const { token } = useAuth()
   const tenantId = 'a085284e-ca00-4f64-a2c7-42fc0572bb97'
 
   const fetchOrders = useCallback(async () => {
     try {
-      const data = await getActiveOrdersApi(tenantId, token)
+      const data = await getActiveOrdersApi(tenantId, token ?? '')
       setOrders(data)
       setLastRefresh(new Date())
     } catch (err) {
@@ -101,7 +102,7 @@ export default function KitchenPage() {
   const handleStatusUpdate = async (orderId: string, nextStatus: OrderStatus) => {
     setUpdating(orderId)
     try {
-      const updated = await updateOrderStatusApi(orderId, nextStatus, token)
+      const updated = await updateOrderStatusApi(orderId, nextStatus, token ?? '')
       if (nextStatus === 'DELIVERED') {
         setOrders((prev) => prev.filter((o) => o.id !== orderId))
       } else {

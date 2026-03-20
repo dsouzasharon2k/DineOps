@@ -1,11 +1,12 @@
 import { Navigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 // This component wraps any route that requires the user to be logged in.
 // If there's no token in localStorage, redirect to login page instead.
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const token = localStorage.getItem('token')
+  const { isAuthenticated } = useAuth()
 
-  if (!token) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />
   }
 
