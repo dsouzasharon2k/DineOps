@@ -1820,7 +1820,7 @@ Marking items based on your board screenshots and the code changes already made:
 [ ] DOPS-083 — feat/DOPS-083-audit-log
 [ ] DOPS-084 — feat/DOPS-084-analytics-dashboard
 [x] DOPS-085 — chore/DOPS-085-complete-docker-k8s
-[ ] DOPS-086 — chore/DOPS-086-resource-limits
+[x] DOPS-086 — chore/DOPS-086-resource-limits
 [ ] DOPS-087 — chore/DOPS-087-database-backup
 [ ] DOPS-088 — chore/DOPS-088-frontend-ci
 [x] DOPS-089 — feat/DOPS-089-configurable-cors
