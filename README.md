@@ -31,6 +31,12 @@
 - Kind, kubectl
 
 ### Start local environment
+Create a local env file first:
+```bash
+cp .env.example .env
+```
+
+Update the secret values in `.env` (especially `POSTGRES_PASSWORD`, `DB_PASSWORD`, `JWT_SECRET`, and `GF_SECURITY_ADMIN_PASSWORD`), then start services:
 ```bash
 docker compose up -d
 ```

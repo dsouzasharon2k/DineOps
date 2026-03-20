@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/dineops
-    username: dineops
-    password: dineops123
+    url: ${TEST_DB_URL:jdbc:postgresql://localhost:5432/dineops_test}
+    username: ${TEST_DB_USERNAME:dineops}
+    password: ${TEST_DB_PASSWORD:change-me-test}
   flyway:
     enabled: false
   jpa:
@@ -10,5 +10,10 @@ spring:
       ddl-auto: none
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${TEST_REDIS_HOST:localhost}
+      port: ${TEST_REDIS_PORT:6379}
+
+app:
+  jwt:
+    secret: ${TEST_JWT_SECRET:test-secret-replace-with-32-byte-random}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
