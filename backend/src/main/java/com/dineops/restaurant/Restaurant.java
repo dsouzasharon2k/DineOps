@@ -2,10 +2,12 @@ package com.dineops.restaurant;
 
 import com.dineops.entity.AuditableEntity;
 import jakarta.persistence.*;
+import org.hibernate.annotations.SQLRestriction;
 import java.util.UUID;
 
 @Entity
 @Table(name = "restaurants")
+@SQLRestriction("deleted_at IS NULL")
 public class Restaurant extends AuditableEntity {
 
     @Id
@@ -42,6 +44,9 @@ public class Restaurant extends AuditableEntity {
     @Column(name = "notify_customer_sms", nullable = false)
     private boolean notifyCustomerSms = false;
 
+    @Column(name = "default_prep_time_minutes", nullable = false)
+    private Integer defaultPrepTimeMinutes = 20;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RestaurantStatus status = RestaurantStatus.PENDING;
@@ -70,6 +75,8 @@ public class Restaurant extends AuditableEntity {
     public void setNotifyCustomerEmail(boolean notifyCustomerEmail) { this.notifyCustomerEmail = notifyCustomerEmail; }
     public boolean isNotifyCustomerSms() { return notifyCustomerSms; }
     public void setNotifyCustomerSms(boolean notifyCustomerSms) { this.notifyCustomerSms = notifyCustomerSms; }
+    public Integer getDefaultPrepTimeMinutes() { return defaultPrepTimeMinutes; }
+    public void setDefaultPrepTimeMinutes(Integer defaultPrepTimeMinutes) { this.defaultPrepTimeMinutes = defaultPrepTimeMinutes; }
     public RestaurantStatus getStatus() { return status; }
     public void setStatus(RestaurantStatus status) { this.status = status; }
 }

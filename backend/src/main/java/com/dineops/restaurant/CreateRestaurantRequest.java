@@ -1,6 +1,7 @@
 package com.dineops.restaurant;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 
 public record CreateRestaurantRequest(
@@ -15,6 +16,7 @@ public record CreateRestaurantRequest(
                 message = "GST number must be 15 uppercase alphanumeric characters"
         ) String gstNumber,
         String operatingHours,
+        @Min(value = 1, message = "Default prep time must be at least 1 minute") Integer defaultPrepTimeMinutes,
         String ownerEmail
 ) {
 }

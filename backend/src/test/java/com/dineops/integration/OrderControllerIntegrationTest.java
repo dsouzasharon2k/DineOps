@@ -6,6 +6,7 @@ import com.dineops.order.OrderService;
 import com.dineops.order.OrderStatus;
 import com.dineops.order.PaymentMethod;
 import com.dineops.order.PaymentStatus;
+import com.dineops.review.ReviewService;
 import com.dineops.security.AccountLockoutService;
 import com.dineops.security.RateLimitService;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,8 @@ class OrderControllerIntegrationTest {
 
     @MockBean
     private OrderService orderService;
+    @MockBean
+    private ReviewService reviewService;
 
     @MockBean
     private RateLimitService rateLimitService;
@@ -65,6 +68,7 @@ class OrderControllerIntegrationTest {
                 OrderStatus.PENDING,
                 PaymentStatus.UNPAID,
                 PaymentMethod.CASH,
+                18,
                 50000,
                 "Less spicy",
                 List.of(new OrderItemResponse(
@@ -112,6 +116,7 @@ class OrderControllerIntegrationTest {
                 OrderStatus.CONFIRMED,
                 PaymentStatus.PAID,
                 PaymentMethod.ONLINE,
+                12,
                 30000,
                 null,
                 List.of(),

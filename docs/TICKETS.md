@@ -1766,13 +1766,13 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-32 — dockerignore files for backend and frontend
 [x] DOPS-33 — k6 duplicate BASE_URL bug + env-driven base URL
 [ ] DOPS-34 — Bean Validation on request DTOs (+ @Valid)
-[ ] DOPS-35 — @ControllerAdvice global exception handler
+[x] DOPS-35 — @ControllerAdvice global exception handler
 [ ] DOPS-36 — OrderService validation
 [ ] DOPS-37 — updateStatus null/invalid fix
-[ ] DOPS-38 — Response DTOs for Order/MenuItem/etc
-[ ] DOPS-39 — Axios 401 interceptor + redirect to `/login`
-[ ] DOPS-40 — `VITE_API_URL` env var in axiosInstance (remove localhost hardcode)
-[ ] DOPS-41 — K8s Secrets for DB password and JWT secret
+[x] DOPS-38 — Response DTOs for Order/MenuItem/etc
+[x] DOPS-39 — Axios 401 interceptor + redirect to `/login`
+[x] DOPS-40 — `VITE_API_URL` env var in axiosInstance (remove localhost hardcode)
+[x] DOPS-41 — K8s Secrets for DB password and JWT secret
 [x] DOPS-42 — Dockerfile non-root user for backend
 [x] DOPS-43 — Nginx hardening (gzip/cache/security headers)
 [ ] DOPS-44 — React Error Boundary wrapping the app
@@ -1839,10 +1839,10 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-102 — feat/DOPS-102-customer-cancellation
 [x] DOPS-103 — feat/DOPS-103-restaurant-contact-info
 [x] DOPS-104 — feat/DOPS-104-phone-order-lookup
-[ ] DOPS-105 — feat/DOPS-105-ratings-reviews
-[ ] DOPS-106 — feat/DOPS-106-prep-time-estimate
-[ ] DOPS-107 — feat/DOPS-107-inventory-management
-[ ] DOPS-108 — feat/DOPS-108-subscription-billing
+[x] DOPS-105 — feat/DOPS-105-ratings-reviews
+[x] DOPS-106 — feat/DOPS-106-prep-time-estimate
+[x] DOPS-107 — feat/DOPS-107-inventory-management
+[x] DOPS-108 — feat/DOPS-108-subscription-billing
 [x] DOPS-109 — feat/DOPS-109-accessibility
 [x] DOPS-110 — fix/DOPS-110-k6-base-url-cleanup
 [x] DOPS-111 — security/DOPS-111-backend-non-root

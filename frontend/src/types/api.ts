@@ -4,6 +4,7 @@ export interface LoginResponse {
 
 export interface ApiError {
   status: number
+  errorCode?: string
   message: string
   timestamp: string
   path: string

@@ -5,12 +5,14 @@ import com.dineops.restaurant.Restaurant;
 import com.dineops.table.DiningTable;
 import com.dineops.user.User;
 import jakarta.persistence.*;
+import org.hibernate.annotations.SQLRestriction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Entity
 @Table(name = "orders")
+@SQLRestriction("deleted_at IS NULL")
 public class Order extends AuditableEntity {
 
     @Id

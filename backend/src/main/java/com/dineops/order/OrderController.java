@@ -6,6 +6,9 @@ import com.dineops.dto.OrderStatusHistoryResponse;
 import com.dineops.dto.InitiatePaymentRequest;
 import com.dineops.dto.InitiatePaymentResponse;
 import com.dineops.dto.PaymentWebhookRequest;
+import com.dineops.dto.CreateReviewRequest;
+import com.dineops.dto.ReviewResponse;
+import com.dineops.review.ReviewService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -13,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.Objects;
 import org.springframework.web.bind.annotation.*;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -21,9 +23,11 @@ import java.util.UUID;
 public class OrderController {
 
     private final OrderService orderService;
+    private final ReviewService reviewService;
 
-    public OrderController(OrderService orderService) {
+    public OrderController(OrderService orderService, ReviewService reviewService) {
         this.orderService = orderService;
+        this.reviewService = reviewService;
     }
 
     // POST /api/v1/orders - place a new order (public - no login needed)
@@ -73,9 +77,8 @@ public class OrderController {
     @PatchMapping("/{orderId}/status")
     public ResponseEntity<OrderResponse> updateStatus(
             @PathVariable UUID orderId,
-            @RequestBody Map<String, String> body) {
-        OrderStatus newStatus = OrderStatus.valueOf(body.get("status"));
-        return ResponseEntity.ok(orderService.updateStatusResponse(orderId, newStatus));
+            @RequestBody @Valid UpdateOrderStatusRequest request) {
+        return ResponseEntity.ok(orderService.updateStatusResponse(orderId, request.status()));
     }
 
     @PostMapping("/{orderId}/cancel")
@@ -88,6 +91,19 @@ public class OrderController {
             @PathVariable UUID orderId,
             @RequestBody @Valid InitiatePaymentRequest request) {
         return ResponseEntity.ok(orderService.initiatePayment(orderId, request.paymentMethod()));
+    }
+
+    @PostMapping("/{orderId}/review")
+    public ResponseEntity<ReviewResponse> submitReview(
+            @PathVariable UUID orderId,
+            @RequestBody @Valid CreateReviewRequest request
+    ) {
+        return ResponseEntity.status(201).body(reviewService.createOrderReview(orderId, request));
+    }
+
+    @GetMapping("/{orderId}/review")
+    public ResponseEntity<ReviewResponse> getReview(@PathVariable UUID orderId) {
+        return ResponseEntity.ok(reviewService.getOrderReview(orderId));
     }
 
     @PostMapping("/payments/webhook")

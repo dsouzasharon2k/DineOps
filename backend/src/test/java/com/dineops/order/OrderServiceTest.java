@@ -4,6 +4,7 @@ import com.dineops.menu.MenuItemRepository;
 import com.dineops.notification.NotificationService;
 import com.dineops.restaurant.Restaurant;
 import com.dineops.restaurant.RestaurantRepository;
+import com.dineops.subscription.SubscriptionService;
 import com.dineops.table.DiningTableService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,13 +45,15 @@ class OrderServiceTest {
         RestaurantRepository restaurantRepository = Mockito.mock(RestaurantRepository.class);
         DiningTableService diningTableService = Mockito.mock(DiningTableService.class);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
+        SubscriptionService subscriptionService = Mockito.mock(SubscriptionService.class);
         orderService = new OrderService(
                 orderRepository,
                 menuItemRepository,
                 restaurantRepository,
                 orderStatusHistoryRepository,
                 diningTableService,
-                notificationService
+                notificationService,
+                subscriptionService
         );
     }
 

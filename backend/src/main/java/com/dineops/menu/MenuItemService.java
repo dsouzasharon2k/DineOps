@@ -7,6 +7,7 @@ import com.dineops.restaurant.RestaurantRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -62,6 +63,7 @@ public class MenuItemService {
         item.setPrice(request.price()); // price in paise
         item.setVegetarian(request.isVegetarian());
         item.setImageUrl(request.imageUrl());
+        item.setPrepTimeMinutes(request.prepTimeMinutes());
 
         return menuItemRepository.save(item);
     }
@@ -76,6 +78,7 @@ public class MenuItemService {
         MenuItem item = menuItemRepository.findById(itemId)
                 .orElseThrow(() -> new EntityNotFoundException("Item not found"));
         item.setAvailable(false);
+        item.setDeletedAt(LocalDateTime.now());
         menuItemRepository.save(item);
     }
 
@@ -91,6 +94,7 @@ public class MenuItemService {
                 item.isVegetarian(),
                 item.isAvailable(),
                 item.getDisplayOrder(),
+                item.getPrepTimeMinutes(),
                 item.getCreatedAt(),
                 item.getUpdatedAt()
         );
