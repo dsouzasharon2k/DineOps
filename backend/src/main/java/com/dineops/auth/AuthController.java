@@ -88,19 +88,51 @@ public class AuthController {
 
         // Step 5: Generate a JWT token containing userId, email, role, and tenantId
         // This token is returned to the client and used for all future requests
-        String token = jwtUtils.generateToken(
+        String token = jwtUtils.generateAccessToken(
                 user.getId(),
                 user.getEmail(),
                 user.getRole().name(),
                 user.getTenant() != null ? user.getTenant().getId() : null
         );
+        String refreshToken = jwtUtils.generateRefreshToken(user.getId(), user.getEmail());
         log.info("login_success userId={} role={} tenantId={}",
                 user.getId(),
                 user.getRole(),
                 user.getTenant() != null ? user.getTenant().getId() : null);
         accountLockoutService.clearFailures(request.email());
 
-        return ResponseEntity.ok(Map.of("token", token));
+        return ResponseEntity.ok(Map.of("token", token, "refreshToken", refreshToken));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@RequestBody @Valid RefreshTokenRequest request) {
+        if (!jwtUtils.validateRefreshToken(request.refreshToken())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid refresh token"));
+        }
+
+        var claims = jwtUtils.parseToken(request.refreshToken());
+        String email = claims.getSubject();
+        Optional<User> userOpt = userService.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid refresh token"));
+        }
+
+        User user = userOpt.get();
+        if (!user.isActive()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid refresh token"));
+        }
+
+        String accessToken = jwtUtils.generateAccessToken(
+                user.getId(),
+                user.getEmail(),
+                user.getRole().name(),
+                user.getTenant() != null ? user.getTenant().getId() : null
+        );
+        String refreshToken = jwtUtils.generateRefreshToken(user.getId(), user.getEmail());
+        return ResponseEntity.ok(Map.of("token", accessToken, "refreshToken", refreshToken));
     }
 
     @PostMapping("/register")
