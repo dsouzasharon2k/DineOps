@@ -29,9 +29,9 @@ jobs:
         working-directory: frontend
         run: npm run lint
 
-      - name: Run frontend tests
+      - name: Run frontend coverage checks
         working-directory: frontend
-        run: npm run test
+        run: npm run test:coverage
 
       - name: Build frontend
         working-directory: frontend
@@ -76,9 +76,9 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build and test
+      - name: Build, test, and enforce backend coverage
         working-directory: backend
-        run: ./mvnw clean test -q
+        run: ./mvnw clean verify -q
 
       - name: SonarCloud scan
         working-directory: backend

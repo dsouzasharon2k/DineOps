@@ -1,8 +1,9 @@
 spring:
   datasource:
-    url: ${TEST_DB_URL:jdbc:postgresql://localhost:5432/dineops_test}
-    username: ${TEST_DB_USERNAME:dineops}
-    password: ${TEST_DB_PASSWORD:change-me-test}
+    url: ${TEST_DB_URL:jdbc:h2:mem:dineops_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    username: ${TEST_DB_USERNAME:sa}
+    password: ${TEST_DB_PASSWORD:}
+    driver-class-name: org.h2.Driver
     hikari:
       pool-name: ${TEST_DB_POOL_NAME:dineops-test-hikari}
       maximum-pool-size: ${TEST_DB_MAX_POOL_SIZE:5}
@@ -15,10 +16,17 @@ spring:
     enabled: false
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
   data:
     redis:
-      host: ${TEST_REDIS_HOST:localhost}
+      host: ${TEST_REDIS_HOST:disabled}
       port: ${TEST_REDIS_PORT:6379}
 
 app:

@@ -53,7 +53,7 @@ describe('LoginPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /login/i }))
 
     // Wait for error message to appear
-    const error = await screen.findByText('Invalid credentials')
+    const error = await screen.findByText('Login failed. Please try again.')
     expect(error).toBeInTheDocument()
   })
 

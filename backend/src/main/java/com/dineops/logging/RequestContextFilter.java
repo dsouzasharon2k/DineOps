@@ -14,7 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.UUID;
 
-@Component
+@Component("dineopsRequestContextFilter")
 public class RequestContextFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(RequestContextFilter.class);

@@ -1825,11 +1825,11 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-088 — chore/DOPS-088-frontend-ci
 [x] DOPS-089 — feat/DOPS-089-configurable-cors
 [x] DOPS-090 — chore/DOPS-090-hikaricp-config
-[ ] DOPS-091 — test/DOPS-091-integration-tests
-[ ] DOPS-092 — test/DOPS-092-service-unit-tests
+[x] DOPS-091 — test/DOPS-091-integration-tests
+[x] DOPS-092 — test/DOPS-092-service-unit-tests
 [ ] DOPS-093 — test/DOPS-093-e2e-playwright
-[ ] DOPS-094 — test/DOPS-094-frontend-component-tests
-[ ] DOPS-095 — chore/DOPS-095-coverage-thresholds
+[x] DOPS-094 — test/DOPS-094-frontend-component-tests
+[x] DOPS-095 — chore/DOPS-095-coverage-thresholds
 [ ] DOPS-096 — perf/DOPS-096-indexes-constraints
 [ ] DOPS-097 — feat/DOPS-097-updated-at-trigger
 [ ] DOPS-098 — feat/DOPS-098-legal-pages
@@ -1850,5 +1850,5 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-113 — security/DOPS-113-block-inactive-logins
 [x] DOPS-114 — refactor/DOPS-114-password-encoder-bean
 [x] DOPS-115 — security/DOPS-115-token-storage-hardening
-[ ] DOPS-116 — test/DOPS-116-isolated-test-db
+[x] DOPS-116 — test/DOPS-116-isolated-test-db
 
