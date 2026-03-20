@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getOrderApi } from '../../api/menu';
 import type { Order, OrderStatus } from '../../types/order';
+import { getApiErrorMessage } from '../../api/error';
 
 // Maps status to display label and progress step
 const STATUS_STEPS = ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'DELIVERED'];
@@ -20,6 +21,7 @@ export default function OrderStatusPage() {
   const navigate = useNavigate();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchOrder();
@@ -33,7 +35,7 @@ export default function OrderStatusPage() {
       const data = await getOrderApi(orderId!);
       setOrder(data);
     } catch (err) {
-      console.error('Failed to fetch order', err);
+      setError(getApiErrorMessage(err, 'Failed to fetch order.'));
     } finally {
       setLoading(false);
     }
@@ -42,6 +44,12 @@ export default function OrderStatusPage() {
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
       <p className="text-gray-500">Loading order...</p>
+    </div>
+  );
+
+  if (error) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <p className="text-red-500">{error}</p>
     </div>
   );
 

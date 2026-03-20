@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { getActiveOrdersApi, updateOrderStatusApi } from '../../api/menu'
 import type { Order, OrderStatus } from '../../types/order'
 import { useAuth } from '../../context/AuthContext'
+import { getApiErrorMessage } from '../../api/error'
 
 // The status flow for an order in the kitchen
 const STATUS_FLOW: Record<OrderStatus, OrderStatus | undefined> = {
@@ -77,6 +78,7 @@ export default function KitchenPage() {
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState<string | null>(null)
   const [lastRefresh, setLastRefresh] = useState(new Date())
+  const [error, setError] = useState('')
 
   const { token } = useAuth()
   const tenantId = 'a085284e-ca00-4f64-a2c7-42fc0572bb97'
@@ -87,7 +89,7 @@ export default function KitchenPage() {
       setOrders(data)
       setLastRefresh(new Date())
     } catch (err) {
-      console.error('Failed to fetch orders', err)
+      setError(getApiErrorMessage(err, 'Failed to fetch kitchen orders.'))
     } finally {
       setLoading(false)
     }
@@ -109,7 +111,7 @@ export default function KitchenPage() {
         setOrders((prev) => prev.map((o) => (o.id === orderId ? updated : o)))
       }
     } catch (err) {
-      console.error('Failed to update status', err)
+      setError(getApiErrorMessage(err, 'Failed to update order status.'))
     } finally {
       setUpdating(null)
     }
@@ -148,6 +150,9 @@ export default function KitchenPage() {
           🔄 Refresh
         </button>
       </div>
+      {error && (
+        <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+      )}
 
       {orders.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 text-gray-400 gap-3">

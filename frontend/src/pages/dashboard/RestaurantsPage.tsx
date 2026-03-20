@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getRestaurantsApi } from '../../api/restaurants'
 import type { Restaurant } from '../../types/restaurant'
+import { getApiErrorMessage } from '../../api/error'
 
 const RestaurantsPage = () => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
@@ -14,7 +15,7 @@ const RestaurantsPage = () => {
         const data = await getRestaurantsApi()
         setRestaurants(data)
       } catch (err) {
-        setError('Failed to load restaurants.')
+        setError(getApiErrorMessage(err, 'Failed to load restaurants.'))
       } finally {
         setLoading(false)
       }

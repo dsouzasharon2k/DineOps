@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { getCategoriesApi, getItemsApi } from '../../api/menu'
 import { useCart } from '../../hooks/useCart'
 import type { MenuCategory, MenuItem } from '../../types/menu'
+import { getApiErrorMessage } from '../../api/error'
 
 const PublicMenuPage = () => {
   const { tenantId } = useParams<{ tenantId: string }>()
@@ -12,6 +13,7 @@ const PublicMenuPage = () => {
   const [itemsByCategory, setItemsByCategory] = useState<Record<string, MenuItem[]>>({})
   const [loading, setLoading] = useState(true)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     const loadMenu = async () => {
@@ -34,7 +36,7 @@ const PublicMenuPage = () => {
           setItemsByCategory(itemsMap)
         }
       } catch (err) {
-        console.error('Failed to load menu')
+        setError(getApiErrorMessage(err, 'Failed to load menu.'))
       } finally {
         setLoading(false)
       }
@@ -100,6 +102,9 @@ const PublicMenuPage = () => {
 
       {/* Menu items for active category */}
       <div className="max-w-2xl mx-auto px-4 py-6 pb-32">
+        {error && (
+          <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+        )}
         {activeCategory && (
           <h2 className="text-lg font-bold text-gray-800 mb-4">
             {categories.find((cat) => cat.id === activeCategory)?.name}

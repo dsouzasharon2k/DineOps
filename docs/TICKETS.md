@@ -1810,7 +1810,7 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-073 — refactor/DOPS-073-cleanup-layouts
 [x] DOPS-074 — feat/DOPS-074-typescript-interfaces
 [x] DOPS-075 — feat/DOPS-075-api-base-url-env
-[ ] DOPS-076 — feat/DOPS-076-global-error-handling
+[x] DOPS-076 — feat/DOPS-076-global-error-handling
 [ ] DOPS-077 — feat/DOPS-077-loading-empty-states
 [ ] DOPS-078 — feat/DOPS-078-icons-and-404
 [ ] DOPS-079 — feat/DOPS-079-error-boundaries

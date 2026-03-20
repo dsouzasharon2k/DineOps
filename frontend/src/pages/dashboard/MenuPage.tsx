@@ -8,6 +8,7 @@ import {
   deleteItemApi,
 } from '../../api/menu'
 import type { MenuCategory, MenuItem } from '../../types/menu'
+import { getApiErrorMessage } from '../../api/error'
 
 // We hardcode the tenant ID for now - in Sprint 5 this will come from the JWT token
 const TENANT_ID = 'a085284e-ca00-4f64-a2c7-42fc0572bb97'
@@ -17,6 +18,7 @@ const MenuPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<MenuCategory | null>(null)
   const [items, setItems] = useState<MenuItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   // Add category form state
   const [newCategoryName, setNewCategoryName] = useState('')
@@ -48,7 +50,7 @@ const MenuPage = () => {
       setCategories(data)
       if (data.length > 0) setSelectedCategory(data[0])
     } catch (err) {
-      console.error('Failed to load categories')
+      setError(getApiErrorMessage(err, 'Failed to load categories.'))
     } finally {
       setLoading(false)
     }
@@ -59,7 +61,7 @@ const MenuPage = () => {
       const data = await getItemsApi(TENANT_ID, categoryId)
       setItems(data)
     } catch (err) {
-      console.error('Failed to load items')
+      setError(getApiErrorMessage(err, 'Failed to load items.'))
     }
   }
 
@@ -72,7 +74,7 @@ const MenuPage = () => {
       setShowCategoryForm(false)
       fetchCategories()
     } catch (err) {
-      console.error('Failed to create category')
+      setError(getApiErrorMessage(err, 'Failed to create category.'))
     }
   }
 
@@ -82,7 +84,7 @@ const MenuPage = () => {
       if (selectedCategory?.id === categoryId) setSelectedCategory(null)
       fetchCategories()
     } catch (err) {
-      console.error('Failed to delete category')
+      setError(getApiErrorMessage(err, 'Failed to delete category.'))
     }
   }
 
@@ -104,7 +106,7 @@ const MenuPage = () => {
       setShowItemForm(false)
       fetchItems(selectedCategory!.id)
     } catch (err) {
-      console.error('Failed to create item')
+      setError(getApiErrorMessage(err, 'Failed to create item.'))
     }
   }
 
@@ -113,7 +115,7 @@ const MenuPage = () => {
       await deleteItemApi(TENANT_ID, selectedCategory!.id, itemId)
       fetchItems(selectedCategory!.id)
     } catch (err) {
-      console.error('Failed to delete item')
+      setError(getApiErrorMessage(err, 'Failed to delete item.'))
     }
   }
 
@@ -122,6 +124,9 @@ const MenuPage = () => {
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Menu Management</h1>
+      {error && (
+        <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+      )}
 
       <div className="flex flex-col md:flex-row gap-6">
 

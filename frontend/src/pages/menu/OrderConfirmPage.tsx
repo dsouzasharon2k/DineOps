@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCart } from '../../hooks/useCart';
 import { placeOrderApi } from '../../api/menu';
+import { getApiErrorMessage } from '../../api/error';
 
 export default function OrderConfirmPage() {
   const { tenantId } = useParams<{ tenantId: string }>();
@@ -38,7 +39,7 @@ export default function OrderConfirmPage() {
       clearCart();
       navigate(`/menu/${tenantId}/order/${order.id}`);
     } catch (err) {
-      setError('Failed to place order. Please try again.');
+      setError(getApiErrorMessage(err, 'Failed to place order. Please try again.'));
     } finally {
       setPlacing(false);
     }

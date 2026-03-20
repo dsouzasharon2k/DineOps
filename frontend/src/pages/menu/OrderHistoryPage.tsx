@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getOrderApi } from '../../api/menu'
 import type { Order, OrderStatus } from '../../types/order'
+import { getApiErrorMessage } from '../../api/error'
 
 const STATUS_LABELS: Record<
   OrderStatus,
@@ -56,8 +57,8 @@ export default function OrderHistoryPage() {
     try {
       const data = await getOrderApi(trimmed)
       setOrder(data)
-    } catch {
-      setError('Order not found. Please check the ID and try again.')
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Order not found. Please check the ID and try again.'))
     } finally {
       setLoading(false)
     }

@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { getApiErrorMessage } from './error'
 
 // Base axios instance - all API calls go through this.
 // baseURL points to our Spring Boot backend.
@@ -19,5 +20,30 @@ axiosInstance.interceptors.request.use((config) => {
   }
   return config
 })
+
+// Response interceptor - handles common API failures in one place.
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status
+      if (status === 401) {
+        localStorage.removeItem('token')
+        const isOnLoginPage = window.location.pathname === '/login'
+        if (!isOnLoginPage) {
+          window.location.href = '/login'
+        }
+      }
+
+      // Normalize message so UI can read one field.
+      const message = getApiErrorMessage(error)
+      if (error.response?.data && typeof error.response.data === 'object') {
+        ;(error.response.data as { message?: string }).message = message
+      }
+    }
+
+    return Promise.reject(error)
+  }
+)
 
 export default axiosInstance
