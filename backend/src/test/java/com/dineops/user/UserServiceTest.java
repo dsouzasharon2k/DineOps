@@ -3,9 +3,9 @@ package com.dineops.user;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -16,12 +16,14 @@ class UserServiceTest {
     // We mock the repository so we don't hit a real database in unit tests
     private UserRepository userRepository;
     private UserService userService;
+    private BCryptPasswordEncoder passwordEncoder;
 
     @BeforeEach
     void setUp() {
         // Create a fake (mock) repository before each test
         userRepository = Mockito.mock(UserRepository.class);
-        userService = new UserService(userRepository);
+        passwordEncoder = new BCryptPasswordEncoder();
+        userService = new UserService(userRepository, passwordEncoder);
     }
 
     @Test

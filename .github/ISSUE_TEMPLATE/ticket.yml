@@ -1,0 +1,92 @@
+name: DOPS Ticket
+description: Track implementation of a DOPS backlog ticket
+title: "[DOPS-XXX] <short title>"
+labels:
+  - ticket
+body:
+  - type: input
+    id: ticket-id
+    attributes:
+      label: Ticket ID
+      description: Use the Jira-aligned ID from docs/TICKETS.md
+      placeholder: DOPS-113
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Work Type
+      options:
+        - fix
+        - feat
+        - refactor
+        - security
+        - test
+        - chore
+        - perf
+        - docs
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What is broken / missing / risky?
+      placeholder: Summarize the issue in 2-5 lines.
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What files/areas are expected to change?
+      placeholder: |
+        - backend/src/main/java/...
+        - backend/src/test/java/...
+        - docs/TICKETS.md
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: Copy exact criteria from docs/TICKETS.md and adapt if needed
+      placeholder: |
+        - [ ] Criteria 1
+        - [ ] Criteria 2
+        - [ ] Criteria 3
+    validations:
+      required: true
+
+  - type: textarea
+    id: branch
+    attributes:
+      label: Suggested Branch Name
+      placeholder: security/DOPS-113-block-inactive-logins
+    validations:
+      required: true
+
+  - type: textarea
+    id: test-plan
+    attributes:
+      label: Test Plan
+      placeholder: |
+        - [ ] ./mvnw -q -DskipTests compile
+        - [ ] Targeted unit/integration tests
+        - [ ] Manual API check (if needed)
+    validations:
+      required: true
+
+  - type: textarea
+    id: definition-of-done
+    attributes:
+      label: Definition of Done
+      value: |
+        - [ ] Code changes implemented
+        - [ ] Tests updated and passing
+        - [ ] docs/TICKETS.md updated ([x] for this ticket)
+        - [ ] PR linked to this issue

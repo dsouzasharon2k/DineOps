@@ -1848,7 +1848,7 @@ Marking items based on your board screenshots and the code changes already made:
 [x] DOPS-111 — security/DOPS-111-backend-non-root
 [x] DOPS-112 — chore/DOPS-112-nginx-hardening
 [x] DOPS-113 — security/DOPS-113-block-inactive-logins
-[ ] DOPS-114 — refactor/DOPS-114-password-encoder-bean
+[x] DOPS-114 — refactor/DOPS-114-password-encoder-bean
 [ ] DOPS-115 — security/DOPS-115-token-storage-hardening
 [ ] DOPS-116 — test/DOPS-116-isolated-test-db
 
