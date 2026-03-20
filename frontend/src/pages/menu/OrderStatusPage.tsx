@@ -167,6 +167,9 @@ export default function OrderStatusPage() {
         <div className="text-5xl mb-2">{statusInfo.icon}</div>
         <h1 className="text-2xl font-bold">{statusInfo.label}</h1>
         <p className="text-orange-100 mt-1">{statusInfo.message}</p>
+        {order.estimatedReadyMinutes !== undefined && order.status !== 'DELIVERED' && order.status !== 'CANCELLED' && (
+          <p className="text-orange-100 text-sm mt-1">Estimated ready in ~{order.estimatedReadyMinutes} min</p>
+        )}
         <p className="text-orange-100 text-xs mt-1">{wsConnected ? 'Live updates connected' : 'Polling fallback active'}</p>
       </div>
 

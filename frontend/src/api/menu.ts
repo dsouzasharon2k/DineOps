@@ -43,6 +43,7 @@ export const createItemApi = async (
     price: number
     isVegetarian: boolean
     imageUrl: string | null
+    prepTimeMinutes?: number | null
   }
 ): Promise<MenuItem> => {
   const response = await axiosInstance.post<MenuItem>(

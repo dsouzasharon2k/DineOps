@@ -20,6 +20,7 @@ export interface MenuItem {
   isVegetarian: boolean
   isAvailable: boolean
   displayOrder: number
+  prepTimeMinutes: number | null
   createdAt: string
   updatedAt: string
 }
