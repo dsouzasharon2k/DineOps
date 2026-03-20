@@ -2,7 +2,6 @@ package com.dineops.menu;
 
 import com.dineops.entity.AuditableEntity;
 import com.dineops.restaurant.Restaurant;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.util.UUID;
 
@@ -15,13 +14,11 @@ public class MenuItem extends AuditableEntity {
     private UUID id;
 
     // Each item belongs to a restaurant (tenant) for data isolation
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id", nullable = false)
     private Restaurant tenant;
 
     // Each item belongs to a category (e.g. Starters, Main Course)
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private MenuCategory category;

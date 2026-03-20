@@ -3,7 +3,6 @@ package com.dineops.order;
 import com.dineops.entity.AuditableEntity;
 import com.dineops.menu.MenuItem;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.util.UUID;
 
@@ -17,13 +16,11 @@ public class OrderItem extends AuditableEntity {
 
     // Reference to the parent order
     @JsonIgnore
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
     // Reference to the menu item backing this line item
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "menu_item_id", nullable = false)
     private MenuItem menuItem;

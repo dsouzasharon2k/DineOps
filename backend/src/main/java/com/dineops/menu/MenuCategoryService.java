@@ -1,5 +1,6 @@
 package com.dineops.menu;
 
+import com.dineops.dto.MenuCategoryResponse;
 import com.dineops.exception.EntityNotFoundException;
 import com.dineops.restaurant.Restaurant;
 import com.dineops.restaurant.RestaurantRepository;
@@ -25,6 +26,12 @@ public class MenuCategoryService {
                 .findByTenant_IdAndIsActiveTrueOrderByDisplayOrderAsc(tenantId);
     }
 
+    public List<MenuCategoryResponse> getCategoryResponsesByTenant(UUID tenantId) {
+        return getCategoriesByTenant(tenantId).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     // Create a new category for a restaurant
     public MenuCategory createCategory(UUID tenantId, String name, String description) {
         // Find the restaurant - throw exception if not found
@@ -39,6 +46,10 @@ public class MenuCategoryService {
         return menuCategoryRepository.save(category);
     }
 
+    public MenuCategoryResponse createCategoryResponse(UUID tenantId, String name, String description) {
+        return toResponse(createCategory(tenantId, name, description));
+    }
+
     // Soft delete - mark as inactive instead of deleting from DB
     // This preserves historical data and is safer than hard delete
     public void deleteCategory(UUID categoryId) {
@@ -46,5 +57,18 @@ public class MenuCategoryService {
                 .orElseThrow(() -> new EntityNotFoundException("Category not found"));
         category.setActive(false);
         menuCategoryRepository.save(category);
+    }
+
+    private MenuCategoryResponse toResponse(MenuCategory category) {
+        return new MenuCategoryResponse(
+                category.getId(),
+                category.getTenant().getId(),
+                category.getName(),
+                category.getDescription(),
+                category.getDisplayOrder(),
+                category.isActive(),
+                category.getCreatedAt(),
+                category.getUpdatedAt()
+        );
     }
 }

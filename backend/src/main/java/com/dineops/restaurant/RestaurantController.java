@@ -1,5 +1,6 @@
 package com.dineops.restaurant;
 
+import com.dineops.dto.RestaurantResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -15,7 +16,7 @@ public class RestaurantController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Restaurant>> getAllRestaurants() {
-        return ResponseEntity.ok(restaurantService.getAllRestaurants());
+    public ResponseEntity<List<RestaurantResponse>> getAllRestaurants() {
+        return ResponseEntity.ok(restaurantService.getAllRestaurantResponses());
     }
 }

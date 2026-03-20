@@ -1,5 +1,8 @@
 package com.dineops.order;
 
+import com.dineops.dto.OrderItemResponse;
+import com.dineops.dto.OrderResponse;
+import com.dineops.dto.UserResponse;
 import com.dineops.exception.EntityNotFoundException;
 import com.dineops.menu.MenuItem;
 import com.dineops.menu.MenuItemRepository;
@@ -76,15 +79,29 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    public OrderResponse placeOrderResponse(PlaceOrderRequest request) {
+        return toResponse(placeOrder(request));
+    }
+
     // Get a single order by ID (for customer status tracking - public)
     public Order getOrderById(UUID orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found"));
     }
 
+    public OrderResponse getOrderResponseById(UUID orderId) {
+        return toResponse(getOrderById(orderId));
+    }
+
     // Get all orders for a restaurant (used by TENANT_ADMIN and STAFF)
     public List<Order> getOrdersByTenant(UUID tenantId) {
         return orderRepository.findByTenantIdOrderByCreatedAtDesc(tenantId);
+    }
+
+    public List<OrderResponse> getOrderResponsesByTenant(UUID tenantId) {
+        return getOrdersByTenant(tenantId).stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     // Get active orders only - excludes DELIVERED and CANCELLED (kitchen view)
@@ -93,6 +110,12 @@ public class OrderService {
                 tenantId,
                 List.of(OrderStatus.DELIVERED, OrderStatus.CANCELLED)
         );
+    }
+
+    public List<OrderResponse> getActiveOrderResponses(UUID tenantId) {
+        return getActiveOrders(tenantId).stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     // Update order status - used by kitchen staff to move order through lifecycle
@@ -109,7 +132,54 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    public OrderResponse updateStatusResponse(UUID orderId, OrderStatus newStatus) {
+        return toResponse(updateStatus(orderId, newStatus));
+    }
+
     private boolean isTransitionAllowed(OrderStatus from, OrderStatus to) {
         return ALLOWED_TRANSITIONS.getOrDefault(from, Set.of()).contains(to);
+    }
+
+    private OrderResponse toResponse(Order order) {
+        return new OrderResponse(
+                order.getId(),
+                order.getTenant().getId(),
+                toUserResponse(order.getCustomer()),
+                order.getStatus(),
+                order.getTotalAmount(),
+                order.getNotes(),
+                order.getItems().stream().map(this::toItemResponse).toList(),
+                order.getCreatedAt(),
+                order.getUpdatedAt()
+        );
+    }
+
+    private OrderItemResponse toItemResponse(OrderItem item) {
+        return new OrderItemResponse(
+                item.getId(),
+                item.getMenuItem() != null ? item.getMenuItem().getId() : null,
+                item.getName(),
+                item.getPrice(),
+                item.getQuantity(),
+                item.getCreatedAt(),
+                item.getUpdatedAt()
+        );
+    }
+
+    private UserResponse toUserResponse(com.dineops.user.User user) {
+        if (user == null) {
+            return null;
+        }
+        return new UserResponse(
+                user.getId(),
+                user.getTenant() != null ? user.getTenant().getId() : null,
+                user.getName(),
+                user.getEmail(),
+                user.getPhone(),
+                user.getRole(),
+                user.isActive(),
+                user.getCreatedAt(),
+                user.getUpdatedAt()
+        );
     }
 }

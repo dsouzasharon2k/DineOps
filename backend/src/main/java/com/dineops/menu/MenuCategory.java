@@ -2,7 +2,6 @@ package com.dineops.menu;
 
 import com.dineops.entity.AuditableEntity;
 import com.dineops.restaurant.Restaurant;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.util.UUID;
 
@@ -16,7 +15,6 @@ public class MenuCategory extends AuditableEntity {
 
     // Each category belongs to a specific restaurant (tenant)
     // This is how multi-tenancy works - every record is scoped to a tenant
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id", nullable = false)
     private Restaurant tenant;

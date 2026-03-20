@@ -3,7 +3,6 @@ package com.dineops.order;
 import com.dineops.entity.AuditableEntity;
 import com.dineops.restaurant.Restaurant;
 import com.dineops.user.User;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,13 +17,11 @@ public class Order extends AuditableEntity {
     private UUID id;
 
     // The restaurant this order belongs to (tenant isolation)
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id", nullable = false)
     private Restaurant tenant;
 
     // The customer who placed the order (optional - could be a walk-in)
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id")
     private User customer;
