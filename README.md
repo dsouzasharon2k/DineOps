@@ -10,8 +10,8 @@
 |-------|------------|---------|
 | Backend | Spring Boot | 3.5.11 |
 | Language | Java | 21 (LTS) |
-| Frontend | React + Vite | 18.x / 5.x |
-| CSS | Tailwind CSS | 3.x |
+| Frontend | React + Vite | 19.2 / 7.3 |
+| CSS | Tailwind CSS | 4.2 |
 | Database | PostgreSQL | 16 |
 | Migrations | Flyway | 10.x |
 | Cache / PubSub | Redis | 7 |
@@ -21,7 +21,9 @@
 | Code Quality | SonarQube Cloud | Free tier |
 | Monitoring | Prometheus + Grafana | - |
 | Load Testing | k6 | 0.50.x |
-| E2E Testing | Playwright | 1.x |
+| E2E Testing | Playwright | 1.55 |
+
+> **Note:** React 19 (latest stable) powers the frontend for improved performance and developer experience.
 
 ## Local Development
 
