@@ -9,6 +9,7 @@ import {
 } from '../../api/menu'
 import type { MenuCategory, MenuItem } from '../../types/menu'
 import { getApiErrorMessage } from '../../api/error'
+import { formatCurrency } from '../../utils/currency'
 import LoadingState from '../../components/LoadingState'
 import EmptyState from '../../components/EmptyState'
 
@@ -288,9 +289,8 @@ const MenuPage = () => {
                         )}
                       </div>
                       <div className="flex items-center gap-3">
-                        {/* Convert paise to rupees for display */}
                         <span className="text-sm font-semibold text-gray-700">
-                          ₹{(item.price / 100).toFixed(2)}
+                          {formatCurrency(item.price)}
                         </span>
                         <button
                           onClick={() => handleDeleteItem(item.id)}

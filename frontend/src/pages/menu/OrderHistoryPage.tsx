@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { lookupOrdersByPhoneApi } from '../../api/menu'
 import type { Order, OrderStatus } from '../../types/order'
 import { getApiErrorMessage } from '../../api/error'
+import { formatCurrency } from '../../utils/currency'
 
 const STATUS_LABELS: Record<
   OrderStatus,
@@ -149,7 +150,7 @@ export default function OrderHistoryPage() {
                           <p className="text-xs text-gray-400">Qty: {item.quantity}</p>
                         </div>
                         <p className="font-semibold text-gray-800 text-sm">
-                          ₹{(item.price * item.quantity) / 100}
+                          {formatCurrency(item.price * item.quantity)}
                         </p>
                       </div>
                     ))}
@@ -165,7 +166,7 @@ export default function OrderHistoryPage() {
 
                   <div className="px-5 py-4 border-t border-gray-100 flex justify-between font-bold text-gray-800">
                     <span>Total</span>
-                    <span>₹{order.totalAmount / 100}</span>
+                    <span>{formatCurrency(order.totalAmount)}</span>
                   </div>
                 </div>
               )

@@ -6,6 +6,7 @@ import { useCart } from '../../hooks/useCart'
 import type { MenuCategory, MenuItem } from '../../types/menu'
 import type { Restaurant } from '../../types/restaurant'
 import { getApiErrorMessage } from '../../api/error'
+import { formatCurrency } from '../../utils/currency'
 import LoadingState from '../../components/LoadingState'
 import EmptyState from '../../components/EmptyState'
 
@@ -164,7 +165,7 @@ const PublicMenuPage = () => {
                   <div className="flex items-center gap-3 shrink-0">
                     <div className="text-right">
                       <span className="font-bold text-gray-800">
-                        ₹{(item.price / 100).toFixed(0)}
+                        {formatCurrency(item.price)}
                       </span>
                     </div>
                     {qty === 0 ? (
@@ -224,7 +225,7 @@ const PublicMenuPage = () => {
               {itemCount} item{itemCount > 1 ? 's' : ''}
             </span>
             <span className="font-semibold">View Order</span>
-            <span className="font-bold">₹{(total / 100).toFixed(0)}</span>
+            <span className="font-bold">{formatCurrency(total)}</span>
           </button>
         </div>
       )}

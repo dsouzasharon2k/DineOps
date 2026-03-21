@@ -3,6 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useCart } from '../../hooks/useCart';
 import { initiatePaymentApi, placeOrderApi } from '../../api/menu';
 import { getApiErrorMessage } from '../../api/error';
+import { formatCurrency } from '../../utils/currency';
 import type { PaymentMethod } from '../../types/order';
 
 export default function OrderConfirmPage() {
@@ -83,10 +84,10 @@ export default function OrderConfirmPage() {
                 <span>{item.isVegetarian ? '🟢' : '🔴'}</span>
                 <div>
                   <p className="font-medium text-gray-800">{item.name}</p>
-                  <p className="text-sm text-gray-500">₹{item.price / 100} × {item.quantity}</p>
+                  <p className="text-sm text-gray-500">{formatCurrency(item.price)} × {item.quantity}</p>
                 </div>
               </div>
-              <p className="font-semibold text-gray-800">₹{(item.price * item.quantity) / 100}</p>
+              <p className="font-semibold text-gray-800">{formatCurrency(item.price * item.quantity)}</p>
             </div>
           ))}
         </div>
@@ -157,11 +158,11 @@ export default function OrderConfirmPage() {
           )}
           <div className="flex justify-between text-gray-600 mb-2">
             <span>Item total ({itemCount} items)</span>
-            <span>₹{total / 100}</span>
+            <span>{formatCurrency(total)}</span>
           </div>
           <div className="border-t border-gray-100 pt-2 mt-2 flex justify-between font-bold text-gray-800">
             <span>Total</span>
-            <span>₹{total / 100}</span>
+            <span>{formatCurrency(total)}</span>
           </div>
         </div>
 
@@ -192,7 +193,7 @@ export default function OrderConfirmPage() {
           <span className="font-semibold">
             {placing ? 'Placing order...' : paymentMethod === 'CASH' ? 'Place Order' : 'Place Order & Pay'}
           </span>
-          <span className="font-bold">₹{total / 100}</span>
+          <span className="font-bold">{formatCurrency(total)}</span>
         </button>
       </div>
     </main>
