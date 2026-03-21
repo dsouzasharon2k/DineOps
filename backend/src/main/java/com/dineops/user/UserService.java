@@ -34,30 +34,45 @@ public class UserService {
         return passwordEncoder.matches(rawPassword, storedHash);
     }
 
+    /**
+     * Schedules user for deletion (7-day grace period). The UserDeletionJob will
+     * anonymize PII and soft-delete when deletion_scheduled_for is reached.
+     */
     public User deactivateAndAnonymizeByEmail(String email) {
         String safeEmail = Objects.requireNonNull(email, "email cannot be null");
         User user = userRepository.findByEmail(safeEmail)
                 .orElseThrow(() -> new EntityNotFoundException("Authenticated user not found."));
-        applyDeletion(user);
+        scheduleDeletion(user);
         return Objects.requireNonNull(userRepository.save(user));
     }
 
+    /**
+     * Immediately anonymizes and soft-deletes (admin action).
+     */
     public User deactivateAndAnonymizeById(UUID userId) {
         UUID safeUserId = Objects.requireNonNull(userId, "userId cannot be null");
         User user = userRepository.findById(safeUserId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found."));
-        applyDeletion(user);
+        applyImmediateDeletion(user);
         return Objects.requireNonNull(userRepository.save(user));
     }
 
-    private void applyDeletion(User user) {
+    private void scheduleDeletion(User user) {
         LocalDateTime now = LocalDateTime.now();
         user.setActive(false);
         user.setDeletionRequestedAt(now);
         user.setDeletionScheduledFor(now.plusDays(7));
+    }
+
+    private void applyImmediateDeletion(User user) {
+        LocalDateTime now = LocalDateTime.now();
+        user.setActive(false);
+        user.setDeletionRequestedAt(now);
+        user.setDeletionScheduledFor(now);
         user.setName("Deleted User");
         user.setPhone(null);
         user.setEmail("deleted_" + user.getId() + "@anon.local");
+        user.setPasswordHash(null);
         user.setDeletedAt(now);
     }
 }
