@@ -21,6 +21,7 @@ public record RestaurantResponse(
         Integer defaultPrepTimeMinutes,
         Double averageRating,
         RestaurantStatus status,
+        Boolean isOpenNow,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {}

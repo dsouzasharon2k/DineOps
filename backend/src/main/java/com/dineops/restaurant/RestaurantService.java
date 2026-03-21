@@ -2,6 +2,8 @@ package com.dineops.restaurant;
 
 import com.dineops.audit.AuditedAction;
 import com.dineops.dto.RestaurantResponse;
+
+import java.time.LocalDateTime;
 import com.dineops.exception.EntityNotFoundException;
 import com.dineops.review.ReviewService;
 import com.dineops.user.User;
@@ -95,6 +97,7 @@ public class RestaurantService {
                 restaurant.getDefaultPrepTimeMinutes(),
                 reviewService.getAverageRating(restaurant.getId()),
                 restaurant.getStatus(),
+                OperatingHoursParser.isOpen(restaurant.getOperatingHours(), LocalDateTime.now()),
                 restaurant.getCreatedAt(),
                 restaurant.getUpdatedAt()
         );

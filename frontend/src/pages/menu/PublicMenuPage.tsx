@@ -87,6 +87,11 @@ const PublicMenuPage = () => {
         <p className="text-orange-100 text-sm mt-1">{restaurant?.address ?? 'Fresh. Delicious. Made for you.'}</p>
         {restaurant?.phone && <p className="text-orange-100 text-xs mt-1">Call: {restaurant.phone}</p>}
         {restaurant?.operatingHours && <p className="text-orange-100 text-xs mt-1">Hours: {restaurant.operatingHours}</p>}
+        {restaurant?.isOpenNow === false && (
+          <span className="inline-block mt-2 px-3 py-1 rounded-full bg-red-500/80 text-white text-xs font-medium">
+            Currently Closed
+          </span>
+        )}
         {restaurant && <p className="text-orange-100 text-xs mt-1">Rating: {restaurant.averageRating.toFixed(1)} / 5</p>}
         {tableNumber && <p className="text-orange-100 text-xs mt-1">Table {tableNumber}</p>}
         <button
@@ -178,7 +183,8 @@ const PublicMenuPage = () => {
                             isVegetarian: item.isVegetarian,
                           })
                         }
-                        className="px-4 py-1.5 rounded-full text-sm font-medium bg-orange-500 text-white hover:bg-orange-600"
+                        disabled={restaurant?.isOpenNow === false}
+                        className="px-4 py-1.5 rounded-full text-sm font-medium bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         ADD
                       </button>
@@ -200,7 +206,8 @@ const PublicMenuPage = () => {
                               isVegetarian: item.isVegetarian,
                             })
                           }
-                          className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-lg font-bold hover:bg-orange-600"
+                          disabled={restaurant?.isOpenNow === false}
+                          className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-lg font-bold hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           +
                         </button>
@@ -218,13 +225,14 @@ const PublicMenuPage = () => {
       {itemCount > 0 && (
         <div className="fixed bottom-4 left-4 right-4 max-w-2xl mx-auto">
           <button
-            onClick={() => navigate(`/menu/${tenantId}/confirm${tableNumber ? `?table=${encodeURIComponent(tableNumber)}` : ''}`)}
-            className="w-full bg-orange-500 text-white rounded-xl py-4 px-6 flex items-center justify-between shadow-lg hover:bg-orange-600"
+            onClick={() => restaurant?.isOpenNow !== false && navigate(`/menu/${tenantId}/confirm${tableNumber ? `?table=${encodeURIComponent(tableNumber)}` : ''}`)}
+            disabled={restaurant?.isOpenNow === false}
+            className="w-full bg-orange-500 text-white rounded-xl py-4 px-6 flex items-center justify-between shadow-lg hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <span className="bg-orange-600 rounded-lg px-2 py-1 text-sm font-bold">
               {itemCount} item{itemCount > 1 ? 's' : ''}
             </span>
-            <span className="font-semibold">View Order</span>
+            <span className="font-semibold">{restaurant?.isOpenNow === false ? 'Currently closed' : 'View Order'}</span>
             <span className="font-bold">{formatCurrency(total)}</span>
           </button>
         </div>

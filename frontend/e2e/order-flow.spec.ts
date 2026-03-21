@@ -24,6 +24,7 @@ test('public menu to place order to track status', async ({ page }) => {
         defaultPrepTimeMinutes: 20,
         averageRating: 4.5,
         status: 'ACTIVE',
+        isOpenNow: true,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }),

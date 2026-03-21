@@ -10,6 +10,7 @@ import com.dineops.exception.EntityNotFoundException;
 import com.dineops.menu.MenuItem;
 import com.dineops.menu.MenuItemRepository;
 import com.dineops.notification.NotificationService;
+import com.dineops.restaurant.OperatingHoursParser;
 import com.dineops.restaurant.Restaurant;
 import com.dineops.restaurant.RestaurantRepository;
 import com.dineops.table.DiningTableService;
@@ -94,6 +95,11 @@ public class OrderService {
         PlaceOrderRequest safeRequest = Objects.requireNonNull(request, "request cannot be null");
         Restaurant restaurant = restaurantRepository.findById(safeRequest.tenantId())
                 .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
+
+        if (!OperatingHoursParser.isOpen(restaurant.getOperatingHours(), LocalDateTime.now())) {
+            String hoursDisplay = restaurant.getOperatingHours() != null ? restaurant.getOperatingHours() : "Not specified";
+            throw new IllegalArgumentException("Restaurant is currently closed. Operating hours: " + hoursDisplay);
+        }
 
         long monthlyOrderCount = orderRepository.countByTenantIdAndCreatedAtGreaterThanEqual(
                 safeRequest.tenantId(),

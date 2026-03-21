@@ -14,6 +14,7 @@ export interface Restaurant {
   defaultPrepTimeMinutes: number
   averageRating: number
   status: RestaurantStatus
+  isOpenNow?: boolean
   createdAt: string
   updatedAt: string
 }

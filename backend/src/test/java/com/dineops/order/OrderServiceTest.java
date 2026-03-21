@@ -1,5 +1,6 @@
 package com.dineops.order;
 
+import com.dineops.menu.MenuItem;
 import com.dineops.menu.MenuItemRepository;
 import com.dineops.notification.NotificationService;
 import com.dineops.restaurant.Restaurant;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.Map;
@@ -35,14 +37,16 @@ class OrderServiceTest {
 
     private OrderRepository orderRepository;
     private OrderStatusHistoryRepository orderStatusHistoryRepository;
+    private MenuItemRepository menuItemRepository;
+    private RestaurantRepository restaurantRepository;
     private OrderService orderService;
 
     @BeforeEach
     void setUp() {
         orderRepository = Mockito.mock(OrderRepository.class);
         orderStatusHistoryRepository = Mockito.mock(OrderStatusHistoryRepository.class);
-        MenuItemRepository menuItemRepository = Mockito.mock(MenuItemRepository.class);
-        RestaurantRepository restaurantRepository = Mockito.mock(RestaurantRepository.class);
+        menuItemRepository = Mockito.mock(MenuItemRepository.class);
+        restaurantRepository = Mockito.mock(RestaurantRepository.class);
         DiningTableService diningTableService = Mockito.mock(DiningTableService.class);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
         SubscriptionService subscriptionService = Mockito.mock(SubscriptionService.class);
@@ -180,5 +184,90 @@ class OrderServiceTest {
                 () -> orderService.customerCancelOrder(orderId));
 
         assertEquals("Order is confirmed and now requires kitchen approval for cancellation.", ex.getMessage());
+    }
+
+    @Test
+    void placeOrder_whenRestaurantClosed_throwsIllegalArgumentException() {
+        UUID tenantId = UUID.randomUUID();
+        UUID menuItemId = UUID.randomUUID();
+        Restaurant restaurant = new Restaurant();
+        try {
+            java.lang.reflect.Field idField = Restaurant.class.getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(restaurant, tenantId);
+        } catch (ReflectiveOperationException ex) {
+            throw new RuntimeException(ex);
+        }
+        // All days null = closed every day
+        restaurant.setOperatingHours("""
+            {"monday":null,"tuesday":null,"wednesday":null,"thursday":null,"friday":null,"saturday":null,"sunday":null}
+            """);
+
+        when(restaurantRepository.findById(tenantId)).thenReturn(Optional.of(restaurant));
+        when(orderRepository.countByTenantIdAndCreatedAtGreaterThanEqual(any(), any())).thenReturn(0L);
+
+        PlaceOrderRequest request = new PlaceOrderRequest(
+                tenantId,
+                null,
+                null,
+                null,
+                null,
+                null,
+                List.of(new PlaceOrderRequest.OrderItemRequest(menuItemId, 1))
+        );
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> orderService.placeOrder(request));
+
+        assertEquals("Restaurant is currently closed. Operating hours: " + restaurant.getOperatingHours(), ex.getMessage());
+    }
+
+    @Test
+    void placeOrder_whenRestaurantOpen_succeeds() {
+        UUID tenantId = UUID.randomUUID();
+        UUID menuItemId = UUID.randomUUID();
+        Restaurant restaurant = new Restaurant();
+        try {
+            java.lang.reflect.Field idField = Restaurant.class.getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(restaurant, tenantId);
+        } catch (ReflectiveOperationException ex) {
+            throw new RuntimeException(ex);
+        }
+        restaurant.setOperatingHours(null); // null = always open
+
+        MenuItem menuItem = new MenuItem();
+        try {
+            java.lang.reflect.Field idField = MenuItem.class.getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(menuItem, menuItemId);
+        } catch (ReflectiveOperationException ex) {
+            throw new RuntimeException(ex);
+        }
+        menuItem.setName("Test Item");
+        menuItem.setPrice(1000);
+        menuItem.setTenant(restaurant);
+
+        when(restaurantRepository.findById(tenantId)).thenReturn(Optional.of(restaurant));
+        when(orderRepository.countByTenantIdAndCreatedAtGreaterThanEqual(any(), any())).thenReturn(0L);
+        when(menuItemRepository.findById(menuItemId)).thenReturn(Optional.of(menuItem));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        PlaceOrderRequest request = new PlaceOrderRequest(
+                tenantId,
+                null,
+                null,
+                null,
+                null,
+                null,
+                List.of(new PlaceOrderRequest.OrderItemRequest(menuItemId, 1))
+        );
+
+        Order order = orderService.placeOrder(request);
+
+        assertEquals(tenantId, order.getTenant().getId());
+        assertEquals(1000, order.getTotalAmount());
+        assertEquals(1, order.getItems().size());
     }
 }
