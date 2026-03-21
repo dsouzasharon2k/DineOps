@@ -65,7 +65,7 @@ public class SecurityConfig {
                     .maxAgeInSeconds(31536000)
                     .includeSubDomains(true))
                 .contentSecurityPolicy(csp -> csp
-                    .policyDirectives("default-src 'self'"))
+                    .policyDirectives("default-src 'self'; connect-src 'self' ws: wss:"))
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

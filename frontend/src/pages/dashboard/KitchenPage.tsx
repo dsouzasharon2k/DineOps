@@ -3,6 +3,7 @@ import { getActiveOrdersApi, updateOrderStatusApi } from '../../api/menu'
 import type { Order, OrderStatus } from '../../types/order'
 import { useAuth } from '../../context/AuthContext'
 import { getApiErrorMessage } from '../../api/error'
+import { formatCurrency } from '../../utils/currency'
 import LoadingState from '../../components/LoadingState'
 import EmptyState from '../../components/EmptyState'
 import { subscribeTenantOrders } from '../../realtime/ordersSocket'
@@ -242,7 +243,7 @@ export default function KitchenPage() {
 
                       <div className="flex items-center justify-between border-t border-gray-100 pt-3">
                         <span className="text-sm font-bold text-gray-800">
-                          ₹{order.totalAmount / 100}
+                          {formatCurrency(order.totalAmount)}
                         </span>
                         {STATUS_FLOW[status] && (
                           <button

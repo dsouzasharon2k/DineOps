@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { getAnalyticsSummaryApi } from '../../api/analytics'
 import { getReviewsByTenantApi } from '../../api/reviews'
 import { getApiErrorMessage } from '../../api/error'
+import { formatCurrency } from '../../utils/currency'
 import { useAuth } from '../../context/AuthContext'
 import type { AnalyticsSummary } from '../../types/analytics'
 import type { Review } from '../../types/review'
@@ -77,11 +78,11 @@ const DashboardHome = () => {
         </div>
         <div className="rounded-xl bg-white p-4 shadow-sm">
           <p className="text-xs text-gray-500">Today's Revenue</p>
-          <p className="mt-1 text-2xl font-bold text-gray-800">INR {(summary.todaysRevenue / 100).toFixed(2)}</p>
+          <p className="mt-1 text-2xl font-bold text-gray-800">{formatCurrency(summary.todaysRevenue)}</p>
         </div>
         <div className="rounded-xl bg-white p-4 shadow-sm">
           <p className="text-xs text-gray-500">Avg Order Value</p>
-          <p className="mt-1 text-2xl font-bold text-gray-800">INR {(summary.averageOrderValue / 100).toFixed(2)}</p>
+          <p className="mt-1 text-2xl font-bold text-gray-800">{formatCurrency(summary.averageOrderValue)}</p>
         </div>
       </div>
 
@@ -118,7 +119,7 @@ const DashboardHome = () => {
                     style={{ width: `${(point.revenue / maxRevenue) * 100}%` }}
                   />
                 </div>
-                <span className="text-right font-medium text-gray-700">INR {(point.revenue / 100).toFixed(0)}</span>
+                <span className="text-right font-medium text-gray-700">{formatCurrency(point.revenue)}</span>
               </div>
             ))}
           </div>

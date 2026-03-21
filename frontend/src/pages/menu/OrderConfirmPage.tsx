@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useCart } from '../../hooks/useCart';
 import { initiatePaymentApi, placeOrderApi } from '../../api/menu';
+import { getRestaurantByIdApi } from '../../api/restaurants';
 import { getApiErrorMessage } from '../../api/error';
+import { formatCurrency } from '../../utils/currency';
 import type { PaymentMethod } from '../../types/order';
+import type { Restaurant } from '../../types/restaurant';
 
 export default function OrderConfirmPage() {
   const { tenantId } = useParams<{ tenantId: string }>();
@@ -11,6 +14,7 @@ export default function OrderConfirmPage() {
   const navigate = useNavigate();
   const tableNumber = searchParams.get('table');
   const { cart, total, itemCount, clearCart } = useCart(tenantId!);
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
@@ -18,6 +22,12 @@ export default function OrderConfirmPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (tenantId) {
+      getRestaurantByIdApi(tenantId).then(setRestaurant).catch(() => setRestaurant(null));
+    }
+  }, [tenantId]);
 
   if (!cart || cart.items.length === 0) {
     return (
@@ -83,10 +93,10 @@ export default function OrderConfirmPage() {
                 <span>{item.isVegetarian ? '🟢' : '🔴'}</span>
                 <div>
                   <p className="font-medium text-gray-800">{item.name}</p>
-                  <p className="text-sm text-gray-500">₹{item.price / 100} × {item.quantity}</p>
+                  <p className="text-sm text-gray-500">{formatCurrency(item.price)} × {item.quantity}</p>
                 </div>
               </div>
-              <p className="font-semibold text-gray-800">₹{(item.price * item.quantity) / 100}</p>
+              <p className="font-semibold text-gray-800">{formatCurrency(item.price * item.quantity)}</p>
             </div>
           ))}
         </div>
@@ -157,11 +167,11 @@ export default function OrderConfirmPage() {
           )}
           <div className="flex justify-between text-gray-600 mb-2">
             <span>Item total ({itemCount} items)</span>
-            <span>₹{total / 100}</span>
+            <span>{formatCurrency(total)}</span>
           </div>
           <div className="border-t border-gray-100 pt-2 mt-2 flex justify-between font-bold text-gray-800">
             <span>Total</span>
-            <span>₹{total / 100}</span>
+            <span>{formatCurrency(total)}</span>
           </div>
         </div>
 
@@ -177,6 +187,11 @@ export default function OrderConfirmPage() {
           />
         </div>
 
+        {restaurant?.isOpenNow === false && (
+          <p role="alert" className="text-amber-700 bg-amber-50 rounded-lg px-4 py-3 text-sm text-center mb-4">
+            Restaurant is currently closed. Orders cannot be placed outside operating hours.
+          </p>
+        )}
         {error && (
           <p role="alert" aria-live="polite" className="text-red-700 text-sm text-center mb-4">{error}</p>
         )}
@@ -186,13 +201,13 @@ export default function OrderConfirmPage() {
       <div className="fixed bottom-4 left-4 right-4 max-w-2xl mx-auto">
         <button
           onClick={handlePlaceOrder}
-          disabled={placing}
-          className="w-full bg-orange-500 text-white rounded-xl py-4 px-6 flex items-center justify-between shadow-lg hover:bg-orange-600 disabled:opacity-60"
+          disabled={placing || restaurant?.isOpenNow === false}
+          className="w-full bg-orange-500 text-white rounded-xl py-4 px-6 flex items-center justify-between shadow-lg hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <span className="font-semibold">
-            {placing ? 'Placing order...' : paymentMethod === 'CASH' ? 'Place Order' : 'Place Order & Pay'}
+            {placing ? 'Placing order...' : restaurant?.isOpenNow === false ? 'Restaurant closed' : paymentMethod === 'CASH' ? 'Place Order' : 'Place Order & Pay'}
           </span>
-          <span className="font-bold">₹{total / 100}</span>
+          <span className="font-bold">{formatCurrency(total)}</span>
         </button>
       </div>
     </main>

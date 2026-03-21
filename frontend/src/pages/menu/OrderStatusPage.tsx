@@ -7,6 +7,7 @@ import type { Order, OrderStatus, OrderStatusHistoryEntry } from '../../types/or
 import type { Review } from '../../types/review';
 import type { Restaurant } from '../../types/restaurant';
 import { getApiErrorMessage } from '../../api/error';
+import { formatCurrency } from '../../utils/currency';
 import { subscribeOrderStatus } from '../../realtime/ordersSocket';
 
 // Maps status to display label and progress step
@@ -218,12 +219,12 @@ export default function OrderStatusPage() {
                 <p className="font-medium text-gray-800">{item.name}</p>
                 <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
               </div>
-              <p className="font-semibold text-gray-800">₹{(item.price * item.quantity) / 100}</p>
+              <p className="font-semibold text-gray-800">{formatCurrency(item.price * item.quantity)}</p>
             </div>
           ))}
           <div className="px-4 py-3 bg-gray-50 flex justify-between font-bold text-gray-800">
             <span>Total</span>
-            <span>₹{order.totalAmount / 100}</span>
+            <span>{formatCurrency(order.totalAmount)}</span>
           </div>
         </div>
 
