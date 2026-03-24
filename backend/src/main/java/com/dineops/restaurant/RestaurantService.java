@@ -9,7 +9,6 @@ import com.dineops.review.ReviewService;
 import com.dineops.user.User;
 import com.dineops.user.UserRepository;
 import com.dineops.user.UserRole;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -36,7 +35,7 @@ public class RestaurantService {
         return restaurantRepository.findAll();
     }
 
-    @Cacheable(cacheNames = "restaurants:all", key = "#page + ':' + #size")
+    // Not @Cacheable: Page/PageImpl deserializes from Redis as LinkedHashMap, causing ClassCastException
     public Page<RestaurantResponse> getRestaurantResponsePage(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Restaurant> restaurantPage = restaurantRepository.findAll(pageable);
@@ -46,7 +45,6 @@ public class RestaurantService {
         return new PageImpl<>(Objects.requireNonNull(content), pageable, restaurantPage.getTotalElements());
     }
 
-    @Cacheable(cacheNames = "restaurants:by-id", key = "#restaurantId")
     public RestaurantResponse getRestaurantResponseById(java.util.UUID restaurantId) {
         java.util.UUID safeRestaurantId = java.util.Objects.requireNonNull(restaurantId, "restaurantId cannot be null");
         Restaurant restaurant = restaurantRepository.findById(safeRestaurantId)

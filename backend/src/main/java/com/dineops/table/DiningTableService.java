@@ -56,6 +56,12 @@ public class DiningTableService {
                 .orElseThrow(() -> new EntityNotFoundException("Table not found for tableNumber: " + tableNumber));
     }
 
+    /** Returns the table if it exists; used when placing orders so we can persist table_number even when table isn't pre-registered. */
+    public java.util.Optional<DiningTable> findOptionalByTenantAndNumber(UUID tenantId, String tableNumber) {
+        if (tableNumber == null || tableNumber.isBlank()) return java.util.Optional.empty();
+        return diningTableRepository.findByTenantIdAndTableNumber(tenantId, tableNumber.trim());
+    }
+
     private DiningTable findTenantTable(UUID tenantId, UUID tableId) {
         DiningTable table = diningTableRepository.findById(tableId)
                 .orElseThrow(() -> new EntityNotFoundException("Table not found"));

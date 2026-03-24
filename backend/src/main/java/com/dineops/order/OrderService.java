@@ -19,7 +19,6 @@ import com.dineops.subscription.SubscriptionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -110,7 +109,10 @@ public class OrderService {
         Order order = new Order();
         order.setTenant(restaurant);
         if (safeRequest.tableNumber() != null && !safeRequest.tableNumber().isBlank()) {
-            order.setTable(diningTableService.findByTenantAndNumber(safeRequest.tenantId(), safeRequest.tableNumber()));
+            String tableNum = safeRequest.tableNumber().trim();
+            order.setTableNumber(tableNum);
+            diningTableService.findOptionalByTenantAndNumber(safeRequest.tenantId(), tableNum)
+                    .ifPresent(order::setTable);
         }
         order.setCustomerName(trimToNull(safeRequest.customerName()));
         order.setCustomerPhone(trimToNull(safeRequest.customerPhone()));
@@ -127,6 +129,7 @@ public class OrderService {
             // Snapshot the name and price at time of order
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
+            orderItem.setTenantRestaurant(restaurant);
             orderItem.setMenuItem(menuItem);
             orderItem.setName(menuItem.getName());
             orderItem.setPrice(menuItem.getPrice());
@@ -162,7 +165,6 @@ public class OrderService {
                 .orElseThrow(() -> new EntityNotFoundException("Order not found"));
     }
 
-    @Cacheable(cacheNames = "orders:by-id", key = "#orderId")
     public OrderResponse getOrderResponseById(UUID orderId) {
         return toResponse(getOrderById(orderId));
     }
@@ -172,7 +174,6 @@ public class OrderService {
         return orderRepository.findByTenantIdOrderByCreatedAtDesc(tenantId);
     }
 
-    @Cacheable(cacheNames = "orders:by-tenant", key = "#tenantId + ':' + #page + ':' + #size")
     public Page<OrderResponse> getOrderResponsesByTenant(UUID tenantId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Order> orders = orderRepository.findByTenantIdOrderByCreatedAtDesc(tenantId, pageable);
@@ -190,7 +191,6 @@ public class OrderService {
         );
     }
 
-    @Cacheable(cacheNames = "orders:active-by-tenant", key = "#tenantId + ':' + #page + ':' + #size")
     public Page<OrderResponse> getActiveOrderResponses(UUID tenantId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Order> orders = orderRepository.findByTenantIdAndStatusNotInOrderByCreatedAtAsc(
@@ -367,13 +367,18 @@ public class OrderService {
         return authentication.getName();
     }
 
+    private static String firstNonEmpty(String a, String b) {
+        if (a != null && !a.isBlank()) return a;
+        return b;
+    }
+
     private OrderResponse toResponse(Order order) {
         Integer estimatedReadyMinutes = estimateReadyMinutes(order);
         return new OrderResponse(
                 order.getId(),
                 order.getTenant().getId(),
                 toUserResponse(order.getCustomer()),
-                order.getTable() != null ? order.getTable().getTableNumber() : null,
+                firstNonEmpty(order.getTableNumber(), order.getTable() != null ? order.getTable().getTableNumber() : null),
                 order.getStatus(),
                 order.getPaymentStatus(),
                 order.getPaymentMethod(),

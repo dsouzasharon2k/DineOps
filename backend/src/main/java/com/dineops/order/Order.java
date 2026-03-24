@@ -53,6 +53,14 @@ public class Order extends AuditableEntity {
     @JoinColumn(name = "table_id")
     private DiningTable table;
 
+    /** Raw table number from QR/manual entry; persisted even when dining_tables row doesn't exist. */
+    @Column(name = "table_number", length = 50)
+    private String tableNumber;
+
+    /** When set, customer_name/phone/email have been erased for GDPR/retention. */
+    @Column(name = "customer_data_erased_at")
+    private java.time.LocalDateTime customerDataErasedAt;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", nullable = false)
     private PaymentStatus paymentStatus = PaymentStatus.UNPAID;
@@ -91,6 +99,10 @@ public class Order extends AuditableEntity {
     public void setCustomerEmail(String customerEmail) { this.customerEmail = customerEmail; }
     public DiningTable getTable() { return table; }
     public void setTable(DiningTable table) { this.table = table; }
+    public String getTableNumber() { return tableNumber; }
+    public void setTableNumber(String tableNumber) { this.tableNumber = tableNumber; }
+    public java.time.LocalDateTime getCustomerDataErasedAt() { return customerDataErasedAt; }
+    public void setCustomerDataErasedAt(java.time.LocalDateTime customerDataErasedAt) { this.customerDataErasedAt = customerDataErasedAt; }
     public PaymentStatus getPaymentStatus() { return paymentStatus; }
     public void setPaymentStatus(PaymentStatus paymentStatus) { this.paymentStatus = paymentStatus; }
     public PaymentMethod getPaymentMethod() { return paymentMethod; }

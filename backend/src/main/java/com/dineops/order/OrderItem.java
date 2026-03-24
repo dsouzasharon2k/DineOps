@@ -2,6 +2,7 @@ package com.dineops.order;
 
 import com.dineops.entity.AuditableEntity;
 import com.dineops.menu.MenuItem;
+import com.dineops.restaurant.Restaurant;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.SQLRestriction;
@@ -39,6 +40,11 @@ public class OrderItem extends AuditableEntity {
     @Column(nullable = false)
     private Integer quantity;
 
+    /** Denormalized for analytics; avoids join through orders for "revenue by item for tenant X". */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tenant_id")
+    private Restaurant tenantRestaurant;
+
     // Getters and Setters
     public UUID getId() { return id; }
     public Order getOrder() { return order; }
@@ -51,4 +57,6 @@ public class OrderItem extends AuditableEntity {
     public void setPrice(Integer price) { this.price = price; }
     public Integer getQuantity() { return quantity; }
     public void setQuantity(Integer quantity) { this.quantity = quantity; }
+    public Restaurant getTenantRestaurant() { return tenantRestaurant; }
+    public void setTenantRestaurant(Restaurant tenantRestaurant) { this.tenantRestaurant = tenantRestaurant; }
 }
