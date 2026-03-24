@@ -75,7 +75,7 @@ public class AnalyticsService {
 
         Map<String, Long> itemCountMap = new HashMap<>();
         for (Order order : orders) {
-            order.getItems().forEach(item -> itemCountMap.merge(item.getName(), (long) item.getQuantity(), Long::sum));
+            order.getItems().forEach(item -> itemCountMap.merge(item.getName(), (long) item.getQuantity(), (a, b) -> a + b));
         }
         List<AnalyticsSummaryResponse.ItemCount> topMenuItems = itemCountMap.entrySet().stream()
                 .sorted(Map.Entry.<String, Long>comparingByValue(Comparator.reverseOrder()))
@@ -98,6 +98,7 @@ public class AnalyticsService {
 
     private double calculateAveragePreparationMinutes(List<Order> orders) {
         List<Long> prepTimes = new ArrayList<>();
+        List<Long> fallbackDurations = new ArrayList<>();
         for (Order order : orders) {
             List<OrderStatusHistory> history = orderStatusHistoryRepository.findByOrderIdOrderByChangedAtAsc(order.getId());
             LocalDateTime confirmedAt = null;
@@ -114,9 +115,20 @@ public class AnalyticsService {
             if (confirmedAt != null && readyAt != null && !readyAt.isBefore(confirmedAt)) {
                 prepTimes.add(Duration.between(confirmedAt, readyAt).toMinutes());
             }
+
+            // Fallback for demo and historical rows where status history may be missing.
+            if ((order.getStatus() == OrderStatus.READY || order.getStatus() == OrderStatus.DELIVERED)
+                    && order.getCreatedAt() != null
+                    && order.getUpdatedAt() != null
+                    && !order.getUpdatedAt().isBefore(order.getCreatedAt())) {
+                fallbackDurations.add(Duration.between(order.getCreatedAt(), order.getUpdatedAt()).toMinutes());
+            }
         }
         if (prepTimes.isEmpty()) {
-            return 0;
+            if (fallbackDurations.isEmpty()) {
+                return 0;
+            }
+            return fallbackDurations.stream().mapToLong(Long::longValue).average().orElse(0);
         }
         return prepTimes.stream().mapToLong(Long::longValue).average().orElse(0);
     }
