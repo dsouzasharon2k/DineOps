@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { getActiveOrdersApi, updateOrderStatusApi } from '../../api/menu'
 import type { Order, OrderStatus } from '../../types/order'
 import { useAuth } from '../../context/AuthContext'
@@ -61,10 +61,10 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
 }
 
 const NEXT_ACTION_LABELS: Record<OrderStatus, string> = {
-  PENDING: '✅ Confirm',
-  CONFIRMED: '👨‍🍳 Start Preparing',
-  PREPARING: '🛎️ Mark Ready',
-  READY: '✓ Delivered',
+  PENDING: 'Confirm',
+  CONFIRMED: 'Start prep',
+  PREPARING: 'Mark ready',
+  READY: 'Delivered',
   DELIVERED: 'Completed',
   CANCELLED: 'Cancelled',
 }
@@ -77,6 +77,16 @@ const timeAgo = (createdAt: string): string => {
   return `${Math.floor(diff / 3600)}h ago`
 }
 
+const extractTenantId = (token: string | null): string | null => {
+  if (!token) return null
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    return payload.tenantId ?? null
+  } catch {
+    return null
+  }
+}
+
 export default function KitchenPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
@@ -85,14 +95,19 @@ export default function KitchenPage() {
   const [error, setError] = useState('')
   const [wsConnected, setWsConnected] = useState(false)
 
-  const { token } = useAuth()
-  const tenantId = 'a085284e-ca00-4f64-a2c7-42fc0572bb97'
+  const { token, initializing } = useAuth()
+  const tenantId = useMemo(() => extractTenantId(token), [token])
 
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = useCallback(async (opts?: { silent?: boolean }) => {
+    if (!token || !tenantId) return
+    if (!opts?.silent) {
+      setLoading(true)
+    }
     try {
-      const data = await getActiveOrdersApi(tenantId, token ?? '')
+      const data = await getActiveOrdersApi(tenantId, token)
       setOrders(data)
       setLastRefresh(new Date())
+      setError('')
     } catch (err) {
       setError(getApiErrorMessage(err, 'Failed to fetch kitchen orders.'))
     } finally {
@@ -101,6 +116,19 @@ export default function KitchenPage() {
   }, [tenantId, token])
 
   useEffect(() => {
+    if (initializing) {
+      setLoading(true)
+      return
+    }
+    if (!token) {
+      setLoading(true)
+      return
+    }
+    if (!tenantId) {
+      setError('Tenant context missing. Please sign in again.')
+      setLoading(false)
+      return
+    }
     fetchOrders()
     const unsubscribe = subscribeTenantOrders(
       tenantId,
@@ -122,14 +150,14 @@ export default function KitchenPage() {
     )
     const interval = setInterval(() => {
       if (!wsConnected) {
-        fetchOrders()
+        fetchOrders({ silent: true })
       }
-    }, 15000)
+    }, 5000)
     return () => {
       unsubscribe()
       clearInterval(interval)
     }
-  }, [fetchOrders, tenantId, wsConnected])
+  }, [fetchOrders, initializing, tenantId, token, wsConnected])
 
   const handleStatusUpdate = async (orderId: string, nextStatus: OrderStatus) => {
     setUpdating(orderId)
@@ -165,19 +193,35 @@ export default function KitchenPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Kitchen View</h1>
           <p className="text-sm text-gray-400 mt-0.5">
-            {wsConnected ? 'Live via WebSocket' : 'Polling every 15s'} · Last updated{' '}
+            {wsConnected ? 'Live via WebSocket' : 'Polling every 5s'} · Last updated{' '}
             {lastRefresh.toLocaleTimeString()}
           </p>
         </div>
         <button
-          onClick={fetchOrders}
-          className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600"
+          onClick={() => {
+            void fetchOrders()
+          }}
+          className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 flex items-center gap-2"
         >
-          🔄 Refresh
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" />
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+          </svg>
+          Refresh
         </button>
       </div>
       {error && (
-        <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+        <div className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600 flex items-center justify-between gap-3">
+          <span>{error}</span>
+          <button
+            onClick={() => {
+              void fetchOrders()
+            }}
+            className="shrink-0 rounded bg-white px-2 py-1 text-xs font-medium text-red-600 border border-red-200 hover:bg-red-100"
+          >
+            Retry
+          </button>
+        </div>
       )}
 
       {orders.length === 0 ? (
@@ -213,9 +257,16 @@ export default function KitchenPage() {
                       className={`bg-white rounded-xl border-l-4 ${style.bg} shadow-sm p-4`}
                     >
                       <div className="flex items-center justify-between mb-3">
-                        <span className="font-bold text-gray-800 text-sm">
-                          #{order.id.slice(0, 8).toUpperCase()}
-                        </span>
+                        <div>
+                          <span className="font-bold text-gray-800 text-sm">
+                            #{order.id.slice(0, 8).toUpperCase()}
+                          </span>
+                          {order.tableNumber && (
+                            <span className="ml-2 text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-medium">
+                              T{order.tableNumber}
+                            </span>
+                          )}
+                        </div>
                         <span className="text-xs text-gray-400">
                           {timeAgo(order.createdAt)}
                         </span>

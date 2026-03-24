@@ -4,10 +4,23 @@ import { getCategoriesApi, getItemsApi } from '../../api/menu'
 import { getApiErrorMessage } from '../../api/error'
 import type { InventoryItem } from '../../types/inventory'
 import type { MenuCategory, MenuItem } from '../../types/menu'
+import { useAuth } from '../../context/AuthContext'
 
-const TENANT_ID = 'a085284e-ca00-4f64-a2c7-42fc0572bb97'
+const extractTenantId = (token: string | null): string | null => {
+  if (!token) return null
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    return payload.tenantId ?? null
+  } catch {
+    return null
+  }
+}
+
+const FALLBACK_TENANT_ID = 'a085284e-ca00-4f64-a2c7-42fc0572bb97'
 
 const InventoryPage = () => {
+  const { token } = useAuth()
+  const tenantId = useMemo(() => extractTenantId(token) ?? FALLBACK_TENANT_ID, [token])
   const [inventory, setInventory] = useState<InventoryItem[]>([])
   const [categories, setCategories] = useState<MenuCategory[]>([])
   const [allItems, setAllItems] = useState<MenuItem[]>([])
@@ -22,12 +35,12 @@ const InventoryPage = () => {
   const load = async () => {
     try {
       setError('')
-      const inv = await getInventoryByTenantApi(TENANT_ID)
+      const inv = await getInventoryByTenantApi(tenantId)
       setInventory(inv)
 
-      const cats = await getCategoriesApi(TENANT_ID)
+      const cats = await getCategoriesApi(tenantId)
       setCategories(cats)
-      const itemsNested = await Promise.all(cats.map((cat) => getItemsApi(TENANT_ID, cat.id)))
+      const itemsNested = await Promise.all(cats.map((cat) => getItemsApi(tenantId, cat.id)))
       setAllItems(itemsNested.flat())
     } catch (err) {
       setError(getApiErrorMessage(err, 'Failed to load inventory.'))
@@ -37,8 +50,13 @@ const InventoryPage = () => {
   }
 
   useEffect(() => {
-    load()
-  }, [])
+    if (!token) {
+      setLoading(true)
+      return
+    }
+    if (tenantId) load()
+    else setLoading(false)
+  }, [tenantId, token])
 
   const trackedItemIds = useMemo(() => new Set(inventory.map((i) => i.menuItemId)), [inventory])
   const untrackedItems = allItems.filter((item) => !trackedItemIds.has(item.id))
@@ -77,12 +95,14 @@ const InventoryPage = () => {
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-800">Inventory Management</h1>
-      <p className="mt-2 text-sm text-gray-500">Track stock levels and receive low-stock alerts.</p>
+      <p className="mt-2 text-sm text-gray-500">
+        Current mode tracks sellable menu-item stock. For production-grade restaurants, use raw-material ingredients + recipe/BOM deductions.
+      </p>
 
       {error && <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
 
       <div className="mt-6 rounded-xl bg-white p-4 shadow-sm">
-        <p className="mb-3 text-sm font-semibold text-gray-700">Add inventory tracking for menu item</p>
+        <p className="mb-3 text-sm font-semibold text-gray-700">Add inventory tracking for menu item (quick mode)</p>
         <div className="grid grid-cols-1 gap-2 md:grid-cols-4">
           <select
             value={selectedMenuItemId}

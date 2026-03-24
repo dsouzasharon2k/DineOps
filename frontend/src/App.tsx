@@ -2,8 +2,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import PublicLayout from './layouts/PublicLayout'
 import DashboardLayout from './layouts/DashboardLayout'
 import ProtectedRoute from './routes/ProtectedRoute'
+import RoleRoute from './routes/RoleRoute'
 import LoginPage from './pages/auth/LoginPage'
-import DashboardHome from './pages/dashboard/DashboardHome'
 import RestaurantsPage from './pages/dashboard/RestaurantsPage'
 import MenuPage from './pages/dashboard/MenuPage'
 import KitchenPage from './pages/dashboard/KitchenPage'
@@ -20,6 +20,10 @@ import TermsPage from './pages/legal/TermsPage'
 import ErrorBoundary from './components/ErrorBoundary'
 import SectionErrorFallback from './components/SectionErrorFallback'
 import NotFoundPage from './pages/NotFoundPage'
+import LandingPage from './pages/LandingPage'
+import DashboardEntryPage from './pages/dashboard/DashboardEntryPage'
+import ReviewsPage from './pages/dashboard/ReviewsPage'
+import TicketsPage from './pages/dashboard/TicketsPage'
 
 function App() {
   return (
@@ -42,6 +46,7 @@ function App() {
               </ErrorBoundary>
             }
           >
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/menu/:tenantId" element={<PublicMenuPage />} />
             <Route path="/menu/:tenantId/confirm" element={<OrderConfirmPage />} />
@@ -68,14 +73,79 @@ function App() {
               </ErrorBoundary>
             }
           >
-            <Route path="/dashboard" element={<DashboardHome />} />
-            <Route path="/dashboard/restaurants" element={<RestaurantsPage />} />
-            <Route path="/dashboard/onboarding" element={<RestaurantOnboardingPage />} />
-            <Route path="/dashboard/menu" element={<MenuPage />} />
-            <Route path="/dashboard/kitchen" element={<KitchenPage />} />
-            <Route path="/dashboard/inventory" element={<InventoryPage />} />
-            <Route path="/dashboard/subscription" element={<SubscriptionPage />} />
-            <Route path="/dashboard/tables" element={<TableManagementPage />} />
+            <Route path="/dashboard" element={<DashboardEntryPage />} />
+            <Route
+              path="/dashboard/restaurants"
+              element={
+                <RoleRoute allowedRoles={['SUPER_ADMIN']}>
+                  <RestaurantsPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/dashboard/onboarding"
+              element={
+                <RoleRoute allowedRoles={['TENANT_ADMIN', 'STAFF']}>
+                  <RestaurantOnboardingPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/dashboard/menu"
+              element={
+                <RoleRoute allowedRoles={['TENANT_ADMIN', 'STAFF']}>
+                  <MenuPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/dashboard/kitchen"
+              element={
+                <RoleRoute allowedRoles={['TENANT_ADMIN', 'STAFF']}>
+                  <KitchenPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/dashboard/inventory"
+              element={
+                <RoleRoute allowedRoles={['TENANT_ADMIN', 'STAFF']}>
+                  <InventoryPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/dashboard/subscription"
+              element={
+                <RoleRoute allowedRoles={['TENANT_ADMIN', 'STAFF']}>
+                  <SubscriptionPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/dashboard/tables"
+              element={
+                <RoleRoute allowedRoles={['TENANT_ADMIN', 'STAFF']}>
+                  <TableManagementPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/dashboard/reviews"
+              element={
+                <RoleRoute allowedRoles={['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF']}>
+                  <ReviewsPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/dashboard/tickets"
+              element={
+                <RoleRoute allowedRoles={['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF']}>
+                  <TicketsPage />
+                </RoleRoute>
+              }
+            />
           </Route>
 
           {/* 404 route */}
