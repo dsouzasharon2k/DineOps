@@ -3,6 +3,10 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
+  define: {
+    // sockjs-client expects Node's global in browser builds
+    global: 'globalThis',
+  },
   plugins: [
     react(),
     tailwindcss(),
