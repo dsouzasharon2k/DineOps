@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.http.HttpMethod;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -19,6 +20,13 @@ public class TenantAuthorizationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
+        String requestUri = String.valueOf(request.getRequestURI());
+        // Public menu/catalog endpoints are intentionally tenant-scoped but allow anonymous GET access.
+        if (HttpMethod.GET.matches(request.getMethod()) && requestUri.startsWith("/api/v1/restaurants/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         Optional<UUID> requestedTenantId = TenantContext.getRequestedTenantId(request);
         if (requestedTenantId.isEmpty()) {
             filterChain.doFilter(request, response);

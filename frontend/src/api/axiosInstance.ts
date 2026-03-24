@@ -37,8 +37,9 @@ axiosInstance.interceptors.response.use(
       const status = error.response?.status
       const originalRequest = error.config as (typeof error.config & RetryableAxiosRequest) | undefined
       const requestUrl = originalRequest?.url ?? ''
+      const currentToken = tokenStore.getToken()
       const isAuthEndpoint = requestUrl.includes('/api/v1/auth/login') || requestUrl.includes('/api/v1/auth/refresh')
-      if (status === 401 && originalRequest && !originalRequest._retry && !isAuthEndpoint) {
+      if (status === 401 && originalRequest && !originalRequest._retry && !isAuthEndpoint && !!currentToken) {
         originalRequest._retry = true
         try {
           if (!refreshRequest) {
