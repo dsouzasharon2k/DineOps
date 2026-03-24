@@ -2,6 +2,7 @@ package com.dineops.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Schema(description = "Menu item response payload")
@@ -18,5 +19,13 @@ public record MenuItemResponse(
         Integer displayOrder,
         Integer prepTimeMinutes,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
-) {}
+        LocalDateTime updatedAt,
+        String dietType,
+        String servingSize,
+        String ingredients,
+        List<String> flavourProfile,
+        List<String> allergens,
+        List<NutritionRow> nutrition
+) {
+    public record NutritionRow(String label, String per100g, String perServing) {}
+}

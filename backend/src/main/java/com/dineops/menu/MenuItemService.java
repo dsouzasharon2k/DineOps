@@ -1,13 +1,13 @@
 package com.dineops.menu;
 
 import com.dineops.dto.MenuItemResponse;
+import com.dineops.dto.MenuItemResponse.NutritionRow;
 import com.dineops.exception.EntityNotFoundException;
 import com.dineops.restaurant.Restaurant;
 import com.dineops.restaurant.RestaurantRepository;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,10 +30,9 @@ public class MenuItemService {
     // Get all available items for a category
     public List<MenuItem> getItemsByCategory(UUID categoryId) {
         return menuItemRepository
-                .findByCategoryIdAndIsAvailableTrueOrderByDisplayOrderAsc(categoryId);
+                .findByCategory_IdAndIsAvailableTrueOrderByDisplayOrderAsc(categoryId);
     }
 
-    @Cacheable(cacheNames = "menu:items:by-category", key = "#categoryId")
     public List<MenuItemResponse> getItemResponsesByCategory(UUID categoryId) {
         return getItemsByCategory(categoryId).stream()
                 .map(this::toResponse)
@@ -43,11 +42,10 @@ public class MenuItemService {
     // Get full menu for a restaurant (all items grouped will be done on frontend)
     public List<MenuItem> getItemsByTenant(UUID tenantId) {
         return menuItemRepository
-                .findByTenantIdAndIsAvailableTrueOrderByDisplayOrderAsc(tenantId);
+                .findByTenant_IdAndIsAvailableTrueOrderByDisplayOrderAsc(tenantId);
     }
 
     // Create a new menu item
-    @CacheEvict(cacheNames = "menu:items:by-category", key = "#categoryId")
     public MenuItem createItem(UUID tenantId, UUID categoryId, CreateMenuItemRequest request) {
         Restaurant restaurant = restaurantRepository.findById(tenantId)
                 .orElseThrow(() -> new EntityNotFoundException("Restaurant not found"));
@@ -72,8 +70,26 @@ public class MenuItemService {
         return toResponse(createItem(tenantId, categoryId, request));
     }
 
+    // Get ALL items (available + unavailable) for admin management view
+    public List<MenuItem> getAllItemsByCategory(UUID categoryId) {
+        return menuItemRepository.findByCategory_IdOrderByDisplayOrderAsc(categoryId);
+    }
+
+    public List<MenuItemResponse> getAllItemResponsesByCategory(UUID categoryId) {
+        return getAllItemsByCategory(categoryId).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    // Toggle is_available on an item
+    public MenuItemResponse toggleAvailability(UUID itemId) {
+        MenuItem item = menuItemRepository.findById(itemId)
+                .orElseThrow(() -> new EntityNotFoundException("Item not found"));
+        item.setAvailable(!item.isAvailable());
+        return toResponse(menuItemRepository.save(item));
+    }
+
     // Soft delete - mark as unavailable instead of deleting
-    @CacheEvict(cacheNames = "menu:items:by-category", allEntries = true)
     public void deleteItem(UUID itemId) {
         MenuItem item = menuItemRepository.findById(itemId)
                 .orElseThrow(() -> new EntityNotFoundException("Item not found"));
@@ -96,7 +112,13 @@ public class MenuItemService {
                 item.getDisplayOrder(),
                 item.getPrepTimeMinutes(),
                 item.getCreatedAt(),
-                item.getUpdatedAt()
+                item.getUpdatedAt(),
+                item.getDietType(),
+                item.getServingSize(),
+                item.getIngredients(),
+                new ArrayList<>(),
+                new ArrayList<>(),
+                new ArrayList<>()
         );
     }
 }

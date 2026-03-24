@@ -23,4 +23,11 @@ export interface MenuItem {
   prepTimeMinutes: number | null
   createdAt: string
   updatedAt: string
+  // Food card metadata (V25+)
+  dietType?: 'VEG' | 'NON_VEG' | 'VEGAN' | 'EGGETARIAN'
+  servingSize?: string | null
+  ingredients?: string | null
+  flavourProfile?: string[]
+  allergens?: string[]
+  nutrition?: { label: string; per100g: string; perServing: string }[]
 }

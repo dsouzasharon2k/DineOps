@@ -38,7 +38,7 @@ class MenuItemServiceTest {
         UUID categoryId = UUID.randomUUID();
         MenuItem item = new MenuItem();
         item.setName("Paneer Tikka");
-        when(menuItemRepository.findByCategoryIdAndIsAvailableTrueOrderByDisplayOrderAsc(categoryId))
+        when(menuItemRepository.findByCategory_IdAndIsAvailableTrueOrderByDisplayOrderAsc(categoryId))
                 .thenReturn(List.of(item));
 
         List<MenuItem> result = menuItemService.getItemsByCategory(categoryId);

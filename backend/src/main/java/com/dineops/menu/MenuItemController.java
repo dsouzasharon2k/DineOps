@@ -42,4 +42,18 @@ public class MenuItemController {
         menuItemService.deleteItem(itemId);
         return ResponseEntity.noContent().build();
     }
+
+    // GET /api/v1/restaurants/{tenantId}/categories/{categoryId}/items?all=true
+    // Returns ALL items (including unavailable) for admin menu management
+    @GetMapping("/all")
+    public ResponseEntity<List<MenuItemResponse>> getAllItems(@PathVariable UUID categoryId) {
+        return ResponseEntity.ok(menuItemService.getAllItemResponsesByCategory(categoryId));
+    }
+
+    // PATCH /api/v1/restaurants/{tenantId}/categories/{categoryId}/items/{itemId}/availability
+    // Toggles is_available on an item
+    @PatchMapping("/{itemId}/availability")
+    public ResponseEntity<MenuItemResponse> toggleAvailability(@PathVariable UUID itemId) {
+        return ResponseEntity.ok(menuItemService.toggleAvailability(itemId));
+    }
 }

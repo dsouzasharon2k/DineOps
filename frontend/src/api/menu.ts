@@ -63,6 +63,26 @@ export const deleteItemApi = async (
   )
 }
 
+// Get ALL items (including unavailable) for admin management
+export const getAllItemsApi = async (tenantId: string, categoryId: string): Promise<MenuItem[]> => {
+  const response = await axiosInstance.get<MenuItem[]>(
+    `/api/v1/restaurants/${tenantId}/categories/${categoryId}/items/all`
+  )
+  return response.data
+}
+
+// Toggle is_available on a single item
+export const toggleItemAvailabilityApi = async (
+  tenantId: string,
+  categoryId: string,
+  itemId: string
+): Promise<MenuItem> => {
+  const response = await axiosInstance.patch<MenuItem>(
+    `/api/v1/restaurants/${tenantId}/categories/${categoryId}/items/${itemId}/availability`
+  )
+  return response.data
+}
+
 // Place a new order
 export const placeOrderApi = async (
   tenantId: string,
@@ -131,10 +151,10 @@ export const downloadInvoiceApi = async (orderId: string): Promise<Blob> => {
 
 // Get all active orders for a restaurant (kitchen view)
 export const getActiveOrdersApi = async (tenantId: string, token: string): Promise<Order[]> => {
-  const res = await axiosInstance.get<Order[]>(`/api/v1/orders/active?tenantId=${tenantId}`, {
+  const res = await axiosInstance.get<{ content: Order[] }>(`/api/v1/orders/active?tenantId=${tenantId}`, {
     headers: { Authorization: `Bearer ${token}` },
   })
-  return res.data
+  return res.data.content ?? res.data ?? []
 }
 
 // Update order status (kitchen staff action)

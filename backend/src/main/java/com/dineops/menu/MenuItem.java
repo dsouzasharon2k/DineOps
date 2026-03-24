@@ -50,6 +50,18 @@ public class MenuItem extends AuditableEntity {
     @Column(name = "prep_time_minutes")
     private Integer prepTimeMinutes;
 
+    @Column(name = "diet_type", length = 20)
+    private String dietType;
+
+    @Column(name = "serving_size", length = 100)
+    private String servingSize;
+
+    @Column(columnDefinition = "TEXT")
+    private String ingredients;
+
+    @Column(name = "spice_level")
+    private Integer spiceLevel;
+
     // Getters and Setters
     public UUID getId() { return id; }
     public Restaurant getTenant() { return tenant; }
@@ -72,4 +84,12 @@ public class MenuItem extends AuditableEntity {
     public void setDisplayOrder(Integer displayOrder) { this.displayOrder = displayOrder; }
     public Integer getPrepTimeMinutes() { return prepTimeMinutes; }
     public void setPrepTimeMinutes(Integer prepTimeMinutes) { this.prepTimeMinutes = prepTimeMinutes; }
+    public String getDietType() { return dietType; }
+    public void setDietType(String dietType) { this.dietType = dietType; }
+    public String getServingSize() { return servingSize; }
+    public void setServingSize(String servingSize) { this.servingSize = servingSize; }
+    public String getIngredients() { return ingredients; }
+    public void setIngredients(String ingredients) { this.ingredients = ingredients; }
+    public Integer getSpiceLevel() { return spiceLevel; }
+    public void setSpiceLevel(Integer spiceLevel) { this.spiceLevel = spiceLevel; }
 }
