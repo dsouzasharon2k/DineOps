@@ -209,9 +209,9 @@ test('kitchen view updates order status', async ({ page }) => {
   })
 
   await page.goto('/login')
-  await page.getByPlaceholder('sharon@dineops.com').fill('staff@dineops.com')
+  await page.getByPlaceholder('you@restaurant.com').fill('staff@dineops.com')
   await page.getByPlaceholder('••••••••').fill('PasswordA1')
-  await page.getByRole('button', { name: 'Login' }).click()
+  await page.getByRole('button', { name: /sign in|login/i }).click()
   await page.goto('/dashboard/kitchen')
   await expect(page).toHaveURL(/\/dashboard\/kitchen$/)
   await expect(page.getByRole('button', { name: /Confirm/ }).first()).toBeVisible()

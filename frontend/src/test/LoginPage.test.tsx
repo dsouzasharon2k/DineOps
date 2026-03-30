@@ -23,8 +23,8 @@ describe('LoginPage', () => {
 
     // Check that key elements are present
     expect(screen.getByText('PlatterOps')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('sharon@dineops.com')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('you@restaurant.com')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument()
   })
 
   test('shows error message on failed login', async () => {
@@ -42,7 +42,7 @@ describe('LoginPage', () => {
     )
 
     // Fill in the form
-    fireEvent.change(screen.getByPlaceholderText('sharon@dineops.com'), {
+    fireEvent.change(screen.getByPlaceholderText('you@restaurant.com'), {
       target: { value: 'wrong@email.com' }
     })
     fireEvent.change(screen.getByPlaceholderText('••••••••'), {
@@ -50,10 +50,10 @@ describe('LoginPage', () => {
     })
 
     // Click login
-    fireEvent.click(screen.getByRole('button', { name: /login/i }))
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
 
     // Wait for error message to appear
-    const error = await screen.findByText('Login failed. Please try again.')
+    const error = await screen.findByText('Invalid email or password.')
     expect(error).toBeInTheDocument()
   })
 
@@ -67,7 +67,7 @@ describe('LoginPage', () => {
     )
 
     const passwordInput = screen.getByPlaceholderText('••••••••')
-    const toggleButton = screen.getByText('👁️')
+    const toggleButton = screen.getByRole('button', { name: /show password/i })
 
     // Initially password is hidden
     expect(passwordInput).toHaveAttribute('type', 'password')

@@ -13,7 +13,6 @@ import { formatCurrency } from '../../utils/currency'
 import LoadingState from '../../components/LoadingState'
 import EmptyState from '../../components/EmptyState'
 
-const NON_VEGAN_WORDS = ['paneer', 'cheese', 'butter', 'ghee', 'cream', 'milk', 'curd', 'yogurt', 'dahi', 'mayo']
 
 const toFoodItemCardData = (item: MenuItem): FoodItemCardData => {
   let dietType: DietType = item.isVegetarian ? 'veg' : 'non-veg'

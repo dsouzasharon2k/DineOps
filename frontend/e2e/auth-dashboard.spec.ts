@@ -13,9 +13,9 @@ test('login with wrong credentials shows error', async ({ page }) => {
   })
 
   await page.goto('/login')
-  await page.getByPlaceholder('sharon@dineops.com').fill('bad@dineops.com')
+  await page.getByPlaceholder('you@restaurant.com').fill('bad@dineops.com')
   await page.getByPlaceholder('••••••••').fill('wrong-password')
-  await page.getByRole('button', { name: 'Login' }).click()
+  await page.getByRole('button', { name: /sign in|login/i }).click()
 
   await expect(page.getByText('Invalid credentials')).toBeVisible()
 })
@@ -51,9 +51,9 @@ test('login success then navigate dashboard sidebar', async ({ page }) => {
   })
 
   await page.goto('/login')
-  await page.getByPlaceholder('sharon@dineops.com').fill('owner@dineops.com')
+  await page.getByPlaceholder('you@restaurant.com').fill('owner@dineops.com')
   await page.getByPlaceholder('••••••••').fill('PasswordA1')
-  await page.getByRole('button', { name: 'Login' }).click()
+  await page.getByRole('button', { name: /sign in|login/i }).click()
 
   await expect(page).toHaveURL(/\/dashboard$/)
   await page.goto('/dashboard/restaurants')
