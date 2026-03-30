@@ -57,5 +57,5 @@ docker compose exec -T postgres psql -U dineops -d dineops_restore -c "\dt"
 Example cron entry (Linux runner/host):
 
 ```cron
-0 2 * * * cd /path/to/DineOps && /usr/bin/bash ./scripts/db-backup.sh >> ./backups/backup.log 2>&1
+0 2 * * * cd /path/to/PlatterOps && /usr/bin/bash ./scripts/db-backup.sh >> ./backups/backup.log 2>&1
 ```

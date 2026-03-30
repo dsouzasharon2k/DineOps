@@ -22,7 +22,7 @@ describe('LoginPage', () => {
     )
 
     // Check that key elements are present
-    expect(screen.getByText('DineOps')).toBeInTheDocument()
+    expect(screen.getByText('PlatterOps')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('sharon@dineops.com')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument()
   })

@@ -1,4 +1,4 @@
-# DineOps — Production Readiness Ticket Backlog
+# PlatterOps — Production Readiness Ticket Backlog
 
 > Generated from a full codebase audit on 2026-03-19.
 > Organized by Epic → Priority (P0 = ship-blocking, P3 = nice-to-have).
@@ -1778,7 +1778,7 @@ Marking items based on your board screenshots and the code changes already made:
 [ ] DOPS-44 — React Error Boundary wrapping the app
 [ ] DOPS-45 — Toast notifications for API errors
 [ ] DOPS-46 — Login form validation
-[ ] DOPS-47 — index.html title fix to "DineOps" + small UI polish
+[ ] DOPS-47 — index.html title fix to "PlatterOps" + small UI polish
 [ ] DOPS-48 — (not visible in screenshots you shared; add when you confirm the key)
 
 ## Master DOPS Checklist (All Tickets)

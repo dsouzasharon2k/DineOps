@@ -1,11 +1,11 @@
-package com.dineops.integration;
+package com.platterops.integration;
 
-import com.dineops.auth.JwtUtils;
-import com.dineops.security.AccountLockoutService;
-import com.dineops.security.RateLimitService;
-import com.dineops.user.User;
-import com.dineops.user.UserRole;
-import com.dineops.user.UserService;
+import com.platterops.auth.JwtUtils;
+import com.platterops.security.AccountLockoutService;
+import com.platterops.security.RateLimitService;
+import com.platterops.user.User;
+import com.platterops.user.UserRole;
+import com.platterops.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;

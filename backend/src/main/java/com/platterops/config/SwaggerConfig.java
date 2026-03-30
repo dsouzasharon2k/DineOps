@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 // This configures Swagger UI to show an Authorize button
 // so we can test protected endpoints by passing a JWT token
 @Configuration
-@OpenAPIDefinition(info = @Info(title = "DineOps API", version = "v1"))
+@OpenAPIDefinition(info = @Info(title = "PlatterOps API", version = "v1"))
 @SecurityScheme(
     name = "bearerAuth",
     type = SecuritySchemeType.HTTP,

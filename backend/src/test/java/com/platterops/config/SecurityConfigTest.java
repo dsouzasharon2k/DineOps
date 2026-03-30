@@ -1,4 +1,4 @@
-package com.dineops.config;
+package com.platterops.config;
 
 import org.junit.jupiter.api.Test;
 

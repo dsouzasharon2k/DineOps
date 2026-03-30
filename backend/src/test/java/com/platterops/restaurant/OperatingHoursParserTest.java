@@ -1,4 +1,4 @@
-package com.dineops.restaurant;
+package com.platterops.restaurant;
 
 import org.junit.jupiter.api.Test;
 

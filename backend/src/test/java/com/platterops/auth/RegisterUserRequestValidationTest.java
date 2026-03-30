@@ -1,4 +1,4 @@
-package com.dineops.auth;
+package com.platterops.auth;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;

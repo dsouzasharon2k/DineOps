@@ -10,7 +10,7 @@ const PrivacyPage = () => {
             <h2 className="font-semibold text-gray-800">Data Collected</h2>
             <p>
               We may collect account details, contact information, order details, and operational usage data
-              required to run the DineOps platform.
+              required to run the PlatterOps platform.
             </p>
           </section>
 

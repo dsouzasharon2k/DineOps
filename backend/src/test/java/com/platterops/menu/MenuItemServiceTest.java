@@ -1,8 +1,8 @@
-package com.dineops.menu;
+package com.platterops.menu;
 
-import com.dineops.exception.EntityNotFoundException;
-import com.dineops.restaurant.Restaurant;
-import com.dineops.restaurant.RestaurantRepository;
+import com.platterops.exception.EntityNotFoundException;
+import com.platterops.restaurant.Restaurant;
+import com.platterops.restaurant.RestaurantRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

@@ -1,4 +1,4 @@
-package com.dineops.user;
+package com.platterops.user;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

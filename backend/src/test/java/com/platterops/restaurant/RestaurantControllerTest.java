@@ -1,4 +1,4 @@
-package com.dineops.restaurant;
+package com.platterops.restaurant;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -17,7 +17,7 @@ class RestaurantControllerTest {
     @Test
     void getAllRestaurants_returnsOkWithBody() {
         RestaurantService service = mock(RestaurantService.class);
-        Page<com.dineops.dto.RestaurantResponse> emptyPage =
+        Page<com.platterops.dto.RestaurantResponse> emptyPage =
                 new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 20), 0);
         when(service.getRestaurantResponsePage(0, 20)).thenReturn(emptyPage);
 
@@ -26,6 +26,6 @@ class RestaurantControllerTest {
         ResponseEntity<?> response = controller.getAllRestaurants(0, 20);
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response.getBody()).isInstanceOf(com.dineops.dto.PageResponse.class);
+        assertThat(response.getBody()).isInstanceOf(com.platterops.dto.PageResponse.class);
     }
 }

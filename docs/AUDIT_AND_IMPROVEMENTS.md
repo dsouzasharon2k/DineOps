@@ -1,4 +1,4 @@
-# DineOps — Documentation Audit & Codebase Improvements
+# PlatterOps — Documentation Audit & Codebase Improvements
 
 > Generated after a full cross-reference of every doc file against the actual codebase.
 > Covers: factual errors in docs, missing features, code quality issues, and improvement roadmap.
@@ -523,7 +523,7 @@ Containers in `docker-compose.yml` have no `mem_limit` or `cpus` constraints. A 
 
 Grafana is deployed but has no pre-configured dashboards. Users must manually create dashboards after setup.
 
-**What to do:** Add a provisioning JSON file for a default DineOps dashboard (JVM metrics, HTTP latency, DB connections, cache hit rate) mounted into Grafana.
+**What to do:** Add a provisioning JSON file for a default PlatterOps dashboard (JVM metrics, HTTP latency, DB connections, cache hit rate) mounted into Grafana.
 
 ---
 

@@ -1,4 +1,4 @@
-# All DineOps resources live in this namespace
+# All PlatterOps resources live in this namespace
 apiVersion: v1
 kind: Namespace
 metadata:

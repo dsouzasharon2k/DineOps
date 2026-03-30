@@ -1,6 +1,6 @@
-# DineOps — Junior Developer Technical Interview
+# PlatterOps — Junior Developer Technical Interview
 
-> These questions are designed to verify that a developer who claims to have built DineOps
+> These questions are designed to verify that a developer who claims to have built PlatterOps
 > actually understands the specific decisions made in this codebase — not just generic concepts.
 > Generic textbook answers should be considered a red flag. Look for answers tied to *this* project.
 
@@ -8,9 +8,9 @@
 
 ## Section 1: Project Overview & Architecture
 
-**Q1. In one sentence, what problem does DineOps solve? What is the core business model?**
+**Q1. In one sentence, what problem does PlatterOps solve? What is the core business model?**
 
-> **Expected answer:** DineOps is a multi-tenant SaaS platform for restaurant management — each restaurant is a tenant that pays for a subscription plan. It provides menu management, order tracking, inventory, analytics, and a public-facing ordering experience all in one system.
+> **Expected answer:** PlatterOps is a multi-tenant SaaS platform for restaurant management — each restaurant is a tenant that pays for a subscription plan. It provides menu management, order tracking, inventory, analytics, and a public-facing ordering experience all in one system.
 
 ---
 

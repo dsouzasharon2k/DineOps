@@ -1,14 +1,14 @@
-package com.dineops.integration;
+package com.platterops.integration;
 
-import com.dineops.dto.OrderItemResponse;
-import com.dineops.dto.OrderResponse;
-import com.dineops.order.OrderService;
-import com.dineops.order.OrderStatus;
-import com.dineops.order.PaymentMethod;
-import com.dineops.order.PaymentStatus;
-import com.dineops.review.ReviewService;
-import com.dineops.security.AccountLockoutService;
-import com.dineops.security.RateLimitService;
+import com.platterops.dto.OrderItemResponse;
+import com.platterops.dto.OrderResponse;
+import com.platterops.order.OrderService;
+import com.platterops.order.OrderStatus;
+import com.platterops.order.PaymentMethod;
+import com.platterops.order.PaymentStatus;
+import com.platterops.review.ReviewService;
+import com.platterops.security.AccountLockoutService;
+import com.platterops.security.RateLimitService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;

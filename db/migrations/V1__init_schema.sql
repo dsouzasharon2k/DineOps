@@ -1,5 +1,5 @@
 -- V1: Initial Schema
--- Creates the core tables for DineOps multi-tenant platform
+-- Creates the core tables for PlatterOps multi-tenant platform
 
 -- Restaurants table (each row = one tenant)
 CREATE TABLE restaurants (

@@ -1,4 +1,4 @@
-# DineOps — Complete Beginner's Guide to the Codebase
+# PlatterOps — Complete Beginner's Guide to the Codebase
 
 > Written for someone learning this codebase for the first time.
 > Covers: architecture, code flow, design decisions, and interview prep.
@@ -24,7 +24,7 @@
 
 ## 1. What Is This App?
 
-**DineOps** is a **Restaurant Management SaaS** (Software as a Service). Think of it like Shopify, but for restaurants. Instead of one restaurant using it, **many restaurants (tenants) share the same app** — each restaurant gets its own isolated data, dashboard, menu, orders, and analytics.
+**PlatterOps** is a **Restaurant Management SaaS** (Software as a Service). Think of it like Shopify, but for restaurants. Instead of one restaurant using it, **many restaurants (tenants) share the same app** — each restaurant gets its own isolated data, dashboard, menu, orders, and analytics.
 
 The app has three main parts:
 
@@ -69,7 +69,7 @@ This is the most important concept in the entire codebase.
 
 **The solution:** Build **one app**, but label every piece of data with a `tenant_id` (a UUID that identifies which restaurant it belongs to). So when McDonald's (tenant A) logs in, they only ever see their own menu items, orders, and staff — even though they share the same database as Pizza Hut (tenant B).
 
-**How it's enforced in DineOps:**
+**How it's enforced in PlatterOps:**
 
 1. **`TenantAuthorizationFilter`** (Java filter) — Before any request even reaches the business logic, this filter checks: "does this logged-in user belong to the restaurant they're trying to access?" If not, it returns 403 Forbidden immediately.
 2. **Every database query** includes `WHERE tenant_id = ?` because every entity has a `tenant_id` column.
@@ -308,7 +308,7 @@ Flyway tracks which files have already run in a `flyway_schema_history` table. O
 
 ### UUID Primary Keys (Not Auto-Increment Numbers)
 
-DineOps uses UUIDs (`3f7a2b1c-4a9b-...`) instead of `1, 2, 3, 4...` as primary keys.
+PlatterOps uses UUIDs (`3f7a2b1c-4a9b-...`) instead of `1, 2, 3, 4...` as primary keys.
 
 **Why?**
 - UUIDs are globally unique — you can generate them in the application without a database round-trip
@@ -321,7 +321,7 @@ DineOps uses UUIDs (`3f7a2b1c-4a9b-...`) instead of `1, 2, 3, 4...` as primary k
 
 ### Caching with Redis
 
-Redis is an ultra-fast in-memory database. DineOps uses it as a cache layer:
+Redis is an ultra-fast in-memory database. PlatterOps uses it as a cache layer:
 
 ```
 Request arrives
@@ -374,7 +374,7 @@ Server: "New order just arrived!" → Browser updates instantly
 Server: "Order status changed!" → Browser updates instantly
 ```
 
-In DineOps, the moment an order is placed or updated, Spring immediately pushes the full order object to all connected kitchen screens and the customer's phone. No polling, no delay, no page refresh.
+In PlatterOps, the moment an order is placed or updated, Spring immediately pushes the full order object to all connected kitchen screens and the customer's phone. No polling, no delay, no page refresh.
 
 ### State Machine for Orders
 
@@ -487,7 +487,7 @@ We use `@SQLRestriction("deleted_at IS NULL")` in Hibernate so all queries autom
 - `@Cacheable`: Check the cache first; if found, return without running the method. If not found, run the method and store the result in the cache.
 - `@CacheEvict`: After the method runs, delete the specified cache entries so the next read fetches fresh data.
 
-In DineOps: reading menu items uses `@Cacheable`. Creating or updating menu items uses `@CacheEvict` to invalidate stale cache entries.
+In PlatterOps: reading menu items uses `@Cacheable`. Creating or updating menu items uses `@CacheEvict` to invalidate stale cache entries.
 
 ---
 
@@ -496,7 +496,7 @@ In DineOps: reading menu items uses `@Cacheable`. Creating or updating menu item
 **Answer:**
 AOP (Aspect-Oriented Programming) lets you add behavior to methods without modifying them. You define an "aspect" (advice logic) and a "pointcut" (which methods to intercept).
 
-In DineOps, `@AuditedAction` is a custom annotation. `AuditLogAspect` is an `@Around` advice — it lets the method run, then serializes the inputs and output to JSON, and saves an `AuditLog` record. The business methods contain zero logging code.
+In PlatterOps, `@AuditedAction` is a custom annotation. `AuditLogAspect` is an `@Around` advice — it lets the method run, then serializes the inputs and output to JSON, and saves an `AuditLog` record. The business methods contain zero logging code.
 
 ---
 
@@ -554,7 +554,7 @@ Before saving any order, `OrderService.placeOrder()` calls `SubscriptionService.
 **Answer:**
 DPDP is India's Digital Personal Data Protection Act (similar to GDPR). It gives users the right to delete their personal data.
 
-In DineOps:
+In PlatterOps:
 - `DELETE /users/me` sets `deletion_scheduled_for = now + 7 days` (cooling-off period).
 - `UserDeletionJob` runs at 2 AM daily via `@Scheduled(cron = "0 0 2 * * *")`.
 - It finds users past their `deletion_scheduled_for` and anonymizes: name → "Deleted User", email → `deleted_{id}@anon.local`, phone/password → null.

@@ -1,10 +1,10 @@
-package com.dineops.auth;
+package com.platterops.auth;
 
-import com.dineops.security.AccountLockoutService;
-import com.dineops.security.RateLimitService;
-import com.dineops.user.User;
-import com.dineops.user.UserRole;
-import com.dineops.user.UserService;
+import com.platterops.security.AccountLockoutService;
+import com.platterops.security.RateLimitService;
+import com.platterops.user.User;
+import com.platterops.user.UserRole;
+import com.platterops.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

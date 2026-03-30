@@ -1,8 +1,8 @@
-# DineOps
+# PlatterOps
 
-[![CI](https://github.com/dsouzasharon2k/DineOps/actions/workflows/ci.yml/badge.svg)](https://github.com/dsouzasharon2k/DineOps/actions/workflows/ci.yml)
-[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=dsouzasharon2k_DineOps&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=dsouzasharon2k_DineOps)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=dsouzasharon2k_DineOps&metric=coverage)](https://sonarcloud.io/summary/new_code?id=dsouzasharon2k_DineOps)
+[![CI](https://github.com/dsouzasharon2k/PlatterOps/actions/workflows/ci.yml/badge.svg)](https://github.com/dsouzasharon2k/PlatterOps/actions/workflows/ci.yml)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=dsouzasharon2k_PlatterOps&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=dsouzasharon2k_PlatterOps)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=dsouzasharon2k_PlatterOps&metric=coverage)](https://sonarcloud.io/summary/new_code?id=dsouzasharon2k_PlatterOps)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java 21](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk)](https://openjdk.org/)
 [![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
@@ -12,11 +12,11 @@
 
 ---
 
-## What Is DineOps?
+## What Is PlatterOps?
 
 Restaurants typically operate across three disconnected audiences at once: a **customer** browsing a menu on their phone, a **kitchen team** watching for new orders, and an **admin** managing menus, staff, and billing — often with no single system tying it together.
 
-DineOps is a multi-tenant SaaS platform that covers all three. Each restaurant (tenant) gets isolated data, role-based access, and a public ordering URL. Orders placed by customers appear on the kitchen Kanban board in real time over WebSocket. Admins control menus, operating hours, and staff accounts from a single dashboard. A subscription layer enforces per-plan monthly order limits so the platform can be offered on multiple tiers.
+PlatterOps is a multi-tenant SaaS platform that covers all three. Each restaurant (tenant) gets isolated data, role-based access, and a public ordering URL. Orders placed by customers appear on the kitchen Kanban board in real time over WebSocket. Admins control menus, operating hours, and staff accounts from a single dashboard. A subscription layer enforces per-plan monthly order limits so the platform can be offered on multiple tiers.
 
 The project was built to explore what it takes to go from a working CRUD app to something production-shaped: multi-tenancy, real-time infrastructure, CI quality gates, observability, and compliance (DPDP right-to-erasure).
 
@@ -33,7 +33,7 @@ The project was built to explore what it takes to go from a working CRUD app to 
 
 ## Architecture
 
-<img width="1408" height="768" alt="DineOps Architecture" src="https://github.com/user-attachments/assets/3df624ee-c5dc-419f-8707-20b9dd1c66e9" />
+<img width="1408" height="768" alt="PlatterOps Architecture" src="https://github.com/user-attachments/assets/3df624ee-c5dc-419f-8707-20b9dd1c66e9" />
 
 **React SPA (frontend)** — Vite-bundled React 19 app served as a static build. Communicates with the backend over REST for data mutations and a STOMP WebSocket connection for real-time order events. Zustand manages cart state reactively with `localStorage` persistence.
 
@@ -131,8 +131,8 @@ push / PR → main or develop
 ### 1. Clone and configure
 
 ```bash
-git clone https://github.com/dsouzasharon2k/DineOps.git
-cd DineOps
+git clone https://github.com/dsouzasharon2k/PlatterOps.git
+cd PlatterOps
 
 cp .env.example .env
 # Set: POSTGRES_PASSWORD, DB_PASSWORD, JWT_SECRET, GF_SECURITY_ADMIN_PASSWORD

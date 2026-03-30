@@ -1,4 +1,4 @@
-# DineOps DevOps Stack — Full Explanation & Interview Guide
+# PlatterOps DevOps Stack — Full Explanation & Interview Guide
 
 > Covers: Docker · Docker Compose · Flyway · Kubernetes (Kind) · Prometheus · Grafana · k6 · GitHub Actions CI/CD
 > Every diagram references real files in this project.
@@ -207,7 +207,7 @@ docker-compose down         # stop and remove all containers
 docker-compose logs backend # see logs from one service
 ```
 
-### DineOps `docker-compose.yml` — Full Service Graph
+### PlatterOps `docker-compose.yml` — Full Service Graph
 
 ```mermaid
 graph TD
@@ -312,7 +312,7 @@ sequenceDiagram
     App->>App: Start serving HTTP requests
 ```
 
-### DineOps Migration History
+### PlatterOps Migration History
 
 ```
 V1  → restaurants + users (tenant root)
@@ -370,7 +370,7 @@ Kubernetes (K8s) is a system that manages containers at scale. It answers questi
 
 **Analogy:** Docker runs one container. Kubernetes is like a factory manager who decides how many containers to run, where to run them, restarts crashed ones, and routes traffic to healthy ones.
 
-### DineOps Uses Kind (Kubernetes in Docker)
+### PlatterOps Uses Kind (Kubernetes in Docker)
 
 **Kind (Kubernetes IN Docker)** runs a full Kubernetes cluster inside Docker containers. It's used for local testing of Kubernetes manifests without needing a cloud provider.
 
@@ -388,7 +388,7 @@ nodes:
         hostPort: 443
 ```
 
-### Kubernetes Architecture — DineOps Cluster
+### Kubernetes Architecture — PlatterOps Cluster
 
 ```mermaid
 graph TB
@@ -617,7 +617,7 @@ spec:
 
 Prometheus is a **time-series database** that periodically calls your application's metrics endpoint and stores the numbers over time. Every 15 seconds it asks: "How many HTTP requests happened? What's the JVM heap usage? How many DB connections are open?"
 
-### How Prometheus Scrapes DineOps
+### How Prometheus Scrapes PlatterOps
 
 ```mermaid
 sequenceDiagram
@@ -726,7 +726,7 @@ k6 is a load testing tool — it simulates multiple users hitting your API at th
 - Does it crash at high concurrency?
 - Where is the bottleneck?
 
-### Two Test Types in DineOps
+### Two Test Types in PlatterOps
 
 ```mermaid
 graph LR
@@ -848,7 +848,7 @@ If `p(95) > 500ms` → k6 exits with code 1 → CI pipeline fails → merge is b
 
 ### What is GitHub Actions?
 
-GitHub Actions runs automated workflows triggered by Git events (push, pull request). DineOps uses it to run tests automatically on every push.
+GitHub Actions runs automated workflows triggered by Git events (push, pull request). PlatterOps uses it to run tests automatically on every push.
 
 ```mermaid
 graph TB
@@ -918,7 +918,7 @@ GitHub Actions spins up real PostgreSQL and Redis containers alongside the test 
 **SonarCloud:**
 ```yaml
 - name: SonarCloud scan
-  run: ./mvnw sonar:sonar -Dsonar.projectKey=dsouzasharon2k_DineOps
+  run: ./mvnw sonar:sonar -Dsonar.projectKey=dsouzasharon2k_PlatterOps
   # Sends test results + coverage report to SonarCloud
   # SonarCloud checks for: bugs, vulnerabilities, code smells, coverage
 ```
@@ -950,7 +950,7 @@ An **image** is a read-only, static template — the compiled app packaged with 
 
 A **container** is a running instance of an image. It has its own filesystem (copy-on-write from the image), its own network interface, and its own process namespace. Multiple containers can run from the same image simultaneously.
 
-In DineOps: `docker build -t dineops-backend .` creates an image. `docker run dineops-backend` creates a container from that image. The docker-compose.yml runs 6 containers from different images simultaneously.
+In PlatterOps: `docker build -t dineops-backend .` creates an image. `docker run dineops-backend` creates a container from that image. The docker-compose.yml runs 6 containers from different images simultaneously.
 
 ---
 
@@ -958,7 +958,7 @@ In DineOps: `docker build -t dineops-backend .` creates an image. `docker run di
 
 A multi-stage build uses multiple `FROM` statements. Each stage can copy artifacts from the previous stage. Only the final stage becomes the actual image.
 
-DineOps backend has two stages:
+PlatterOps backend has two stages:
 1. **Build stage** (`eclipse-temurin:21-jdk-alpine`) — has the full JDK, Maven, and source code. Compiles the JAR.
 2. **Runtime stage** (`eclipse-temurin:21-jre-alpine`) — has only the JRE. Copies just the JAR from stage 1.
 
@@ -970,22 +970,22 @@ Result: the final image is ~200MB instead of ~600MB because it doesn't include t
 
 Docker Compose creates a shared network for all services. Services can reach each other by their **service name** as the hostname.
 
-In DineOps: the backend reaches PostgreSQL at `postgres:5432` (not `localhost:5432`). This is because Docker's internal DNS resolves the service name `postgres` to that container's IP. The backend's environment variable is:
+In PlatterOps: the backend reaches PostgreSQL at `postgres:5432` (not `localhost:5432`). This is because Docker's internal DNS resolves the service name `postgres` to that container's IP. The backend's environment variable is:
 ```
 SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
 ```
 
 ---
 
-**Q: What is a Docker volume? Why does DineOps use named volumes?**
+**Q: What is a Docker volume? Why does PlatterOps use named volumes?**
 
 A Docker volume is a directory on the host machine that's mounted into a container. Data written to the volume path persists even after the container is stopped or deleted.
 
-DineOps uses named volumes (`postgres_data`, `redis_data`, `grafana_data`, `prometheus_data`). If you `docker-compose down` and `docker-compose up` again, the database data is still there. Without a volume, every `docker-compose down` would lose all data — you'd start with an empty database every time.
+PlatterOps uses named volumes (`postgres_data`, `redis_data`, `grafana_data`, `prometheus_data`). If you `docker-compose down` and `docker-compose up` again, the database data is still there. Without a volume, every `docker-compose down` would lose all data — you'd start with an empty database every time.
 
 ---
 
-**Q: Why does DineOps run the backend container as a non-root user?**
+**Q: Why does PlatterOps run the backend container as a non-root user?**
 
 In `backend/Dockerfile`:
 ```dockerfile
@@ -1012,7 +1012,7 @@ Kubernetes orchestrates containers at scale. It handles:
 
 Plain Docker: you manually start containers. If one crashes, it stays crashed. No built-in load balancing between instances.
 
-DineOps runs 2 backend replicas — if one crashes at 3 AM, Kubernetes starts a replacement immediately, and the other replica keeps serving traffic the whole time.
+PlatterOps runs 2 backend replicas — if one crashes at 3 AM, Kubernetes starts a replacement immediately, and the other replica keeps serving traffic the whole time.
 
 ---
 
@@ -1022,7 +1022,7 @@ A **Pod** is the smallest deployable unit — one or more containers sharing a n
 
 A **Deployment** manages Pods. It declares "I want 2 replicas of this pod." If a pod dies, the Deployment controller creates a new one. Deployments also handle rolling updates — gradually replacing old pods with new ones.
 
-In DineOps:
+In PlatterOps:
 - `k8s/backend.yaml` defines a Deployment with `replicas: 2`
 - The Deployment controller ensures 2 backend pods are always running
 - You never interact with individual pods directly in normal operations
@@ -1036,15 +1036,15 @@ In DineOps:
 | **Readiness** | "Is this pod ready to receive traffic?" | Remove from Service load balancer (but don't restart) |
 | **Liveness** | "Is this pod still alive and functional?" | Kill the pod and restart it |
 
-In DineOps, the backend takes ~30-60 seconds to start (JVM warm-up + Flyway migrations). During startup, the readiness probe fails — so Kubernetes keeps traffic on the old pod while the new one warms up. Once `/actuator/health` returns 200, the new pod enters the load balancer rotation. Liveness checks continue every 30s; if the app deadlocks, liveness fails → pod is killed → new pod starts.
+In PlatterOps, the backend takes ~30-60 seconds to start (JVM warm-up + Flyway migrations). During startup, the readiness probe fails — so Kubernetes keeps traffic on the old pod while the new one warms up. Once `/actuator/health` returns 200, the new pod enters the load balancer rotation. Liveness checks continue every 30s; if the app deadlocks, liveness fails → pod is killed → new pod starts.
 
 ---
 
 **Q: What is a ConfigMap vs a Secret in Kubernetes?**
 
-**ConfigMap:** Stores non-sensitive key-value pairs. Data is stored in plain text in etcd. In DineOps: `DB_URL`, `REDIS_HOST`, `CORS_ALLOWED_ORIGINS`, JWT expiry times.
+**ConfigMap:** Stores non-sensitive key-value pairs. Data is stored in plain text in etcd. In PlatterOps: `DB_URL`, `REDIS_HOST`, `CORS_ALLOWED_ORIGINS`, JWT expiry times.
 
-**Secret:** Stores sensitive data. Values are base64-encoded (not encrypted by default, but can be encrypted at rest). Access is controlled by RBAC. In DineOps: `DB_PASSWORD`, `JWT_SECRET`, `DB_USERNAME`.
+**Secret:** Stores sensitive data. Values are base64-encoded (not encrypted by default, but can be encrypted at rest). Access is controlled by RBAC. In PlatterOps: `DB_PASSWORD`, `JWT_SECRET`, `DB_USERNAME`.
 
 Both are injected as environment variables into pods:
 ```yaml
@@ -1069,7 +1069,7 @@ The actual `secret.yaml` file is in `.gitignore` — never commit real secrets t
 
 A PVC is a request for storage from the cluster. Pods are ephemeral — if the PostgreSQL pod is deleted, all its data is lost. A PVC provisions a persistent disk that exists independently of any pod. When the new pod starts, it mounts the same PVC and finds all its data intact.
 
-DineOps uses `postgres-pvc` with `storage: 2Gi` and `accessModes: ReadWriteOnce` (can only be mounted by one node at a time, which is fine for PostgreSQL — it's not designed for multi-node writes).
+PlatterOps uses `postgres-pvc` with `storage: 2Gi` and `accessModes: ReadWriteOnce` (can only be mounted by one node at a time, which is fine for PostgreSQL — it's not designed for multi-node writes).
 
 ---
 
@@ -1077,7 +1077,7 @@ DineOps uses `postgres-pvc` with `storage: 2Gi` and `accessModes: ReadWriteOnce`
 
 A Namespace is a virtual cluster inside a physical cluster. It provides isolation — resources in one namespace can't accidentally collide with resources in another.
 
-DineOps uses namespace `dineops`:
+PlatterOps uses namespace `dineops`:
 ```yaml
 # k8s/namespace.yaml
 kind: Namespace
@@ -1098,9 +1098,9 @@ kubectl apply -f k8s/ -n dineops
 
 **LimitRange:** Sets default and maximum CPU/memory for every container in a namespace. Prevents one poorly-configured container from consuming all cluster resources.
 
-DineOps sets default container limits of `500m` CPU and `512Mi` memory. If a developer forgets to set limits on a new container, these defaults apply automatically.
+PlatterOps sets default container limits of `500m` CPU and `512Mi` memory. If a developer forgets to set limits on a new container, these defaults apply automatically.
 
-**ResourceQuota:** Hard cap on total resources the entire namespace can use. DineOps limits the `dineops` namespace to 20 pods, 5Gi total memory, 10Gi total storage — preventing runaway resource consumption.
+**ResourceQuota:** Hard cap on total resources the entire namespace can use. PlatterOps limits the `dineops` namespace to 20 pods, 5Gi total memory, 10Gi total storage — preventing runaway resource consumption.
 
 ---
 
@@ -1131,7 +1131,7 @@ This is a real problem. If two developers write `V5__add_column.sql` independent
 
 The convention is: check the highest existing migration number before writing a new one, and communicate with the team. Some teams use Flyway's `repeatable` migrations (`R__`) for non-versioned scripts.
 
-In DineOps, the highest migration is V25. Any new schema change becomes V26.
+In PlatterOps, the highest migration is V25. Any new schema change becomes V26.
 
 ---
 
@@ -1157,7 +1157,7 @@ This is useful when migrating an existing production database to Flyway manageme
 
 **Push (alternative):** The application sends metrics to a central collector (e.g., StatsD). The app must be configured with the collector's address.
 
-**Why pull is better for DineOps:**
+**Why pull is better for PlatterOps:**
 - The backend doesn't need any Prometheus-specific code (just expose the endpoint)
 - Prometheus can detect if a target is down (no scrape = target is down)
 - Easy to add new scrape targets without changing the application
@@ -1216,7 +1216,7 @@ histogram_quantile(0.95,
 | Users | 1 virtual user | 10+ virtual users with ramp stages |
 | Duration | Seconds | Minutes |
 | When run | After every deploy | On-demand or weekly |
-| DineOps | `k6/smoke-test.js` | `k6/load-test.js` |
+| PlatterOps | `k6/smoke-test.js` | `k6/load-test.js` |
 
 The smoke test catches obvious breakages (wrong URL, DB not connected, migration failed). The load test finds performance regressions (endpoint gets slow under concurrency, connection pool exhausted, memory leak over time).
 
@@ -1270,7 +1270,7 @@ Why 95th percentile and not average? Averages hide outliers. If 99 requests take
 
 **CD (Continuous Delivery):** Automatically build and package the application after successful tests. A deployment step may be manual or fully automated.
 
-DineOps CI pipeline (`.github/workflows/ci.yml`) on every PR to main:
+PlatterOps CI pipeline (`.github/workflows/ci.yml`) on every PR to main:
 
 1. **frontend-ci** — installs deps, lints, runs unit tests with coverage, builds the React app
 2. **frontend-e2e** — runs Playwright browser tests (real browser clicks through the UI)
@@ -1291,7 +1291,7 @@ SonarCloud is a static code analysis service. It analyzes source code after test
 ```yaml
 - name: SonarCloud scan
   run: ./mvnw sonar:sonar
-       -Dsonar.projectKey=dsouzasharon2k_DineOps
+       -Dsonar.projectKey=dsouzasharon2k_PlatterOps
        -Dsonar.organization=dsouzasharon2k
        -Dsonar.host.url=https://sonarcloud.io
 ```
@@ -1326,13 +1326,13 @@ Flyway runs during application startup in tests, creating the full schema. Tests
 - Triggered on every push/PR
 - Runs tests, linting, static analysis
 - Goal: catch broken code before it reaches main
-- DineOps: GitHub Actions runs tests on every push
+- PlatterOps: GitHub Actions runs tests on every push
 
 **CD (Continuous Delivery):**
 - Triggered after CI succeeds on main
 - Builds Docker images, pushes to registry
 - Deploys to staging/production (possibly with a manual approval gate)
-- DineOps: The CI pipeline builds and tests — deployment to Kubernetes would be the CD step (triggered manually or by tagging a release)
+- PlatterOps: The CI pipeline builds and tests — deployment to Kubernetes would be the CD step (triggered manually or by tagging a release)
 
 ---
 
@@ -1352,4 +1352,4 @@ Flyway migrations are the tricky part — you can't "undo" a migration automatic
 ---
 
 *Last updated: March 2026*
-*All code examples reference real files in the DineOps repository.*
+*All code examples reference real files in the PlatterOps repository.*

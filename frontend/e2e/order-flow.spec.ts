@@ -12,7 +12,7 @@ test('public menu to place order to track status', async ({ page }) => {
       contentType: 'application/json',
       body: JSON.stringify({
         id: tenantId,
-        name: 'DineOps Test Restaurant',
+        name: 'PlatterOps Test Restaurant',
         slug: 'dineops-test',
         address: 'MG Road',
         phone: '9999999999',

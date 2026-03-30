@@ -1,6 +1,6 @@
-# DineOps Execution Board (Owner-Action Focus)
+# PlatterOps Execution Board (Owner-Action Focus)
 
-This board converts the roadmap into executable delivery slices mapped to current DineOps backend/frontend structure.
+This board converts the roadmap into executable delivery slices mapped to current PlatterOps backend/frontend structure.
 
 ---
 

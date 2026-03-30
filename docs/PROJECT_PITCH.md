@@ -1,4 +1,4 @@
-# DineOps — Architecture Diagrams & How to Explain the Project
+# PlatterOps — Architecture Diagrams & How to Explain the Project
 
 > Two audiences. Same project. Completely different explanations.
 > Use this file to prepare for interviews, demos, and technical discussions.
@@ -25,7 +25,7 @@ graph TB
         C["Customer\n(phone/browser)"]
         ST["Kitchen Staff\n(tablet)"]
         TA["Restaurant Owner\n(laptop)"]
-        SA["Super Admin\n(DineOps team)"]
+        SA["Super Admin\n(PlatterOps team)"]
     end
 
     subgraph FRONTEND["Frontend — React 19 + TypeScript + Vite"]
@@ -724,7 +724,7 @@ Computers are bad at decimal math. `0.1 + 0.2` equals `0.30000000000000004` on a
 
 ### The One-Line Pitch
 
-> "DineOps is a shared-schema multi-tenant restaurant SaaS — Spring Boot 3.5 / Java 21 backend with row-level tenant isolation, stateless JWT auth, Redis-backed caching and rate limiting, WebSocket for real-time order events, 25 Flyway migrations managing the schema lifecycle, and a React 19 + TypeScript frontend. Deployed on Kubernetes with Prometheus/Grafana observability and k6 load testing."
+> "PlatterOps is a shared-schema multi-tenant restaurant SaaS — Spring Boot 3.5 / Java 21 backend with row-level tenant isolation, stateless JWT auth, Redis-backed caching and rate limiting, WebSocket for real-time order events, 25 Flyway migrations managing the schema lifecycle, and a React 19 + TypeScript frontend. Deployed on Kubernetes with Prometheus/Grafana observability and k6 load testing."
 
 ---
 

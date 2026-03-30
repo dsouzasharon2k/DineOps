@@ -1,6 +1,6 @@
-package com.dineops.config;
+package com.platterops.config;
 
-import com.dineops.auth.JwtUtils;
+import com.platterops.auth.JwtUtils;
 import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

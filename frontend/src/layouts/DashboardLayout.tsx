@@ -97,7 +97,7 @@ const DashboardLayout = () => {
           </button>
           <NavLink to="/dashboard" className="flex items-center gap-2">
             <span className="w-1.5 h-5 rounded-sm bg-orange-500 inline-block" />
-            <span className="text-sm font-bold text-gray-900 tracking-tight">DineOps</span>
+            <span className="text-sm font-bold text-gray-900 tracking-tight">PlatterOps</span>
           </NavLink>
         </div>
         <div className="flex items-center gap-2">

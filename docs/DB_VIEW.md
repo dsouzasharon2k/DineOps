@@ -1,4 +1,4 @@
-# DineOps Database View (Rectification Guide)
+# PlatterOps Database View (Rectification Guide)
 
 This document gives you a clean "DB view" of the platform and ready SQL views to support super-admin analytics and tenant operations.
 

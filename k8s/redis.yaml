@@ -1,4 +1,4 @@
-# Redis deployment for DineOps
+# Redis deployment for PlatterOps
 apiVersion: apps/v1
 kind: Deployment
 metadata:

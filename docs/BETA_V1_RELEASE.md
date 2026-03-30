@@ -1,4 +1,4 @@
-# DineOps — Beta V1 Release Plan
+# PlatterOps — Beta V1 Release Plan
 
 > Pre-interview deployment checklist + future scope.
 > Generated from a full codebase verification on 2026-03-21.

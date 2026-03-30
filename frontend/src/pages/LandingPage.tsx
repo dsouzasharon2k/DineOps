@@ -102,7 +102,7 @@ footer{background:var(--dark-2);border-top:1px solid rgba(255,255,255,.06);paddi
         <nav>
           <a href="/" className="nav-logo">
             <span className="nav-logo-mark" />
-            <span className="nav-logo-text">DineOps</span>
+            <span className="nav-logo-text">PlatterOps</span>
           </a>
           <ul className="nav-links">
             <li><a href="#features">Features</a></li>
@@ -119,7 +119,7 @@ footer{background:var(--dark-2);border-top:1px solid rgba(255,255,255,.06);paddi
         <section className="hero">
           <div className="hero-badge"><span className="hero-badge-dot" />Multi-tenant SaaS for Indian restaurants</div>
           <h1 className="hero-headline">Run your restaurant.<br /><em>Not spreadsheets.</em></h1>
-          <p className="hero-sub">DineOps gives every restaurant a live kitchen board, digital QR menu, and real-time analytics. From a single outlet to a chain — one platform.</p>
+          <p className="hero-sub">PlatterOps gives every restaurant a live kitchen board, digital QR menu, and real-time analytics. From a single outlet to a chain — one platform.</p>
           <div className="hero-actions">
             <a href="/login" className="btn-primary btn-large">Start for free</a>
             <a href="#features" className="btn-outline">See how it works</a>
@@ -236,7 +236,7 @@ footer{background:var(--dark-2);border-top:1px solid rgba(255,255,255,.06);paddi
         <section className="cta-section">
           <div className="cta-inner reveal">
             <h2 className="cta-title">Ready to <em>modernise</em><br />your restaurant?</h2>
-            <p className="cta-sub">Join restaurants running on DineOps. Free to start.</p>
+            <p className="cta-sub">Join restaurants running on PlatterOps. Free to start.</p>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
               <a href="/login" className="btn-primary btn-large">Get started free</a>
               <a href="mailto:hello@dineops.in" className="btn-outline">Talk to us</a>
@@ -249,9 +249,9 @@ footer{background:var(--dark-2);border-top:1px solid rgba(255,255,255,.06);paddi
             <div>
               <a href="/" className="nav-logo" style={{ display: 'inline-flex', marginBottom: '.5rem' }}>
                 <span className="nav-logo-mark" />
-                <span className="nav-logo-text">DineOps</span>
+                <span className="nav-logo-text">PlatterOps</span>
               </a>
-              <p className="footer-copy" style={{ marginTop: '.5rem' }}>© 2025 DineOps. Built in Pune, India.</p>
+              <p className="footer-copy" style={{ marginTop: '.5rem' }}>© 2025 PlatterOps. Built in Pune, India.</p>
             </div>
             <ul className="footer-links">
               <li><a href="/privacy">Privacy</a></li>

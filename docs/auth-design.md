@@ -1,4 +1,4 @@
-# DineOps – Auth Design & Roles
+# PlatterOps – Auth Design & Roles
 
 ## Roles
 

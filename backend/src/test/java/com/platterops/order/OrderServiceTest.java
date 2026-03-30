@@ -1,12 +1,12 @@
-package com.dineops.order;
+package com.platterops.order;
 
-import com.dineops.menu.MenuItem;
-import com.dineops.menu.MenuItemRepository;
-import com.dineops.notification.NotificationService;
-import com.dineops.restaurant.Restaurant;
-import com.dineops.restaurant.RestaurantRepository;
-import com.dineops.subscription.SubscriptionService;
-import com.dineops.table.DiningTableService;
+import com.platterops.menu.MenuItem;
+import com.platterops.menu.MenuItemRepository;
+import com.platterops.notification.NotificationService;
+import com.platterops.restaurant.Restaurant;
+import com.platterops.restaurant.RestaurantRepository;
+import com.platterops.subscription.SubscriptionService;
+import com.platterops.table.DiningTableService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

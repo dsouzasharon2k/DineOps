@@ -9,7 +9,7 @@ const TermsPage = () => {
           <section>
             <h2 className="font-semibold text-gray-800">Acceptable Use</h2>
             <p>
-              You agree to use DineOps lawfully and not attempt unauthorized access, abuse platform resources,
+              You agree to use PlatterOps lawfully and not attempt unauthorized access, abuse platform resources,
               or interfere with service availability.
             </p>
           </section>
@@ -32,7 +32,7 @@ const TermsPage = () => {
           <section>
             <h2 className="font-semibold text-gray-800">Limitation of Liability</h2>
             <p>
-              To the maximum extent permitted by law, DineOps is not liable for indirect, incidental, or consequential
+              To the maximum extent permitted by law, PlatterOps is not liable for indirect, incidental, or consequential
               damages resulting from use of the service.
             </p>
           </section>

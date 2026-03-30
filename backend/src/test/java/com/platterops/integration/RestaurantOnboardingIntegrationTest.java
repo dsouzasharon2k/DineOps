@@ -1,10 +1,10 @@
-package com.dineops.integration;
+package com.platterops.integration;
 
-import com.dineops.auth.JwtUtils;
-import com.dineops.restaurant.RestaurantRepository;
-import com.dineops.user.User;
-import com.dineops.user.UserRepository;
-import com.dineops.user.UserRole;
+import com.platterops.auth.JwtUtils;
+import com.platterops.restaurant.RestaurantRepository;
+import com.platterops.user.User;
+import com.platterops.user.UserRepository;
+import com.platterops.user.UserRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -318,7 +318,7 @@ public class OrderService {
         int gstAmountPaise = totalPaise - taxableAmountPaise;
 
         StringBuilder invoice = new StringBuilder();
-        invoice.append("DineOps Invoice\n");
+        invoice.append("PlatterOps Invoice\n");
         invoice.append("====================\n");
         invoice.append("Order ID: ").append(order.getId()).append('\n');
         invoice.append("Date: ").append(order.getCreatedAt()).append("\n\n");
