@@ -1,4 +1,4 @@
-package com.dineops.inventory;
+package com.platterops.inventory;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

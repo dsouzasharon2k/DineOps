@@ -1,8 +1,8 @@
-package com.dineops.order;
+package com.platterops.order;
 
-import com.dineops.entity.AuditableEntity;
-import com.dineops.menu.MenuItem;
-import com.dineops.restaurant.Restaurant;
+import com.platterops.entity.AuditableEntity;
+import com.platterops.menu.MenuItem;
+import com.platterops.restaurant.Restaurant;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.SQLRestriction;

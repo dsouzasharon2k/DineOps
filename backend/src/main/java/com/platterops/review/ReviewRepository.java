@@ -1,4 +1,4 @@
-package com.dineops.review;
+package com.platterops.review;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

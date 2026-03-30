@@ -1,8 +1,8 @@
-package com.dineops.dto;
+package com.platterops.dto;
 
-import com.dineops.order.OrderStatus;
-import com.dineops.order.PaymentMethod;
-import com.dineops.order.PaymentStatus;
+import com.platterops.order.OrderStatus;
+import com.platterops.order.PaymentMethod;
+import com.platterops.order.PaymentStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;

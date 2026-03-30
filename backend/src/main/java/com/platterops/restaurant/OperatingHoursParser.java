@@ -1,4 +1,4 @@
-package com.dineops.restaurant;
+package com.platterops.restaurant;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -1,4 +1,4 @@
-package com.dineops.subscription;
+package com.platterops.subscription;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

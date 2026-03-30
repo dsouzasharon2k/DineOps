@@ -1,7 +1,7 @@
-package com.dineops.review;
+package com.platterops.review;
 
-import com.dineops.order.Order;
-import com.dineops.restaurant.Restaurant;
+import com.platterops.order.Order;
+import com.platterops.restaurant.Restaurant;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;

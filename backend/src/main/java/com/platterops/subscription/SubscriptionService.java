@@ -1,10 +1,10 @@
-package com.dineops.subscription;
+package com.platterops.subscription;
 
-import com.dineops.dto.StartSubscriptionRequest;
-import com.dineops.dto.SubscriptionResponse;
-import com.dineops.exception.EntityNotFoundException;
-import com.dineops.restaurant.Restaurant;
-import com.dineops.restaurant.RestaurantRepository;
+import com.platterops.dto.StartSubscriptionRequest;
+import com.platterops.dto.SubscriptionResponse;
+import com.platterops.exception.EntityNotFoundException;
+import com.platterops.restaurant.Restaurant;
+import com.platterops.restaurant.RestaurantRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

@@ -1,13 +1,13 @@
-package com.dineops.inventory;
+package com.platterops.inventory;
 
-import com.dineops.dto.CreateInventoryRequest;
-import com.dineops.dto.InventoryResponse;
-import com.dineops.dto.UpdateInventoryRequest;
-import com.dineops.exception.EntityNotFoundException;
-import com.dineops.menu.MenuItem;
-import com.dineops.menu.MenuItemRepository;
-import com.dineops.restaurant.Restaurant;
-import com.dineops.restaurant.RestaurantRepository;
+import com.platterops.dto.CreateInventoryRequest;
+import com.platterops.dto.InventoryResponse;
+import com.platterops.dto.UpdateInventoryRequest;
+import com.platterops.exception.EntityNotFoundException;
+import com.platterops.menu.MenuItem;
+import com.platterops.menu.MenuItemRepository;
+import com.platterops.restaurant.Restaurant;
+import com.platterops.restaurant.RestaurantRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

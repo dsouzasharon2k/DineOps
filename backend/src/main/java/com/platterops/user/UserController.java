@@ -1,6 +1,6 @@
-package com.dineops.user;
+package com.platterops.user;
 
-import com.dineops.dto.UserResponse;
+import com.platterops.dto.UserResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;

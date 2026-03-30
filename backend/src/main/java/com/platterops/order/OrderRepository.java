@@ -1,4 +1,4 @@
-package com.dineops.order;
+package com.platterops.order;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

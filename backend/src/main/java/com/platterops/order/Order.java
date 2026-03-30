@@ -1,9 +1,9 @@
-package com.dineops.order;
+package com.platterops.order;
 
-import com.dineops.entity.AuditableEntity;
-import com.dineops.restaurant.Restaurant;
-import com.dineops.table.DiningTable;
-import com.dineops.user.User;
+import com.platterops.entity.AuditableEntity;
+import com.platterops.restaurant.Restaurant;
+import com.platterops.table.DiningTable;
+import com.platterops.user.User;
 import jakarta.persistence.*;
 import org.hibernate.annotations.SQLRestriction;
 import java.util.ArrayList;

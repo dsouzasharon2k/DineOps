@@ -1,4 +1,4 @@
-package com.dineops.audit;
+package com.platterops.audit;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

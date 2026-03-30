@@ -1,4 +1,4 @@
-package com.dineops.audit;
+package com.platterops.audit;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

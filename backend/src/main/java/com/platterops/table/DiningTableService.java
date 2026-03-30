@@ -1,9 +1,9 @@
-package com.dineops.table;
+package com.platterops.table;
 
-import com.dineops.dto.DiningTableResponse;
-import com.dineops.exception.EntityNotFoundException;
-import com.dineops.restaurant.Restaurant;
-import com.dineops.restaurant.RestaurantRepository;
+import com.platterops.dto.DiningTableResponse;
+import com.platterops.exception.EntityNotFoundException;
+import com.platterops.restaurant.Restaurant;
+import com.platterops.restaurant.RestaurantRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

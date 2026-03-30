@@ -1,6 +1,6 @@
-package com.dineops.dto;
+package com.platterops.dto;
 
-import com.dineops.subscription.SubscriptionPlan;
+import com.platterops.subscription.SubscriptionPlan;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 

@@ -1,4 +1,4 @@
-package com.dineops.security;
+package com.platterops.security;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;

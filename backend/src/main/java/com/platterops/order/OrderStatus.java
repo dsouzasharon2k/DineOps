@@ -1,4 +1,4 @@
-package com.dineops.order;
+package com.platterops.order;
 
 // Represents the lifecycle of an order in the kitchen
 // PENDING → CONFIRMED → PREPARING → READY → DELIVERED

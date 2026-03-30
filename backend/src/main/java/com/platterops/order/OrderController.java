@@ -1,14 +1,14 @@
-package com.dineops.order;
+package com.platterops.order;
 
-import com.dineops.dto.PageResponse;
-import com.dineops.dto.OrderResponse;
-import com.dineops.dto.OrderStatusHistoryResponse;
-import com.dineops.dto.InitiatePaymentRequest;
-import com.dineops.dto.InitiatePaymentResponse;
-import com.dineops.dto.PaymentWebhookRequest;
-import com.dineops.dto.CreateReviewRequest;
-import com.dineops.dto.ReviewResponse;
-import com.dineops.review.ReviewService;
+import com.platterops.dto.PageResponse;
+import com.platterops.dto.OrderResponse;
+import com.platterops.dto.OrderStatusHistoryResponse;
+import com.platterops.dto.InitiatePaymentRequest;
+import com.platterops.dto.InitiatePaymentResponse;
+import com.platterops.dto.PaymentWebhookRequest;
+import com.platterops.dto.CreateReviewRequest;
+import com.platterops.dto.ReviewResponse;
+import com.platterops.review.ReviewService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;

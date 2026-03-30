@@ -1,7 +1,7 @@
-package com.dineops.audit;
+package com.platterops.audit;
 
-import com.dineops.dto.AuditLogResponse;
-import com.dineops.dto.PageResponse;
+import com.platterops.dto.AuditLogResponse;
+import com.platterops.dto.PageResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

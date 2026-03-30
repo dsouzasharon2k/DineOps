@@ -1,4 +1,4 @@
-package com.dineops.audit;
+package com.platterops.audit;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

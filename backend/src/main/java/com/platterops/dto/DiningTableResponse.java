@@ -1,6 +1,6 @@
-package com.dineops.dto;
+package com.platterops.dto;
 
-import com.dineops.table.DiningTableStatus;
+import com.platterops.table.DiningTableStatus;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

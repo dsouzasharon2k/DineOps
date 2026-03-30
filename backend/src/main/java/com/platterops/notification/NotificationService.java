@@ -1,7 +1,7 @@
-package com.dineops.notification;
+package com.platterops.notification;
 
-import com.dineops.order.Order;
-import com.dineops.order.OrderStatus;
+import com.platterops.order.Order;
+import com.platterops.order.OrderStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

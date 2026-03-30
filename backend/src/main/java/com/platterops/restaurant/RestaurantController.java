@@ -1,7 +1,7 @@
-package com.dineops.restaurant;
+package com.platterops.restaurant;
 
-import com.dineops.dto.PageResponse;
-import com.dineops.dto.RestaurantResponse;
+import com.platterops.dto.PageResponse;
+import com.platterops.dto.RestaurantResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;

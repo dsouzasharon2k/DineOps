@@ -1,4 +1,4 @@
-package com.dineops.table;
+package com.platterops.table;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;

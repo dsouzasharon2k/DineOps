@@ -1,4 +1,4 @@
-package com.dineops.logging;
+package com.platterops.logging;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

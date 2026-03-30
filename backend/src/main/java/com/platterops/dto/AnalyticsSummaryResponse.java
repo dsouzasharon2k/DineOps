@@ -1,4 +1,4 @@
-package com.dineops.dto;
+package com.platterops.dto;
 
 import java.util.List;
 

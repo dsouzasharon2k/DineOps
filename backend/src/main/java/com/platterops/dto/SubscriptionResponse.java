@@ -1,7 +1,7 @@
-package com.dineops.dto;
+package com.platterops.dto;
 
-import com.dineops.subscription.SubscriptionPlan;
-import com.dineops.subscription.SubscriptionStatus;
+import com.platterops.subscription.SubscriptionPlan;
+import com.platterops.subscription.SubscriptionStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;

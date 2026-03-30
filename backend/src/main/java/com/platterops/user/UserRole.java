@@ -1,4 +1,4 @@
-package com.dineops.user;
+package com.platterops.user;
 
 public enum UserRole {
     SUPER_ADMIN,

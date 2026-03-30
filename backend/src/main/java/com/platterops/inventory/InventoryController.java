@@ -1,8 +1,8 @@
-package com.dineops.inventory;
+package com.platterops.inventory;
 
-import com.dineops.dto.CreateInventoryRequest;
-import com.dineops.dto.InventoryResponse;
-import com.dineops.dto.UpdateInventoryRequest;
+import com.platterops.dto.CreateInventoryRequest;
+import com.platterops.dto.InventoryResponse;
+import com.platterops.dto.UpdateInventoryRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

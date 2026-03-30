@@ -1,4 +1,4 @@
-package com.dineops.audit;
+package com.platterops.audit;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

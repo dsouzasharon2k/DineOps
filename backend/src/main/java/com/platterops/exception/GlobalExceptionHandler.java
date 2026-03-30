@@ -1,4 +1,4 @@
-package com.dineops.exception;
+package com.platterops.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;

@@ -1,4 +1,4 @@
-package com.dineops.config;
+package com.platterops.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;

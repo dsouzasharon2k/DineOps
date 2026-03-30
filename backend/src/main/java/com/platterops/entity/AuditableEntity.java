@@ -1,4 +1,4 @@
-package com.dineops.entity;
+package com.platterops.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;

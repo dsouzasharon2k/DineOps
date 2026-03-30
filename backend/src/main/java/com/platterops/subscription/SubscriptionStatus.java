@@ -1,4 +1,4 @@
-package com.dineops.subscription;
+package com.platterops.subscription;
 
 public enum SubscriptionStatus {
     ACTIVE,

@@ -1,4 +1,4 @@
-package com.dineops.menu;
+package com.platterops.menu;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;

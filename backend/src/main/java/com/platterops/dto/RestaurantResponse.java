@@ -1,6 +1,6 @@
-package com.dineops.dto;
+package com.platterops.dto;
 
-import com.dineops.restaurant.RestaurantStatus;
+import com.platterops.restaurant.RestaurantStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;

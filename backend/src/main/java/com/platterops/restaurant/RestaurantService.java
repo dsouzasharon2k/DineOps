@@ -1,14 +1,14 @@
-package com.dineops.restaurant;
+package com.platterops.restaurant;
 
-import com.dineops.audit.AuditedAction;
-import com.dineops.dto.RestaurantResponse;
+import com.platterops.audit.AuditedAction;
+import com.platterops.dto.RestaurantResponse;
 
 import java.time.LocalDateTime;
-import com.dineops.exception.EntityNotFoundException;
-import com.dineops.review.ReviewService;
-import com.dineops.user.User;
-import com.dineops.user.UserRepository;
-import com.dineops.user.UserRole;
+import com.platterops.exception.EntityNotFoundException;
+import com.platterops.review.ReviewService;
+import com.platterops.user.User;
+import com.platterops.user.UserRepository;
+import com.platterops.user.UserRole;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;

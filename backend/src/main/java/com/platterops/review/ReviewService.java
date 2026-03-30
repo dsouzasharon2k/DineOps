@@ -1,11 +1,11 @@
-package com.dineops.review;
+package com.platterops.review;
 
-import com.dineops.dto.CreateReviewRequest;
-import com.dineops.dto.ReviewResponse;
-import com.dineops.exception.EntityNotFoundException;
-import com.dineops.order.Order;
-import com.dineops.order.OrderRepository;
-import com.dineops.order.OrderStatus;
+import com.platterops.dto.CreateReviewRequest;
+import com.platterops.dto.ReviewResponse;
+import com.platterops.exception.EntityNotFoundException;
+import com.platterops.order.Order;
+import com.platterops.order.OrderRepository;
+import com.platterops.order.OrderStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;

@@ -1,6 +1,6 @@
-package com.dineops.table;
+package com.platterops.table;
 
-import com.dineops.dto.DiningTableResponse;
+import com.platterops.dto.DiningTableResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

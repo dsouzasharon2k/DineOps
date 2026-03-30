@@ -1,7 +1,7 @@
-package com.dineops.subscription;
+package com.platterops.subscription;
 
-import com.dineops.dto.StartSubscriptionRequest;
-import com.dineops.dto.SubscriptionResponse;
+import com.platterops.dto.StartSubscriptionRequest;
+import com.platterops.dto.SubscriptionResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

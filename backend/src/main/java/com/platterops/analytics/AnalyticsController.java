@@ -1,6 +1,6 @@
-package com.dineops.analytics;
+package com.platterops.analytics;
 
-import com.dineops.dto.AnalyticsSummaryResponse;
+import com.platterops.dto.AnalyticsSummaryResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

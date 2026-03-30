@@ -1,4 +1,4 @@
-package com.dineops.order;
+package com.platterops.order;
 
 public enum PaymentMethod {
     CASH,

@@ -1,4 +1,4 @@
-package com.dineops.restaurant;
+package com.platterops.restaurant;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Min;

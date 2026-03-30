@@ -1,4 +1,4 @@
-package com.dineops.exception;
+package com.platterops.exception;
 
 public class EntityNotFoundException extends RuntimeException {
 

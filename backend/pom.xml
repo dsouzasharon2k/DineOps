@@ -8,7 +8,7 @@
 		<version>3.5.11</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.dineops</groupId>
+	<groupId>com.platterops</groupId>
 	<artifactId>dineops-backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>dineops-backend</name>
@@ -29,7 +29,7 @@
 	<properties>
 		<java.version>21</java.version>
 		<sonar.coverage.exclusions>
-			**/DineopsBackendApplication.java,
+			**/PlatteropsBackendApplication.java,
 			**/config/SecurityConfig.java
 		</sonar.coverage.exclusions>
 	</properties>

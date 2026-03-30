@@ -1,6 +1,6 @@
-package com.dineops.user;
+package com.platterops.user;
 
-import com.dineops.exception.EntityNotFoundException;
+import com.platterops.exception.EntityNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 

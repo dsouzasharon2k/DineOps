@@ -1,4 +1,4 @@
-package com.dineops.restaurant;
+package com.platterops.restaurant;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.UUID;

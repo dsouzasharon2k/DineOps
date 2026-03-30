@@ -1,8 +1,8 @@
-package com.dineops.config;
+package com.platterops.config;
 
-import com.dineops.auth.JwtAuthFilter;
-import com.dineops.auth.TenantAuthorizationFilter;
-import com.dineops.logging.RequestContextFilter;
+import com.platterops.auth.JwtAuthFilter;
+import com.platterops.auth.TenantAuthorizationFilter;
+import com.platterops.logging.RequestContextFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,4 +1,4 @@
-package com.dineops;
+package com.platterops;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -10,10 +10,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableJpaAuditing
 @EnableCaching
 @EnableScheduling
-public class DineopsBackendApplication {
+public class PlatteropsBackendApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(DineopsBackendApplication.class, args);
+		SpringApplication.run(PlatteropsBackendApplication.class, args);
 	}
 
 }

@@ -1,6 +1,6 @@
-package com.dineops.menu;
+package com.platterops.menu;
 
-import com.dineops.dto.MenuItemResponse;
+import com.platterops.dto.MenuItemResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

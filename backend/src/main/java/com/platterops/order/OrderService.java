@@ -1,21 +1,21 @@
-package com.dineops.order;
+package com.platterops.order;
 
-import com.dineops.audit.AuditedAction;
-import com.dineops.dto.OrderItemResponse;
-import com.dineops.dto.OrderResponse;
-import com.dineops.dto.OrderStatusHistoryResponse;
-import com.dineops.dto.InitiatePaymentResponse;
-import com.dineops.dto.UserResponse;
-import com.dineops.exception.EntityNotFoundException;
-import com.dineops.menu.MenuItem;
-import com.dineops.menu.MenuItemRepository;
-import com.dineops.notification.NotificationService;
-import com.dineops.restaurant.OperatingHoursParser;
-import com.dineops.restaurant.Restaurant;
-import com.dineops.restaurant.RestaurantRepository;
-import com.dineops.table.DiningTableService;
-import com.dineops.inventory.InventoryService;
-import com.dineops.subscription.SubscriptionService;
+import com.platterops.audit.AuditedAction;
+import com.platterops.dto.OrderItemResponse;
+import com.platterops.dto.OrderResponse;
+import com.platterops.dto.OrderStatusHistoryResponse;
+import com.platterops.dto.InitiatePaymentResponse;
+import com.platterops.dto.UserResponse;
+import com.platterops.exception.EntityNotFoundException;
+import com.platterops.menu.MenuItem;
+import com.platterops.menu.MenuItemRepository;
+import com.platterops.notification.NotificationService;
+import com.platterops.restaurant.OperatingHoursParser;
+import com.platterops.restaurant.Restaurant;
+import com.platterops.restaurant.RestaurantRepository;
+import com.platterops.table.DiningTableService;
+import com.platterops.inventory.InventoryService;
+import com.platterops.subscription.SubscriptionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
@@ -462,7 +462,7 @@ public class OrderService {
         );
     }
 
-    private UserResponse toUserResponse(com.dineops.user.User user) {
+    private UserResponse toUserResponse(com.platterops.user.User user) {
         if (user == null) {
             return null;
         }

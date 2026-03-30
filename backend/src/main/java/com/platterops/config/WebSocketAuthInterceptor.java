@@ -1,6 +1,6 @@
-package com.dineops.config;
+package com.platterops.config;
 
-import com.dineops.auth.JwtUtils;
+import com.platterops.auth.JwtUtils;
 import io.jsonwebtoken.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

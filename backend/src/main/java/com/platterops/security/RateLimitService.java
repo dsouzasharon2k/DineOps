@@ -1,4 +1,4 @@
-package com.dineops.security;
+package com.platterops.security;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

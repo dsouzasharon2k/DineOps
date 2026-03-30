@@ -1,6 +1,6 @@
-package com.dineops.dto;
+package com.platterops.dto;
 
-import com.dineops.user.UserRole;
+import com.platterops.user.UserRole;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;

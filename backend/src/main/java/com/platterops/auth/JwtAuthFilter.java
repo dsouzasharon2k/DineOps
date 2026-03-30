@@ -1,4 +1,4 @@
-package com.dineops.auth;
+package com.platterops.auth;
 
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;

@@ -1,6 +1,6 @@
-package com.dineops.audit;
+package com.platterops.audit;
 
-import com.dineops.dto.AuditLogResponse;
+import com.platterops.dto.AuditLogResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;

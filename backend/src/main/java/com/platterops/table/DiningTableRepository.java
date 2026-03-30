@@ -1,4 +1,4 @@
-package com.dineops.table;
+package com.platterops.table;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

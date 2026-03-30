@@ -1,12 +1,12 @@
-package com.dineops.auth;
+package com.platterops.auth;
 
 import jakarta.validation.Valid;
-import com.dineops.dto.UserResponse;
-import com.dineops.security.AccountLockoutService;
-import com.dineops.security.RateLimitService;
-import com.dineops.user.User;
-import com.dineops.user.UserRole;
-import com.dineops.user.UserService;
+import com.platterops.dto.UserResponse;
+import com.platterops.security.AccountLockoutService;
+import com.platterops.security.RateLimitService;
+import com.platterops.user.User;
+import com.platterops.user.UserRole;
+import com.platterops.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;

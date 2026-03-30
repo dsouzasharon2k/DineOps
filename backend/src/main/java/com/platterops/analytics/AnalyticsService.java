@@ -1,11 +1,11 @@
-package com.dineops.analytics;
+package com.platterops.analytics;
 
-import com.dineops.dto.AnalyticsSummaryResponse;
-import com.dineops.order.Order;
-import com.dineops.order.OrderRepository;
-import com.dineops.order.OrderStatus;
-import com.dineops.order.OrderStatusHistory;
-import com.dineops.order.OrderStatusHistoryRepository;
+import com.platterops.dto.AnalyticsSummaryResponse;
+import com.platterops.order.Order;
+import com.platterops.order.OrderRepository;
+import com.platterops.order.OrderStatus;
+import com.platterops.order.OrderStatusHistory;
+import com.platterops.order.OrderStatusHistoryRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;

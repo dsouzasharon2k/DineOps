@@ -1,4 +1,4 @@
-package com.dineops.menu;
+package com.platterops.menu;
 
 import jakarta.validation.constraints.NotBlank;
 

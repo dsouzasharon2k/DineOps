@@ -1,7 +1,7 @@
-package com.dineops.review;
+package com.platterops.review;
 
-import com.dineops.dto.PageResponse;
-import com.dineops.dto.ReviewResponse;
+import com.platterops.dto.PageResponse;
+import com.platterops.dto.ReviewResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

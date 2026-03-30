@@ -1,11 +1,11 @@
-package com.dineops.restaurant;
+package com.platterops.restaurant;
 
-import com.dineops.auth.RegisterUserRequest;
-import com.dineops.dto.UserResponse;
-import com.dineops.exception.EntityNotFoundException;
-import com.dineops.user.User;
-import com.dineops.user.UserRole;
-import com.dineops.user.UserService;
+import com.platterops.auth.RegisterUserRequest;
+import com.platterops.dto.UserResponse;
+import com.platterops.exception.EntityNotFoundException;
+import com.platterops.user.User;
+import com.platterops.user.UserRole;
+import com.platterops.user.UserService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

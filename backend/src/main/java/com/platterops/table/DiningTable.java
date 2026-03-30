@@ -1,7 +1,7 @@
-package com.dineops.table;
+package com.platterops.table;
 
-import com.dineops.entity.AuditableEntity;
-import com.dineops.restaurant.Restaurant;
+import com.platterops.entity.AuditableEntity;
+import com.platterops.restaurant.Restaurant;
 import jakarta.persistence.*;
 import org.hibernate.annotations.SQLRestriction;
 

@@ -28,3 +28,6 @@ replay_pid*
 
 # Local backups
 backups/
+
+#tree.txt
+tree.txt

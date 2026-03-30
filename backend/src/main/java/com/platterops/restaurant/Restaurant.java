@@ -1,6 +1,6 @@
-package com.dineops.restaurant;
+package com.platterops.restaurant;
 
-import com.dineops.entity.AuditableEntity;
+import com.platterops.entity.AuditableEntity;
 import jakarta.persistence.*;
 import org.hibernate.annotations.SQLRestriction;
 import java.util.UUID;

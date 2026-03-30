@@ -1,6 +1,6 @@
-package com.dineops.dto;
+package com.platterops.dto;
 
-import com.dineops.order.PaymentMethod;
+import com.platterops.order.PaymentMethod;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 

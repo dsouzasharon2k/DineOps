@@ -1,6 +1,6 @@
-package com.dineops.dto;
+package com.platterops.dto;
 
-import com.dineops.order.OrderStatus;
+import com.platterops.order.OrderStatus;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
