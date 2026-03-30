@@ -19,8 +19,17 @@ const LoginPage = () => {
     setLoading(true)
     try {
       const data = await loginApi(email, password)
-      login(data.token)
-      navigate('/dashboard')
+      if (data.requires2fa && data.tempToken) {
+        sessionStorage.setItem('dineops_temp_2fa_token', data.tempToken)
+        navigate('/auth/2fa/verify')
+        return
+      }
+      if (data.token) {
+        login(data.token)
+        navigate('/dashboard')
+        return
+      }
+      setError('Unable to complete login.')
     } catch (err) {
       setError(getApiErrorMessage(err, 'Invalid email or password.'))
     } finally {
@@ -132,6 +141,14 @@ const LoginPage = () => {
         </button>
 
         <p className="mt-4 text-center text-xs text-gray-500">
+          <Link to="/forgot-password" className="text-orange-600 hover:underline">Forgot password?</Link>
+          <span className="mx-2 text-gray-300">·</span>
+          <Link to="/register" className="text-orange-600 hover:underline">Register</Link>
+          <span className="mx-2 text-gray-300">·</span>
+          <Link to="/otp-login" className="text-orange-600 hover:underline">OTP login</Link>
+        </p>
+
+        <p className="mt-2 text-center text-xs text-gray-500">
           By continuing you agree to our{' '}
           <Link to="/terms" className="text-orange-600 hover:underline">Terms</Link>{' '}
           and{' '}

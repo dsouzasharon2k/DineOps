@@ -117,7 +117,7 @@ export default function OrderConfirmPage() {
               id="customerPhone"
               value={customerPhone}
               onChange={e => setCustomerPhone(e.target.value)}
-              placeholder="Phone for order lookup"
+              placeholder="Phone for order lookup (required)"
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-orange-400"
             />
             <label htmlFor="customerEmail" className="sr-only">Customer email</label>
@@ -201,7 +201,7 @@ export default function OrderConfirmPage() {
       <div className="fixed bottom-4 left-4 right-4 max-w-2xl mx-auto">
         <button
           onClick={handlePlaceOrder}
-          disabled={placing || restaurant?.isOpenNow === false}
+          disabled={placing || restaurant?.isOpenNow === false || !customerPhone.trim()}
           className="w-full bg-orange-500 text-white rounded-xl py-4 px-6 flex items-center justify-between shadow-lg hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <span className="font-semibold">

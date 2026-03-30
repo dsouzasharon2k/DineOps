@@ -55,7 +55,7 @@ management:
 
 app:
   jwt:
-    secret: ${JWT_SECRET:replace-with-32-byte-random-secret}
+    secret: ${JWT_SECRET}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
     refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
   cors:
@@ -63,3 +63,19 @@ app:
     allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS,PATCH}
     allowed-headers: ${CORS_ALLOWED_HEADERS:*}
     max-age-seconds: ${CORS_MAX_AGE_SECONDS:3600}
+  sms:
+    provider: ${SMS_PROVIDER:mock}
+    sender-id: ${SMS_SENDER_ID:DINEOP}
+    msg91:
+      auth-key: ${MSG91_AUTH_KEY:}
+      template-id: ${MSG91_TEMPLATE_ID:}
+    twilio:
+      account-sid: ${TWILIO_ACCOUNT_SID:}
+      auth-token: ${TWILIO_AUTH_TOKEN:}
+      from-number: ${TWILIO_FROM_NUMBER:}
+  payment:
+    provider: ${PAYMENT_PROVIDER:mock}
+    frontend-base-url: ${PAYMENT_FRONTEND_BASE_URL:http://localhost:5173}
+    razorpay:
+      key-id: ${RAZORPAY_KEY_ID:}
+      key-secret: ${RAZORPAY_KEY_SECRET:}

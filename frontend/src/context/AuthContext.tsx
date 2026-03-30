@@ -32,8 +32,13 @@ export const AuthProvider = ({
     const bootstrap = async () => {
       try {
         const data = await refreshTokenApi()
-        setToken(data.token)
-        tokenStore.setToken(data.token)
+        if (data.token) {
+          setToken(data.token)
+          tokenStore.setToken(data.token)
+        } else {
+          setToken(null)
+          tokenStore.clear()
+        }
       } catch {
         setToken(null)
         tokenStore.clear()

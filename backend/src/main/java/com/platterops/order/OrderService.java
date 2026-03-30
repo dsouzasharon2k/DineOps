@@ -65,6 +65,7 @@ public class OrderService {
     private final DiningTableService diningTableService;
     private final NotificationService notificationService;
     private final SubscriptionService subscriptionService;
+    private final PaymentGatewayService paymentGatewayService;
     private final com.platterops.restaurant.zone.QrCodeRepository qrCodeRepository;
     private final com.platterops.restaurant.zone.MenuItemZonePriceRepository menuItemZonePriceRepository;
     
@@ -80,6 +81,7 @@ public class OrderService {
                         DiningTableService diningTableService,
                         NotificationService notificationService,
                         SubscriptionService subscriptionService,
+                        PaymentGatewayService paymentGatewayService,
                         com.platterops.restaurant.zone.QrCodeRepository qrCodeRepository,
                         com.platterops.restaurant.zone.MenuItemZonePriceRepository menuItemZonePriceRepository) {
         this.orderRepository = orderRepository;
@@ -89,6 +91,7 @@ public class OrderService {
         this.diningTableService = diningTableService;
         this.notificationService = notificationService;
         this.subscriptionService = subscriptionService;
+        this.paymentGatewayService = paymentGatewayService;
         this.qrCodeRepository = qrCodeRepository;
         this.menuItemZonePriceRepository = menuItemZonePriceRepository;
     }
@@ -301,11 +304,13 @@ public class OrderService {
             return new InitiatePaymentResponse(saved.getId(), saved.getPaymentStatus(), saved.getPaymentMethod(), null, null);
         }
 
-        String providerOrderRef = "pay_" + UUID.randomUUID().toString().replace("-", "");
         order.setPaymentStatus(PaymentStatus.PENDING);
-        order.setPaymentProviderOrderRef(providerOrderRef);
         Order saved = orderRepository.save(order);
-        String checkoutUrl = "/pay/checkout/" + saved.getId() + "?ref=" + providerOrderRef;
+        PaymentGatewayService.PaymentInitResult paymentInit = paymentGatewayService.createPaymentOrder(saved.getId(), saved.getTotalAmount());
+        String providerOrderRef = paymentInit.providerOrderRef();
+        saved.setPaymentProviderOrderRef(providerOrderRef);
+        saved = orderRepository.save(saved);
+        String checkoutUrl = paymentInit.checkoutUrl();
         return new InitiatePaymentResponse(saved.getId(), saved.getPaymentStatus(), saved.getPaymentMethod(), providerOrderRef, checkoutUrl);
     }
 

@@ -4,6 +4,10 @@ import DashboardLayout from './layouts/DashboardLayout'
 import ProtectedRoute from './routes/ProtectedRoute'
 import RoleRoute from './routes/RoleRoute'
 import LoginPage from './pages/auth/LoginPage'
+import RegisterPage from './pages/auth/RegisterPage'
+import OtpLoginPage from './pages/auth/OtpLoginPage'
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
+import TwoFactorVerifyPage from './pages/auth/TwoFactorVerifyPage'
 import RestaurantsPage from './pages/dashboard/RestaurantsPage'
 import MenuPage from './pages/dashboard/MenuPage'
 import KitchenPage from './pages/dashboard/KitchenPage'
@@ -24,6 +28,8 @@ import LandingPage from './pages/LandingPage'
 import DashboardEntryPage from './pages/dashboard/DashboardEntryPage'
 import ReviewsPage from './pages/dashboard/ReviewsPage'
 import TicketsPage from './pages/dashboard/TicketsPage'
+import WastagePage from './pages/dashboard/WastagePage'
+import TwoFactorSetupPage from './pages/dashboard/TwoFactorSetupPage'
 
 function App() {
   return (
@@ -48,6 +54,10 @@ function App() {
           >
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/otp-login" element={<OtpLoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/auth/2fa/verify" element={<TwoFactorVerifyPage />} />
             <Route path="/menu/:tenantId" element={<PublicMenuPage />} />
             <Route path="/menu/:tenantId/confirm" element={<OrderConfirmPage />} />
             <Route path="/menu/:tenantId/order/:orderId" element={<OrderStatusPage />} />
@@ -111,6 +121,22 @@ function App() {
               element={
                 <RoleRoute allowedRoles={['TENANT_ADMIN', 'STAFF']}>
                   <InventoryPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/dashboard/wastage"
+              element={
+                <RoleRoute allowedRoles={['TENANT_ADMIN', 'STAFF']}>
+                  <WastagePage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/dashboard/security/2fa"
+              element={
+                <RoleRoute allowedRoles={['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF']}>
+                  <TwoFactorSetupPage />
                 </RoleRoute>
               }
             />

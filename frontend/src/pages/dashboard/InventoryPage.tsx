@@ -16,11 +16,9 @@ const extractTenantId = (token: string | null): string | null => {
   }
 }
 
-const FALLBACK_TENANT_ID = 'a085284e-ca00-4f64-a2c7-42fc0572bb97'
-
 const InventoryPage = () => {
   const { token } = useAuth()
-  const tenantId = useMemo(() => extractTenantId(token) ?? FALLBACK_TENANT_ID, [token])
+  const tenantId = useMemo(() => extractTenantId(token), [token])
   const [inventory, setInventory] = useState<InventoryItem[]>([])
   const [categories, setCategories] = useState<MenuCategory[]>([])
   const [allItems, setAllItems] = useState<MenuItem[]>([])
@@ -33,6 +31,10 @@ const InventoryPage = () => {
   const [newThreshold, setNewThreshold] = useState('5')
 
   const load = async () => {
+    if (!tenantId) {
+      setLoading(false)
+      return
+    }
     try {
       setError('')
       const inv = await getInventoryByTenantApi(tenantId)
@@ -90,6 +92,14 @@ const InventoryPage = () => {
 
   if (loading) {
     return <p className="text-sm text-gray-500">Loading inventory...</p>
+  }
+
+  if (!tenantId) {
+    return (
+      <div className="rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-700">
+        Tenant context is missing. Please sign out and sign in again.
+      </div>
+    )
   }
 
   return (

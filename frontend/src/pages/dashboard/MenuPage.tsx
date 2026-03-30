@@ -24,8 +24,6 @@ const extractTenantId = (token: string | null): string | null => {
   }
 }
 
-const FALLBACK_TENANT_ID = 'a085284e-ca00-4f64-a2c7-42fc0572bb97'
-
 const VegDot = ({ isVegetarian }: { isVegetarian: boolean }) => (
   <span
     className={`inline-flex w-4 h-4 shrink-0 rounded-sm border-2 items-center justify-center ${
@@ -66,7 +64,7 @@ const Toggle = ({
 
 const MenuPage = () => {
   const { token } = useAuth()
-  const tenantId = useMemo(() => extractTenantId(token) ?? FALLBACK_TENANT_ID, [token])
+  const tenantId = useMemo(() => extractTenantId(token), [token])
   const [categories, setCategories] = useState<MenuCategory[]>([])
   const [selectedCategory, setSelectedCategory] = useState<MenuCategory | null>(null)
   const [items, setItems] = useState<MenuItem[]>([])
@@ -113,9 +111,13 @@ const MenuPage = () => {
   }, [showCategoryForm])
 
   const fetchCategories = useCallback(async () => {
+    if (!tenantId) {
+      setLoading(false)
+      return
+    }
     clearOpError('fetchCategories')
     try {
-      const data = await getCategoriesApi(tenantId)
+      const data = await getCategoriesApi(tenantId!)
       setCategories(data)
       if (data.length > 0 && !selectedCategory) setSelectedCategory(data[0])
     } catch (err) {
@@ -127,10 +129,11 @@ const MenuPage = () => {
 
   const fetchItems = useCallback(
     async (categoryId: string) => {
+      if (!tenantId) return
       clearOpError('fetchItems')
       setItemsLoading(true)
       try {
-        const data = await getAllItemsApi(tenantId, categoryId)
+        const data = await getAllItemsApi(tenantId!, categoryId)
         setItems(data)
         setItemCountByCategory((prev) => ({ ...prev, [categoryId]: data.length }))
       } catch (err) {
@@ -150,7 +153,7 @@ const MenuPage = () => {
     if (!newCategoryName.trim()) return
     clearOpError('addCategory')
     try {
-      const created = await createCategoryApi(tenantId, newCategoryName, newCategoryDesc)
+      const created = await createCategoryApi(tenantId!, newCategoryName, newCategoryDesc)
       setNewCategoryName('')
       setNewCategoryDesc('')
       setShowCategoryForm(false)
@@ -165,7 +168,7 @@ const MenuPage = () => {
     if (!window.confirm('Delete this category and all its items?')) return
     clearOpError(`deleteCategory_${categoryId}`)
     try {
-      await deleteCategoryApi(tenantId, categoryId)
+      await deleteCategoryApi(tenantId!, categoryId)
       if (selectedCategory?.id === categoryId) setSelectedCategory(null)
       fetchCategories()
     } catch (err) {
@@ -177,7 +180,7 @@ const MenuPage = () => {
     if (!newItemName.trim() || !newItemPrice || !selectedCategory) return
     clearOpError('addItem')
     try {
-      await createItemApi(tenantId, selectedCategory.id, {
+      await createItemApi(tenantId!, selectedCategory.id, {
         name: newItemName,
         description: newItemDesc,
         price: Math.round(parseFloat(newItemPrice) * 100),
@@ -201,7 +204,7 @@ const MenuPage = () => {
     if (!selectedCategory) return
     clearOpError(`deleteItem_${itemId}`)
     try {
-      await deleteItemApi(tenantId, selectedCategory.id, itemId)
+      await deleteItemApi(tenantId!, selectedCategory.id, itemId)
       fetchItems(selectedCategory.id)
     } catch (err) {
       setOpError(`deleteItem_${itemId}`, err, 'Failed to delete item.')
@@ -213,7 +216,7 @@ const MenuPage = () => {
     setTogglingItem(item.id)
     clearOpError(`toggle_${item.id}`)
     try {
-      const updated = await toggleItemAvailabilityApi(tenantId, selectedCategory.id, item.id)
+      const updated = await toggleItemAvailabilityApi(tenantId!, selectedCategory.id, item.id)
       setItems((prev) => prev.map((i) => (i.id === updated.id ? updated : i)))
     } catch (err) {
       setOpError(`toggle_${item.id}`, err, 'Failed to update availability.')
@@ -223,6 +226,14 @@ const MenuPage = () => {
   }
 
   if (loading) return <LoadingState message="Loading menu..." />
+
+  if (!tenantId) {
+    return (
+      <div className="rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-700">
+        Tenant context is missing. Please sign out and sign in again.
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col h-full">

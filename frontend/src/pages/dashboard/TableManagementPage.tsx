@@ -74,6 +74,37 @@ const TableManagementPage = () => {
     }
   }
 
+  const buildQrImageUrl = (qrCodeUrl: string | null) => {
+    if (!qrCodeUrl) return null
+    const absoluteUrl = qrCodeUrl.startsWith('http') ? qrCodeUrl : `${window.location.origin}${qrCodeUrl}`
+    return `https://quickchart.io/qr?size=180&text=${encodeURIComponent(absoluteUrl)}`
+  }
+
+  const printQr = (table: DiningTable) => {
+    const qrImage = buildQrImageUrl(table.qrCodeUrl)
+    if (!qrImage) return
+    const absoluteUrl = table.qrCodeUrl?.startsWith('http')
+      ? table.qrCodeUrl
+      : `${window.location.origin}${table.qrCodeUrl ?? ''}`
+    const html = `
+      <html>
+      <head><title>QR - Table ${table.tableNumber}</title></head>
+      <body style="font-family: Arial, sans-serif; text-align:center; padding:24px;">
+        <h2 style="margin-bottom:4px;">PlatterOps</h2>
+        <p style="margin-top:0;">Table ${table.tableNumber}</p>
+        <img src="${qrImage}" alt="QR" style="width:220px;height:220px;" />
+        <p style="font-size:12px; color:#666; margin-top:12px;">${absoluteUrl}</p>
+      </body>
+      </html>
+    `
+    const w = window.open('', '_blank')
+    if (!w) return
+    w.document.write(html)
+    w.document.close()
+    w.focus()
+    w.print()
+  }
+
   if (!tenantId) {
     return <p className="text-sm text-gray-500">Tenant context missing for table management.</p>
   }
@@ -120,7 +151,32 @@ const TableManagementPage = () => {
             <div key={table.id} className="flex items-center justify-between border-b border-gray-100 p-4 last:border-b-0">
               <div>
                 <p className="font-medium text-gray-800">Table {table.tableNumber}</p>
-                <p className="text-xs text-gray-500">Capacity {table.capacity} • QR {table.qrCodeUrl}</p>
+                <p className="text-xs text-gray-500">Capacity {table.capacity}</p>
+                {buildQrImageUrl(table.qrCodeUrl) && (
+                  <div className="mt-2 flex items-center gap-3">
+                    <img
+                      src={buildQrImageUrl(table.qrCodeUrl) ?? undefined}
+                      alt={`QR code for table ${table.tableNumber}`}
+                      className="h-16 w-16 rounded border border-gray-200 bg-white"
+                    />
+                    <div className="flex flex-col gap-1">
+                      <a
+                        href={table.qrCodeUrl ?? '#'}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-orange-600 hover:underline break-all"
+                      >
+                        {table.qrCodeUrl}
+                      </a>
+                      <button
+                        onClick={() => printQr(table)}
+                        className="w-fit rounded border border-gray-300 px-2 py-1 text-xs text-gray-700 hover:bg-gray-50"
+                      >
+                        Print QR Template
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <select

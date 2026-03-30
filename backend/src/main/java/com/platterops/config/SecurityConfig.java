@@ -97,6 +97,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/inventory/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN", "STAFF")
                 .requestMatchers(HttpMethod.POST, "/api/v1/inventory/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN", "STAFF")
                 .requestMatchers(HttpMethod.PUT, "/api/v1/inventory/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN", "STAFF")
+                .requestMatchers(HttpMethod.GET, "/api/v1/wastage/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN", "STAFF")
+                .requestMatchers(HttpMethod.POST, "/api/v1/wastage/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN", "STAFF")
                 .requestMatchers(HttpMethod.GET, "/api/v1/subscriptions/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN", "STAFF")
                 .requestMatchers(HttpMethod.POST, "/api/v1/subscriptions/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN", "STAFF")
                 .requestMatchers(HttpMethod.GET, "/api/v1/reviews/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN")

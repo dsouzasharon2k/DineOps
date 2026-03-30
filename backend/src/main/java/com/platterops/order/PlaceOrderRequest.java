@@ -1,6 +1,7 @@
 package com.platterops.order;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
@@ -12,7 +13,7 @@ public record PlaceOrderRequest(
         @NotNull(message = "Tenant ID is required") UUID tenantId,
         String tableNumber,
         String customerName,
-        String customerPhone,
+        @NotBlank(message = "Customer phone is required") String customerPhone,
         String customerEmail,
         String notes,
         String qrCodeSourceIdentifier,

@@ -40,19 +40,22 @@ public class AuthController {
     private final AccountLockoutService accountLockoutService;
     private final com.platterops.security.OtpService otpService;
     private final com.platterops.security.TwoFactorService twoFactorService;
+    private final com.platterops.notification.SmsGatewayService smsGatewayService;
 
     public AuthController(UserService userService,
                           JwtUtils jwtUtils,
                           RateLimitService rateLimitService,
                           AccountLockoutService accountLockoutService,
                           com.platterops.security.OtpService otpService,
-                          com.platterops.security.TwoFactorService twoFactorService) {
+                          com.platterops.security.TwoFactorService twoFactorService,
+                          com.platterops.notification.SmsGatewayService smsGatewayService) {
         this.userService = userService;
         this.jwtUtils = jwtUtils;
         this.rateLimitService = rateLimitService;
         this.accountLockoutService = accountLockoutService;
         this.otpService = otpService;
         this.twoFactorService = twoFactorService;
+        this.smsGatewayService = smsGatewayService;
     }
 
     @PostMapping("/login")
@@ -247,8 +250,8 @@ public class AuthController {
         if (phone == null || phone.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Phone number is required"));
         }
-        otpService.generateOtp(phone);
-        // In a real app, don't return the OTP in the response!
+        String otp = otpService.generateOtp(phone);
+        smsGatewayService.sendOtp(phone, otp);
         return ResponseEntity.ok(Map.of("message", "OTP sent successfully"));
     }
 
@@ -314,7 +317,11 @@ public class AuthController {
         }
 
         User user = userOpt.get();
-        otpService.generateOtp(user.getPhone() != null ? user.getPhone() : user.getEmail());
+        String target = user.getPhone() != null ? user.getPhone() : user.getEmail();
+        String otp = otpService.generateOtp(target);
+        if (user.getPhone() != null && !user.getPhone().isBlank()) {
+            smsGatewayService.sendOtp(user.getPhone(), otp);
+        }
         
         return ResponseEntity.ok(Map.of("message", "If an account exists, an OTP has been sent."));
     }

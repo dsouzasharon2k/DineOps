@@ -7,6 +7,7 @@ const NAV_MAIN_TENANT = [
   { to: '/dashboard/menu', label: 'Menu' },
   { to: '/dashboard/kitchen', label: 'Kitchen' },
   { to: '/dashboard/inventory', label: 'Inventory' },
+  { to: '/dashboard/wastage', label: 'Wastage' },
   { to: '/dashboard/reviews', label: 'Reviews' },
   { to: '/dashboard/tickets', label: 'Issues / Tickets' },
 ]
@@ -21,6 +22,7 @@ const NAV_MAIN_SUPER_ADMIN = [
 const NAV_SETTINGS_TENANT = [
   { to: '/dashboard/tables', label: 'Tables' },
   { to: '/dashboard/subscription', label: 'Subscription' },
+  { to: '/dashboard/security/2fa', label: 'Security (2FA)' },
 ]
 
 const DashboardLayout = () => {

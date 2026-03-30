@@ -1,5 +1,7 @@
 export interface LoginResponse {
-  token: string
+  token?: string
+  requires2fa?: boolean
+  tempToken?: string
 }
 
 export interface ApiError {
