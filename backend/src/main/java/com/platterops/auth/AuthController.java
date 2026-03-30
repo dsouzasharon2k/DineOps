@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.time.Duration;
 import java.util.Objects;
+import java.util.UUID;
 
 // import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -37,15 +38,21 @@ public class AuthController {
     private final JwtUtils jwtUtils;
     private final RateLimitService rateLimitService;
     private final AccountLockoutService accountLockoutService;
+    private final com.platterops.security.OtpService otpService;
+    private final com.platterops.security.TwoFactorService twoFactorService;
 
     public AuthController(UserService userService,
                           JwtUtils jwtUtils,
                           RateLimitService rateLimitService,
-                          AccountLockoutService accountLockoutService) {
+                          AccountLockoutService accountLockoutService,
+                          com.platterops.security.OtpService otpService,
+                          com.platterops.security.TwoFactorService twoFactorService) {
         this.userService = userService;
         this.jwtUtils = jwtUtils;
         this.rateLimitService = rateLimitService;
         this.accountLockoutService = accountLockoutService;
+        this.otpService = otpService;
+        this.twoFactorService = twoFactorService;
     }
 
     @PostMapping("/login")
@@ -91,7 +98,19 @@ public class AuthController {
             return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
         }
 
-        // Step 5: Generate a JWT token containing userId, email, role, and tenantId
+        // Step 5: Check if 2FA is required
+        if (user.isTwoFactorEnabled()) {
+            log.info("login_requires_2fa userId={} email={}", user.getId(), user.getEmail());
+            // Create a short-lived temporary token for 2FA verification
+            // This is NOT the final access token
+            String tempToken = jwtUtils.generateAccessToken(user.getId(), user.getEmail(), "2FA_PENDING", null);
+            return ResponseEntity.ok(Map.of(
+                    "requires2fa", true,
+                    "tempToken", tempToken
+            ));
+        }
+
+        // Step 6: Generate a JWT token containing userId, email, role, and tenantId
         // This token is returned to the client and used for all future requests
         String token = jwtUtils.generateAccessToken(
                 user.getId(),
@@ -145,11 +164,189 @@ public class AuthController {
                 .body(Map.of("token", accessToken));
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout() {
+    @PostMapping("/2fa/verify")
+    public ResponseEntity<?> verify2fa(@RequestBody Map<String, Object> request, 
+                                      @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Missing temp token"));
+        }
+        String tempToken = authHeader.substring(7);
+        if (!jwtUtils.validateAccessToken(tempToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid or expired temp token"));
+        }
+
+        var claims = jwtUtils.parseToken(tempToken);
+        if (!"2FA_PENDING".equals(claims.get("role"))) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid token purpose"));
+        }
+
+        String email = claims.getSubject();
+        User user = userService.findByEmail(email).orElseThrow();
+        
+        int code = (int) request.get("code");
+        if (!twoFactorService.verifyCode(user.getTwoFactorSecret(), code)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid 2FA code"));
+        }
+
+        String token = jwtUtils.generateAccessToken(
+                user.getId(),
+                user.getEmail(),
+                user.getRole().name(),
+                user.getTenant() != null ? user.getTenant().getId() : null
+        );
+        String refreshToken = jwtUtils.generateRefreshToken(user.getId(), user.getEmail());
+
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, clearRefreshCookie().toString())
-                .body(Map.of("message", "Logged out"));
+                .header(HttpHeaders.SET_COOKIE, buildRefreshCookie(refreshToken).toString())
+                .body(Map.of("token", token));
+    }
+
+    @PostMapping("/2fa/setup")
+    public ResponseEntity<?> setup2fa(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
+        // Only allow authenticated users to setup 2FA
+        User user = getCurrentUser(authHeader);
+        String secret = twoFactorService.generateSecret();
+        String qrCodeUrl = twoFactorService.getQrCodeUrl(user.getEmail(), "DineOps", secret);
+        
+        return ResponseEntity.ok(Map.of(
+                "secret", secret,
+                "qrCodeUrl", qrCodeUrl
+        ));
+    }
+
+    @PostMapping("/2fa/enable")
+    public ResponseEntity<?> enable2fa(@RequestBody Map<String, Object> request, 
+                                      @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
+        User user = getCurrentUser(authHeader);
+        String secret = (String) request.get("secret");
+        int code = (int) request.get("code");
+
+        if (twoFactorService.verifyCode(secret, code)) {
+            user.setTwoFactorSecret(secret);
+            user.setTwoFactorEnabled(true);
+            userService.updateUser(user); // Need to add this method or use save
+            return ResponseEntity.ok(Map.of("message", "2FA enabled successfully"));
+        } else {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid 2FA code"));
+        }
+    }
+
+    private User getCurrentUser(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing token");
+        }
+        String token = authHeader.substring(7);
+        var claims = jwtUtils.parseToken(token);
+        String email = claims.getSubject();
+        return userService.findByEmail(email).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+    }
+
+    @PostMapping("/otp/send")
+    public ResponseEntity<?> sendOtp(@RequestBody Map<String, String> request) {
+        String phone = request.get("phone");
+        if (phone == null || phone.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Phone number is required"));
+        }
+        otpService.generateOtp(phone);
+        // In a real app, don't return the OTP in the response!
+        return ResponseEntity.ok(Map.of("message", "OTP sent successfully"));
+    }
+
+    @PostMapping("/otp/login")
+    public ResponseEntity<?> otpLogin(@RequestBody Map<String, String> request) {
+        String phone = request.get("phone");
+        String otp = request.get("otp");
+
+        if (phone == null || otp == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Phone and OTP are required"));
+        }
+
+        if (!otpService.verifyOtp(phone, otp)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid or expired OTP"));
+        }
+
+        Optional<User> userOpt = userService.findByPhone(phone);
+        User user;
+        if (userOpt.isEmpty()) {
+            // Auto-register customer if they don't exist
+            user = new User();
+            user.setPhone(phone);
+            user.setName("Customer " + phone.substring(Math.max(0, phone.length() - 4)));
+            user.setRole(UserRole.CUSTOMER);
+            user.setActive(true);
+            user = userService.createUser(user, UUID.randomUUID().toString()); // Random password for OTP users
+        } else {
+            user = userOpt.get();
+        }
+
+        if (!user.isActive()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Account is inactive"));
+        }
+
+        String token = jwtUtils.generateAccessToken(
+                user.getId(),
+                user.getEmail() != null ? user.getEmail() : user.getPhone(),
+                user.getRole().name(),
+                user.getTenant() != null ? user.getTenant().getId() : null
+        );
+        String refreshToken = jwtUtils.generateRefreshToken(user.getId(), user.getEmail() != null ? user.getEmail() : user.getPhone());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, buildRefreshCookie(refreshToken).toString())
+                .body(Map.of("token", token, "user", toUserResponse(user)));
+    }
+
+    @PostMapping("/password/forgot")
+    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> request) {
+        String identifier = request.get("identifier"); // email or phone
+        if (identifier == null || identifier.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Identifier is required"));
+        }
+
+        Optional<User> userOpt = userService.findByEmail(identifier);
+        if (userOpt.isEmpty()) {
+            userOpt = userService.findByPhone(identifier);
+        }
+
+        if (userOpt.isEmpty()) {
+            // Generic message for security
+            return ResponseEntity.ok(Map.of("message", "If an account exists, an OTP has been sent."));
+        }
+
+        User user = userOpt.get();
+        otpService.generateOtp(user.getPhone() != null ? user.getPhone() : user.getEmail());
+        
+        return ResponseEntity.ok(Map.of("message", "If an account exists, an OTP has been sent."));
+    }
+
+    @PostMapping("/password/reset")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
+        String identifier = request.get("identifier");
+        String otp = request.get("otp");
+        String newPassword = request.get("newPassword");
+
+        if (identifier == null || otp == null || newPassword == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Identifier, OTP, and new password are required"));
+        }
+
+        Optional<User> userOpt = userService.findByEmail(identifier);
+        if (userOpt.isEmpty()) {
+            userOpt = userService.findByPhone(identifier);
+        }
+
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid identifier"));
+        }
+
+        User user = userOpt.get();
+        String phoneOrEmail = user.getPhone() != null ? user.getPhone() : user.getEmail();
+
+        if (!otpService.verifyOtp(phoneOrEmail, otp)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid or expired OTP"));
+        }
+
+        userService.updatePassword(user, newPassword);
+        return ResponseEntity.ok(Map.of("message", "Password reset successfully"));
     }
 
     @PostMapping("/register")

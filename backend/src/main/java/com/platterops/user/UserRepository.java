@@ -11,6 +11,7 @@ import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmail(String email);
+    Optional<User> findByPhone(String phone);
 
     @Query("SELECT u FROM User u WHERE u.deletionScheduledFor IS NOT NULL AND u.deletionScheduledFor <= :cutoff AND u.deletedAt IS NULL")
     List<User> findScheduledForDeletionBefore(@Param("cutoff") LocalDateTime cutoff);

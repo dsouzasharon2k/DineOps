@@ -39,6 +39,8 @@ class OrderServiceTest {
     private OrderStatusHistoryRepository orderStatusHistoryRepository;
     private MenuItemRepository menuItemRepository;
     private RestaurantRepository restaurantRepository;
+    private com.platterops.restaurant.zone.QrCodeRepository qrCodeRepository;
+    private com.platterops.restaurant.zone.MenuItemZonePriceRepository menuItemZonePriceRepository;
     private OrderService orderService;
 
     @BeforeEach
@@ -47,6 +49,8 @@ class OrderServiceTest {
         orderStatusHistoryRepository = Mockito.mock(OrderStatusHistoryRepository.class);
         menuItemRepository = Mockito.mock(MenuItemRepository.class);
         restaurantRepository = Mockito.mock(RestaurantRepository.class);
+        qrCodeRepository = Mockito.mock(com.platterops.restaurant.zone.QrCodeRepository.class);
+        menuItemZonePriceRepository = Mockito.mock(com.platterops.restaurant.zone.MenuItemZonePriceRepository.class);
         DiningTableService diningTableService = Mockito.mock(DiningTableService.class);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
         SubscriptionService subscriptionService = Mockito.mock(SubscriptionService.class);
@@ -57,7 +61,9 @@ class OrderServiceTest {
                 orderStatusHistoryRepository,
                 diningTableService,
                 notificationService,
-                subscriptionService
+                subscriptionService,
+                qrCodeRepository,
+                menuItemZonePriceRepository
         );
     }
 
@@ -213,6 +219,7 @@ class OrderServiceTest {
                 null,
                 null,
                 null,
+                null,
                 List.of(new PlaceOrderRequest.OrderItemRequest(menuItemId, 1))
         );
 
@@ -256,6 +263,7 @@ class OrderServiceTest {
 
         PlaceOrderRequest request = new PlaceOrderRequest(
                 tenantId,
+                null,
                 null,
                 null,
                 null,

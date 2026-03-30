@@ -25,10 +25,14 @@ public class AnalyticsService {
 
     private final OrderRepository orderRepository;
     private final OrderStatusHistoryRepository orderStatusHistoryRepository;
+    private final com.platterops.inventory.WastageRepository wastageRepository;
 
-    public AnalyticsService(OrderRepository orderRepository, OrderStatusHistoryRepository orderStatusHistoryRepository) {
+    public AnalyticsService(OrderRepository orderRepository, 
+                            OrderStatusHistoryRepository orderStatusHistoryRepository,
+                            com.platterops.inventory.WastageRepository wastageRepository) {
         this.orderRepository = orderRepository;
         this.orderStatusHistoryRepository = orderStatusHistoryRepository;
+        this.wastageRepository = wastageRepository;
     }
 
     public AnalyticsSummaryResponse getSummary(UUID tenantId) {
@@ -42,6 +46,26 @@ public class AnalyticsService {
                 .filter(order -> order.getCreatedAt() != null && order.getCreatedAt().toLocalDate().isEqual(today))
                 .mapToLong(order -> order.getTotalAmount() == null ? 0 : order.getTotalAmount())
                 .sum();
+        
+        long todaysCOGS = orders.stream()
+                .filter(order -> order.getCreatedAt() != null && order.getCreatedAt().toLocalDate().isEqual(today))
+                .flatMap(order -> order.getItems().stream())
+                .mapToLong(item -> {
+                    // This is an estimate based on current baseCost since we don't snapshot baseCost in OrderItem yet
+                    // In a production system, baseCost should be snapshotted in OrderItem
+                    return item.getMenuItem() != null && item.getMenuItem().getBaseCost() != null 
+                           ? item.getMenuItem().getBaseCost() * item.getQuantity() 
+                           : 0L;
+                })
+                .sum();
+
+        List<com.platterops.inventory.Wastage> wastageEvents = wastageRepository.findByTenantIdOrderByCreatedAtDesc(tenantId);
+        long todaysWastage = wastageEvents.stream()
+                .filter(w -> w.getCreatedAt() != null && w.getCreatedAt().toLocalDate().isEqual(today))
+                .mapToLong(w -> w.getUnitCost() * w.getQuantity())
+                .sum();
+
+        long todaysProfit = todaysRevenue - todaysCOGS - todaysWastage;
         double averageOrderValue = todaysOrderCount == 0 ? 0 : (double) todaysRevenue / todaysOrderCount;
 
         Map<OrderStatus, Long> statusMap = new EnumMap<>(OrderStatus.class);
@@ -89,6 +113,8 @@ public class AnalyticsService {
                 todaysOrderCount,
                 todaysRevenue,
                 averageOrderValue,
+                todaysProfit,
+                todaysWastage,
                 ordersByStatus,
                 revenueTrend,
                 topMenuItems,

@@ -26,8 +26,21 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    public User updateUser(User user) {
+        return userRepository.save(user);
+    }
+
+    public void updatePassword(User user, String newRawPassword) {
+        user.setPasswordHash(passwordEncoder.encode(newRawPassword));
+        userRepository.save(user);
+    }
+
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    public Optional<User> findByPhone(String phone) {
+        return userRepository.findByPhone(phone);
     }
 
     public boolean checkPassword(String rawPassword, String storedHash) {

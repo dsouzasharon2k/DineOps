@@ -23,6 +23,7 @@ class MenuItemServiceTest {
     private MenuItemRepository menuItemRepository;
     private MenuCategoryRepository menuCategoryRepository;
     private RestaurantRepository restaurantRepository;
+    private com.platterops.restaurant.zone.MenuItemZonePriceRepository menuItemZonePriceRepository;
     private MenuItemService menuItemService;
 
     @BeforeEach
@@ -30,7 +31,8 @@ class MenuItemServiceTest {
         menuItemRepository = Mockito.mock(MenuItemRepository.class);
         menuCategoryRepository = Mockito.mock(MenuCategoryRepository.class);
         restaurantRepository = Mockito.mock(RestaurantRepository.class);
-        menuItemService = new MenuItemService(menuItemRepository, menuCategoryRepository, restaurantRepository);
+        menuItemZonePriceRepository = Mockito.mock(com.platterops.restaurant.zone.MenuItemZonePriceRepository.class);
+        menuItemService = new MenuItemService(menuItemRepository, menuCategoryRepository, restaurantRepository, menuItemZonePriceRepository);
     }
 
     @Test

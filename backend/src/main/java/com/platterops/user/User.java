@@ -24,7 +24,7 @@ public class User extends AuditableEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true)
     private String email;
 
     @Column(name = "password_hash", nullable = false)
@@ -46,6 +46,12 @@ public class User extends AuditableEntity {
     @Column(name = "deletion_scheduled_for")
     private LocalDateTime deletionScheduledFor;
 
+    @Column(name = "two_factor_enabled", nullable = false)
+    private boolean twoFactorEnabled = false;
+
+    @Column(name = "two_factor_secret")
+    private String twoFactorSecret;
+
     // Getters and Setters
     public UUID getId() { return id; }
     public Restaurant getTenant() { return tenant; }
@@ -66,4 +72,8 @@ public class User extends AuditableEntity {
     public void setDeletionRequestedAt(LocalDateTime deletionRequestedAt) { this.deletionRequestedAt = deletionRequestedAt; }
     public LocalDateTime getDeletionScheduledFor() { return deletionScheduledFor; }
     public void setDeletionScheduledFor(LocalDateTime deletionScheduledFor) { this.deletionScheduledFor = deletionScheduledFor; }
+    public boolean isTwoFactorEnabled() { return twoFactorEnabled; }
+    public void setTwoFactorEnabled(boolean twoFactorEnabled) { this.twoFactorEnabled = twoFactorEnabled; }
+    public String getTwoFactorSecret() { return twoFactorSecret; }
+    public void setTwoFactorSecret(String twoFactorSecret) { this.twoFactorSecret = twoFactorSecret; }
 }

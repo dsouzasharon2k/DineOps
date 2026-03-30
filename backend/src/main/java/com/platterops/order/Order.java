@@ -61,6 +61,14 @@ public class Order extends AuditableEntity {
     @Column(name = "customer_data_erased_at")
     private java.time.LocalDateTime customerDataErasedAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "dining_zone_id")
+    private com.platterops.restaurant.zone.DiningZone diningZone;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "qr_code_id")
+    private com.platterops.restaurant.zone.QrCode qrCode;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", nullable = false)
     private PaymentStatus paymentStatus = PaymentStatus.UNPAID;
@@ -113,4 +121,8 @@ public class Order extends AuditableEntity {
     public void setPaymentProviderPaymentRef(String paymentProviderPaymentRef) { this.paymentProviderPaymentRef = paymentProviderPaymentRef; }
     public List<OrderItem> getItems() { return items; }
     public void setItems(List<OrderItem> items) { this.items = items; }
+    public com.platterops.restaurant.zone.DiningZone getDiningZone() { return diningZone; }
+    public void setDiningZone(com.platterops.restaurant.zone.DiningZone diningZone) { this.diningZone = diningZone; }
+    public com.platterops.restaurant.zone.QrCode getQrCode() { return qrCode; }
+    public void setQrCode(com.platterops.restaurant.zone.QrCode qrCode) { this.qrCode = qrCode; }
 }

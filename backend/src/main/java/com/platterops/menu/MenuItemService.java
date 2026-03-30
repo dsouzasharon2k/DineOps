@@ -5,7 +5,10 @@ import com.platterops.dto.MenuItemResponse.NutritionRow;
 import com.platterops.exception.EntityNotFoundException;
 import com.platterops.restaurant.Restaurant;
 import com.platterops.restaurant.RestaurantRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,13 +21,16 @@ public class MenuItemService {
     private final MenuItemRepository menuItemRepository;
     private final MenuCategoryRepository menuCategoryRepository;
     private final RestaurantRepository restaurantRepository;
+    private final com.platterops.restaurant.zone.MenuItemZonePriceRepository menuItemZonePriceRepository;
 
     public MenuItemService(MenuItemRepository menuItemRepository,
                            MenuCategoryRepository menuCategoryRepository,
-                           RestaurantRepository restaurantRepository) {
+                           RestaurantRepository restaurantRepository,
+                           com.platterops.restaurant.zone.MenuItemZonePriceRepository menuItemZonePriceRepository) {
         this.menuItemRepository = menuItemRepository;
         this.menuCategoryRepository = menuCategoryRepository;
         this.restaurantRepository = restaurantRepository;
+        this.menuItemZonePriceRepository = menuItemZonePriceRepository;
     }
 
     // Get all available items for a category
@@ -39,10 +45,31 @@ public class MenuItemService {
                 .toList();
     }
 
-    // Get full menu for a restaurant (all items grouped will be done on frontend)
+    @Cacheable(value = "menu:items", key = "#tenantId")
+    public List<MenuItemResponse> getItemResponsesByTenant(UUID tenantId) {
+        return menuItemRepository.findByTenant_IdAndIsAvailableTrueOrderByDisplayOrderAsc(tenantId).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    // Get full menu for a restaurant
     public List<MenuItem> getItemsByTenant(UUID tenantId) {
         return menuItemRepository
                 .findByTenant_IdAndIsAvailableTrueOrderByDisplayOrderAsc(tenantId);
+    }
+
+    public List<MenuItemResponse> getZoneAwareItemResponses(UUID tenantId, UUID zoneId) {
+        List<MenuItem> items = getItemsByTenant(tenantId);
+        return items.stream()
+                .map(item -> {
+                    Integer price = item.getPrice();
+                    var override = menuItemZonePriceRepository.findByMenuItemIdAndDiningZoneId(item.getId(), zoneId);
+                    if (override.isPresent() && override.get().getOverridePrice() != null) {
+                        price = override.get().getOverridePrice().intValue();
+                    }
+                    return toResponse(item, price);
+                })
+                .toList();
     }
 
     // Create a new menu item
@@ -66,6 +93,8 @@ public class MenuItemService {
         return menuItemRepository.save(item);
     }
 
+    @Transactional
+    @CacheEvict(value = "menu:items", key = "#tenantId")
     public MenuItemResponse createItemResponse(UUID tenantId, UUID categoryId, CreateMenuItemRequest request) {
         return toResponse(createItem(tenantId, categoryId, request));
     }
@@ -99,13 +128,17 @@ public class MenuItemService {
     }
 
     private MenuItemResponse toResponse(MenuItem item) {
+        return toResponse(item, item.getPrice());
+    }
+
+    private MenuItemResponse toResponse(MenuItem item, Integer price) {
         return new MenuItemResponse(
                 item.getId(),
                 item.getTenant().getId(),
                 item.getCategory().getId(),
                 item.getName(),
                 item.getDescription(),
-                item.getPrice(),
+                price,
                 item.getImageUrl(),
                 item.isVegetarian(),
                 item.isAvailable(),

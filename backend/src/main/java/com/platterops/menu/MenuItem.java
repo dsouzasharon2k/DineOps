@@ -62,6 +62,9 @@ public class MenuItem extends AuditableEntity {
     @Column(name = "spice_level")
     private Integer spiceLevel;
 
+    @Column(name = "base_cost")
+    private Long baseCost;
+
     // Getters and Setters
     public UUID getId() { return id; }
     public Restaurant getTenant() { return tenant; }
@@ -92,4 +95,6 @@ public class MenuItem extends AuditableEntity {
     public void setIngredients(String ingredients) { this.ingredients = ingredients; }
     public Integer getSpiceLevel() { return spiceLevel; }
     public void setSpiceLevel(Integer spiceLevel) { this.spiceLevel = spiceLevel; }
-}
+    public Long getBaseCost() { return baseCost; }
+    public void setBaseCost(Long baseCost) { this.baseCost = baseCost; }
+}

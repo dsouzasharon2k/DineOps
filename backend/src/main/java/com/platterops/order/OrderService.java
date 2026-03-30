@@ -65,6 +65,9 @@ public class OrderService {
     private final DiningTableService diningTableService;
     private final NotificationService notificationService;
     private final SubscriptionService subscriptionService;
+    private final com.platterops.restaurant.zone.QrCodeRepository qrCodeRepository;
+    private final com.platterops.restaurant.zone.MenuItemZonePriceRepository menuItemZonePriceRepository;
+    
     @Autowired(required = false)
     private InventoryService inventoryService;
     @Autowired(required = false)
@@ -76,7 +79,9 @@ public class OrderService {
                         OrderStatusHistoryRepository orderStatusHistoryRepository,
                         DiningTableService diningTableService,
                         NotificationService notificationService,
-                        SubscriptionService subscriptionService) {
+                        SubscriptionService subscriptionService,
+                        com.platterops.restaurant.zone.QrCodeRepository qrCodeRepository,
+                        com.platterops.restaurant.zone.MenuItemZonePriceRepository menuItemZonePriceRepository) {
         this.orderRepository = orderRepository;
         this.menuItemRepository = menuItemRepository;
         this.restaurantRepository = restaurantRepository;
@@ -84,6 +89,8 @@ public class OrderService {
         this.diningTableService = diningTableService;
         this.notificationService = notificationService;
         this.subscriptionService = subscriptionService;
+        this.qrCodeRepository = qrCodeRepository;
+        this.menuItemZonePriceRepository = menuItemZonePriceRepository;
     }
 
     // Place a new order - validates items, calculates total, saves everything
@@ -108,7 +115,20 @@ public class OrderService {
 
         Order order = new Order();
         order.setTenant(restaurant);
-        if (safeRequest.tableNumber() != null && !safeRequest.tableNumber().isBlank()) {
+
+        // Resolve QR Context
+        if (trimToNull(safeRequest.qrCodeSourceIdentifier()) != null) {
+            qrCodeRepository.findBySourceIdentifier(safeRequest.qrCodeSourceIdentifier())
+                .ifPresent(qr -> {
+                    order.setQrCode(qr);
+                    order.setDiningZone(qr.getDiningZone());
+                    if (qr.getTableNumber() != null) {
+                        order.setTableNumber(qr.getTableNumber().toString());
+                    }
+                });
+        }
+
+        if (order.getTableNumber() == null && safeRequest.tableNumber() != null && !safeRequest.tableNumber().isBlank()) {
             String tableNum = safeRequest.tableNumber().trim();
             order.setTableNumber(tableNum);
             diningTableService.findOptionalByTenantAndNumber(safeRequest.tenantId(), tableNum)
@@ -132,14 +152,24 @@ public class OrderService {
             orderItem.setTenantRestaurant(restaurant);
             orderItem.setMenuItem(menuItem);
             orderItem.setName(menuItem.getName());
-            orderItem.setPrice(menuItem.getPrice());
+            
+            // Resolve contextual price
+            int finalPrice = menuItem.getPrice();
+            if (order.getDiningZone() != null) {
+                var override = menuItemZonePriceRepository.findByMenuItemIdAndDiningZoneId(menuItem.getId(), order.getDiningZone().getId());
+                if (override.isPresent() && override.get().getOverridePrice() != null) {
+                    finalPrice = override.get().getOverridePrice().intValue();
+                }
+            }
+            
+            orderItem.setPrice(finalPrice);
             orderItem.setQuantity(itemReq.quantity());
             if (inventoryService != null) {
                 inventoryService.consumeStockIfTracked(menuItem, itemReq.quantity());
             }
 
             order.getItems().add(orderItem);
-            total += menuItem.getPrice() * itemReq.quantity();
+            total += finalPrice * itemReq.quantity();
         }
 
         order.setTotalAmount(total);
@@ -313,36 +343,68 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found"));
 
-        int totalPaise = order.getTotalAmount();
-        int taxableAmountPaise = (int) Math.round(totalPaise / (1 + (GST_PERCENT / 100.0)));
-        int gstAmountPaise = totalPaise - taxableAmountPaise;
+        try (java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream()) {
+            com.lowagie.text.Document document = new com.lowagie.text.Document();
+            com.lowagie.text.pdf.PdfWriter.getInstance(document, out);
+            document.open();
 
-        StringBuilder invoice = new StringBuilder();
-        invoice.append("PlatterOps Invoice\n");
-        invoice.append("====================\n");
-        invoice.append("Order ID: ").append(order.getId()).append('\n');
-        invoice.append("Date: ").append(order.getCreatedAt()).append("\n\n");
-        invoice.append("Restaurant: ").append(order.getTenant().getName()).append('\n');
-        invoice.append("FSSAI: ").append(order.getTenant().getFssaiLicense() == null ? "N/A" : order.getTenant().getFssaiLicense()).append('\n');
-        invoice.append("GSTIN: ").append(order.getTenant().getGstNumber() == null ? "N/A" : order.getTenant().getGstNumber()).append("\n\n");
-        invoice.append("Items:\n");
-        for (OrderItem item : order.getItems()) {
-            int lineAmountPaise = item.getPrice() * item.getQuantity();
-            invoice.append("- ")
-                    .append(item.getName())
-                    .append(" x ")
-                    .append(item.getQuantity())
-                    .append(" = INR ")
-                    .append(String.format("%.2f", lineAmountPaise / 100.0))
-                    .append('\n');
+            // Font styles
+            com.lowagie.text.Font titleFont = com.lowagie.text.FontFactory.getFont(com.lowagie.text.FontFactory.HELVETICA_BOLD, 18);
+            com.lowagie.text.Font headerFont = com.lowagie.text.FontFactory.getFont(com.lowagie.text.FontFactory.HELVETICA_BOLD, 12);
+            com.lowagie.text.Font normalFont = com.lowagie.text.FontFactory.getFont(com.lowagie.text.FontFactory.HELVETICA, 10);
+
+            // Title
+            com.lowagie.text.Paragraph title = new com.lowagie.text.Paragraph("PlatterOps - Tax Invoice", titleFont);
+            title.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);
+            document.add(title);
+            document.add(new com.lowagie.text.Paragraph(" "));
+
+            // Restaurant & Order Info
+            document.add(new com.lowagie.text.Paragraph("Restaurant: " + order.getTenant().getName(), headerFont));
+            document.add(new com.lowagie.text.Paragraph("Order ID: " + order.getId(), normalFont));
+            document.add(new com.lowagie.text.Paragraph("Date: " + order.getCreatedAt(), normalFont));
+            if (order.getTenant().getFssaiLicense() != null) 
+                document.add(new com.lowagie.text.Paragraph("FSSAI: " + order.getTenant().getFssaiLicense(), normalFont));
+            if (order.getTenant().getGstNumber() != null)
+                document.add(new com.lowagie.text.Paragraph("GSTIN: " + order.getTenant().getGstNumber(), normalFont));
+            document.add(new com.lowagie.text.Paragraph(" "));
+
+            // Items Table
+            com.lowagie.text.pdf.PdfPTable table = new com.lowagie.text.pdf.PdfPTable(4);
+            table.setWidthPercentage(100);
+            table.addCell(new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase("Item Name", headerFont)));
+            table.addCell(new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase("Price", headerFont)));
+            table.addCell(new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase("Qty", headerFont)));
+            table.addCell(new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase("Total", headerFont)));
+
+            for (OrderItem item : order.getItems()) {
+                table.addCell(new com.lowagie.text.Phrase(item.getName(), normalFont));
+                table.addCell(new com.lowagie.text.Phrase(String.format("%.2f", item.getPrice() / 100.0), normalFont));
+                table.addCell(new com.lowagie.text.Phrase(String.valueOf(item.getQuantity()), normalFont));
+                table.addCell(new com.lowagie.text.Phrase(String.format("%.2f", (item.getPrice() * item.getQuantity()) / 100.0), normalFont));
+            }
+            document.add(table);
+            document.add(new com.lowagie.text.Paragraph(" "));
+
+            // Totals
+            int totalPaise = order.getTotalAmount();
+            int taxableAmountPaise = (int) Math.round(totalPaise / (1 + (GST_PERCENT / 100.0)));
+            int gstAmountPaise = totalPaise - taxableAmountPaise;
+
+            document.add(new com.lowagie.text.Paragraph("Taxable Amount: INR " + String.format("%.2f", taxableAmountPaise / 100.0), normalFont));
+            document.add(new com.lowagie.text.Paragraph("GST (5%): INR " + String.format("%.2f", gstAmountPaise / 100.0), normalFont));
+            document.add(new com.lowagie.text.Paragraph("Grand Total: INR " + String.format("%.2f", totalPaise / 100.0), headerFont));
+            document.add(new com.lowagie.text.Paragraph(" "));
+            
+            document.add(new com.lowagie.text.Paragraph("Payment Method: " + order.getPaymentMethod(), normalFont));
+            document.add(new com.lowagie.text.Paragraph("Payment Status: " + order.getPaymentStatus(), normalFont));
+
+            document.close();
+            return out.toByteArray();
+        } catch (Exception e) {
+            log.error("Failed to generate PDF for order {}: {}", orderId, e.getMessage());
+            return "Error generating PDF".getBytes(StandardCharsets.UTF_8);
         }
-        invoice.append('\n');
-        invoice.append("Taxable Amount: INR ").append(String.format("%.2f", taxableAmountPaise / 100.0)).append('\n');
-        invoice.append("GST (").append(GST_PERCENT).append("%): INR ").append(String.format("%.2f", gstAmountPaise / 100.0)).append('\n');
-        invoice.append("Grand Total: INR ").append(String.format("%.2f", totalPaise / 100.0)).append('\n');
-        invoice.append("Payment: ").append(order.getPaymentMethod()).append(" / ").append(order.getPaymentStatus()).append('\n');
-
-        return invoice.toString().getBytes(StandardCharsets.UTF_8);
     }
 
     private boolean isTransitionAllowed(OrderStatus from, OrderStatus to) {

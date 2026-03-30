@@ -15,6 +15,7 @@ public record PlaceOrderRequest(
         String customerPhone,
         String customerEmail,
         String notes,
+        String qrCodeSourceIdentifier,
         @NotEmpty(message = "Order must contain at least one item") @Valid List<OrderItemRequest> items
 ) {
     // Each item in the order

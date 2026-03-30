@@ -33,6 +33,8 @@ class AuthControllerTest {
     private JwtUtils jwtUtils;
     private RateLimitService rateLimitService;
     private AccountLockoutService accountLockoutService;
+    private com.platterops.security.OtpService otpService;
+    private com.platterops.security.TwoFactorService twoFactorService;
     private AuthController authController;
 
     @BeforeEach
@@ -41,9 +43,11 @@ class AuthControllerTest {
         jwtUtils = Mockito.mock(JwtUtils.class);
         rateLimitService = Mockito.mock(RateLimitService.class);
         accountLockoutService = Mockito.mock(AccountLockoutService.class);
+        otpService = Mockito.mock(com.platterops.security.OtpService.class);
+        twoFactorService = Mockito.mock(com.platterops.security.TwoFactorService.class);
         when(rateLimitService.isAllowed(Mockito.anyString(), Mockito.anyInt(), Mockito.any(Duration.class))).thenReturn(true);
         when(accountLockoutService.isLocked(Mockito.anyString())).thenReturn(false);
-        authController = new AuthController(userService, jwtUtils, rateLimitService, accountLockoutService);
+        authController = new AuthController(userService, jwtUtils, rateLimitService, accountLockoutService, otpService, twoFactorService);
     }
 
     @Test

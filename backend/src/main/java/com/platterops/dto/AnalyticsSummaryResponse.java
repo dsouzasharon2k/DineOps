@@ -6,6 +6,8 @@ public record AnalyticsSummaryResponse(
         long todaysOrderCount,
         long todaysRevenue,
         double averageOrderValue,
+        long todaysProfit,
+        long todaysWastage,
         List<StatusCount> ordersByStatus,
         List<RevenuePoint> revenueTrend,
         List<ItemCount> topMenuItems,
