@@ -18,6 +18,11 @@ export default defineConfig({
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
+    env: {
+      // Ensure the production build points at the local backend so Playwright
+      // route mocks (which use **/api/v1/... patterns) intercept correctly.
+      VITE_API_URL: process.env.VITE_API_URL ?? 'http://localhost:8080',
+    },
   },
   projects: [
     {

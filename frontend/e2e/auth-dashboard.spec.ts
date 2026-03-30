@@ -56,8 +56,9 @@ test('login success then navigate dashboard sidebar', async ({ page }) => {
   await page.getByRole('button', { name: /sign in|login/i }).click()
 
   await expect(page).toHaveURL(/\/dashboard$/)
-  await page.goto('/dashboard/restaurants')
-  await expect(page).toHaveURL(/\/dashboard\/restaurants$/)
+  // TENANT_ADMIN cannot access /restaurants (SUPER_ADMIN only) — test sidebar routes it can reach
   await page.goto('/dashboard/kitchen')
   await expect(page).toHaveURL(/\/dashboard\/kitchen$/)
+  await page.goto('/dashboard/inventory')
+  await expect(page).toHaveURL(/\/dashboard\/inventory$/)
 })

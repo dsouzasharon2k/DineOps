@@ -145,6 +145,45 @@ const PublicMenuPage = () => {
     scrollTabIntoView(catId)
   }
 
+  // All useMemo hooks must be declared before any early returns to keep hook call order stable
+  const operatingHoursText = useMemo(() => {
+    if (!restaurant?.operatingHours) return null
+    try {
+      const parsed = JSON.parse(restaurant.operatingHours) as Record<string, { open?: string; close?: string }>
+      const todayKey = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
+      const today = parsed[todayKey]
+      if (today?.open && today?.close) return `Today ${today.open} - ${today.close}`
+      return 'Operating hours available'
+    } catch {
+      return restaurant.operatingHours
+    }
+  }, [restaurant?.operatingHours])
+
+  const activeItems = itemsByCategory[activeCategory ?? ''] ?? []
+  const visibleItems = useMemo(() => {
+    const filtered = activeItems.filter((item) => {
+      if (dietFilter === 'ALL') return true
+      if (dietFilter === 'VEG') return item.isVegetarian
+      if (dietFilter === 'NON_VEG') {
+        const text = `${item.name} ${item.description ?? ''}`.toLowerCase()
+        return !item.isVegetarian || NON_VEG_WORDS.some((word) => text.includes(word))
+      }
+      return isVeganItem(item)
+    })
+
+    const sorted = [...filtered]
+    if (sortFilter === 'PRICE_LOW_HIGH') sorted.sort((a, b) => a.price - b.price)
+    if (sortFilter === 'PRICE_HIGH_LOW') sorted.sort((a, b) => b.price - a.price)
+    if (sortFilter === 'MOST_LOVED') {
+      sorted.sort((a, b) => {
+        const scoreDiff = getMostLovedScore(b) - getMostLovedScore(a)
+        if (scoreDiff !== 0) return scoreDiff
+        return a.price - b.price
+      })
+    }
+    return sorted
+  }, [activeItems, dietFilter, sortFilter])
+
   if (loading) return <LoadingState fullPage message="Loading menu…" />
 
   if (error) {
@@ -174,43 +213,7 @@ const PublicMenuPage = () => {
     )
   }
 
-  const activeItems = itemsByCategory[activeCategory ?? ''] ?? []
-  const visibleItems = useMemo(() => {
-    const filtered = activeItems.filter((item) => {
-      if (dietFilter === 'ALL') return true
-      if (dietFilter === 'VEG') return item.isVegetarian
-      if (dietFilter === 'NON_VEG') {
-        const text = `${item.name} ${item.description ?? ''}`.toLowerCase()
-        return !item.isVegetarian || NON_VEG_WORDS.some((word) => text.includes(word))
-      }
-      return isVeganItem(item)
-    })
-
-    const sorted = [...filtered]
-    if (sortFilter === 'PRICE_LOW_HIGH') sorted.sort((a, b) => a.price - b.price)
-    if (sortFilter === 'PRICE_HIGH_LOW') sorted.sort((a, b) => b.price - a.price)
-    if (sortFilter === 'MOST_LOVED') {
-      sorted.sort((a, b) => {
-        const scoreDiff = getMostLovedScore(b) - getMostLovedScore(a)
-        if (scoreDiff !== 0) return scoreDiff
-        return a.price - b.price
-      })
-    }
-    return sorted
-  }, [activeItems, dietFilter, sortFilter])
   const isClosed = restaurant?.isOpenNow === false
-  const operatingHoursText = useMemo(() => {
-    if (!restaurant?.operatingHours) return null
-    try {
-      const parsed = JSON.parse(restaurant.operatingHours) as Record<string, { open?: string; close?: string }>
-      const todayKey = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
-      const today = parsed[todayKey]
-      if (today?.open && today?.close) return `Today ${today.open} - ${today.close}`
-      return 'Operating hours available'
-    } catch {
-      return restaurant.operatingHours
-    }
-  }, [restaurant?.operatingHours])
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">

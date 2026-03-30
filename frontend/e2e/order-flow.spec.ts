@@ -128,9 +128,9 @@ test('public menu to place order to track status', async ({ page }) => {
   })
 
   await page.goto(`/menu/${tenantId}`)
-  await page.getByRole('button', { name: 'ADD' }).click()
-  await page.getByRole('button', { name: 'View Order' }).click()
-  await page.getByRole('button', { name: /Place Order/ }).click()
+  await page.getByRole('button', { name: /Add Paneer Tikka/i }).click()
+  await page.getByRole('button', { name: /View order/i }).click()
+  await page.getByRole('button', { name: /Place Order/i }).click()
   await expect(page).toHaveURL(new RegExp(`/menu/${tenantId}/order/${orderId}`))
   await expect(page.getByRole('heading', { name: 'Order Placed' })).toBeVisible()
 })
