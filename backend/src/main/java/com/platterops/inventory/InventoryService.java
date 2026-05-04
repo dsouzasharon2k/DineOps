@@ -47,6 +47,8 @@ public class InventoryService {
         inventory.setTenant(tenant);
         inventory.setQuantity(request.quantity());
         inventory.setLowStockThreshold(request.lowStockThreshold());
+        if (request.unit() != null) inventory.setUnit(request.unit());
+        if (request.vendorPhone() != null) inventory.setVendorPhone(request.vendorPhone());
         syncAvailability(menuItem, request.quantity());
         return toResponse(inventoryRepository.save(inventory));
     }
@@ -57,6 +59,8 @@ public class InventoryService {
                 .orElseThrow(() -> new EntityNotFoundException("Inventory record not found"));
         inventory.setQuantity(request.quantity());
         inventory.setLowStockThreshold(request.lowStockThreshold());
+        if (request.unit() != null) inventory.setUnit(request.unit());
+        if (request.vendorPhone() != null) inventory.setVendorPhone(request.vendorPhone());
         syncAvailability(inventory.getMenuItem(), request.quantity());
         return toResponse(inventoryRepository.save(inventory));
     }
@@ -87,6 +91,8 @@ public class InventoryService {
                 threshold,
                 quantity <= threshold,
                 inventory.getMenuItem().isAvailable(),
+                inventory.getUnit() == null ? "pcs" : inventory.getUnit(),
+                inventory.getVendorPhone(),
                 inventory.getCreatedAt(),
                 inventory.getUpdatedAt()
         );

@@ -15,4 +15,15 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     @Query("SELECT u FROM User u WHERE u.deletionScheduledFor IS NOT NULL AND u.deletionScheduledFor <= :cutoff AND u.deletedAt IS NULL")
     List<User> findScheduledForDeletionBefore(@Param("cutoff") LocalDateTime cutoff);
+
+        @Query("""
+                        SELECT DISTINCT u.email
+                        FROM User u
+                        WHERE u.tenant.id = :tenantId
+                            AND u.isActive = true
+                            AND u.email IS NOT NULL
+                            AND u.email <> ''
+                            AND u.role IN :roles
+                        """)
+        List<String> findActiveEmailsByTenantAndRoles(@Param("tenantId") UUID tenantId, @Param("roles") List<UserRole> roles);
 }

@@ -47,6 +47,12 @@ public class Restaurant extends AuditableEntity {
     @Column(name = "default_prep_time_minutes", nullable = false)
     private Integer defaultPrepTimeMinutes = 20;
 
+    @Column(name = "gst_rate_non_ac_percent", nullable = false)
+    private Integer gstRateNonAcPercent = 5;
+
+    @Column(name = "gst_rate_ac_percent", nullable = false)
+    private Integer gstRateAcPercent = 18;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RestaurantStatus status = RestaurantStatus.PENDING;
@@ -77,6 +83,10 @@ public class Restaurant extends AuditableEntity {
     public void setNotifyCustomerSms(boolean notifyCustomerSms) { this.notifyCustomerSms = notifyCustomerSms; }
     public Integer getDefaultPrepTimeMinutes() { return defaultPrepTimeMinutes; }
     public void setDefaultPrepTimeMinutes(Integer defaultPrepTimeMinutes) { this.defaultPrepTimeMinutes = defaultPrepTimeMinutes; }
+    public Integer getGstRateNonAcPercent() { return gstRateNonAcPercent; }
+    public void setGstRateNonAcPercent(Integer gstRateNonAcPercent) { this.gstRateNonAcPercent = gstRateNonAcPercent; }
+    public Integer getGstRateAcPercent() { return gstRateAcPercent; }
+    public void setGstRateAcPercent(Integer gstRateAcPercent) { this.gstRateAcPercent = gstRateAcPercent; }
     public RestaurantStatus getStatus() { return status; }
     public void setStatus(RestaurantStatus status) { this.status = status; }
 }

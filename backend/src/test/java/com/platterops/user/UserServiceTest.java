@@ -100,4 +100,36 @@ class UserServiceTest {
         // Assert
         assertTrue(result.isEmpty());
     }
+
+    @Test
+    void updatePassword_shouldInvalidateSessionsAndRotateTokenVersion() {
+        User user = new User();
+        user.setEmail("owner@dineops.com");
+        user.setRole(UserRole.TENANT_ADMIN);
+        user.setTokenVersion(2);
+        user.setRefreshTokenHash("old-hash");
+
+        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+
+        userService.updatePassword(user, "NewPasswordA1");
+
+        assertTrue(passwordEncoder.matches("NewPasswordA1", user.getPasswordHash()));
+        assertEquals(3, user.getTokenVersion());
+        assertNull(user.getRefreshTokenHash());
+    }
+
+    @Test
+    void storeAndMatchRefreshToken_shouldUseHashComparison() {
+        User user = new User();
+        user.setEmail("owner@dineops.com");
+        user.setRole(UserRole.TENANT_ADMIN);
+
+        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+
+        userService.storeRefreshToken(user, "refresh-token-value");
+
+        assertNotNull(user.getRefreshTokenHash());
+        assertTrue(userService.isRefreshTokenCurrent(user, "refresh-token-value"));
+        assertFalse(userService.isRefreshTokenCurrent(user, "different-token"));
+    }
 }

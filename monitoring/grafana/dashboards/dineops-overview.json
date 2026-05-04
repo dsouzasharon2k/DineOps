@@ -1,0 +1,46 @@
+{
+  "id": null,
+  "uid": "dineops-overview",
+  "title": "DineOps Overview",
+  "tags": ["dineops"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Backend HTTP Request Rate",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 9 },
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count[5m]))",
+          "legendFormat": "req/s",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "JVM Used Memory",
+      "gridPos": { "x": 0, "y": 9, "w": 12, "h": 7 },
+      "targets": [
+        {
+          "expr": "sum(jvm_memory_used_bytes)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Active DB Connections",
+      "gridPos": { "x": 12, "y": 9, "w": 12, "h": 7 },
+      "targets": [
+        {
+          "expr": "hikaricp_connections_active",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+}

@@ -2,7 +2,7 @@ package com.platterops.order;
 
 import com.platterops.menu.MenuItem;
 import com.platterops.menu.MenuItemRepository;
-import com.platterops.notification.NotificationService;
+import com.platterops.notification.OrderNotificationService;
 import com.platterops.restaurant.Restaurant;
 import com.platterops.restaurant.RestaurantRepository;
 import com.platterops.subscription.SubscriptionService;
@@ -26,6 +26,30 @@ import static org.mockito.Mockito.when;
 @SuppressWarnings("null")
 class OrderServiceTest {
 
+    private static void setEntityId(Object entity, UUID id) {
+        try {
+            java.lang.reflect.Field idField = entity.getClass().getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(entity, id);
+        } catch (ReflectiveOperationException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    private static void setAuditTimestamps(Order order, java.time.LocalDateTime value) {
+        try {
+            Class<?> base = order.getClass().getSuperclass();
+            java.lang.reflect.Field createdAt = base.getDeclaredField("createdAt");
+            java.lang.reflect.Field updatedAt = base.getDeclaredField("updatedAt");
+            createdAt.setAccessible(true);
+            updatedAt.setAccessible(true);
+            createdAt.set(order, value);
+            updatedAt.set(order, value);
+        } catch (ReflectiveOperationException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
     private static final Map<OrderStatus, Set<OrderStatus>> EXPECTED_ALLOWED_TRANSITIONS = Map.of(
             OrderStatus.PENDING, Set.of(OrderStatus.CONFIRMED, OrderStatus.CANCELLED),
             OrderStatus.CONFIRMED, Set.of(OrderStatus.PREPARING, OrderStatus.CANCELLED),
@@ -36,6 +60,7 @@ class OrderServiceTest {
     );
 
     private OrderRepository orderRepository;
+    private OrderDisputeRepository orderDisputeRepository;
     private OrderStatusHistoryRepository orderStatusHistoryRepository;
     private MenuItemRepository menuItemRepository;
     private RestaurantRepository restaurantRepository;
@@ -46,22 +71,26 @@ class OrderServiceTest {
     @BeforeEach
     void setUp() {
         orderRepository = Mockito.mock(OrderRepository.class);
+        orderDisputeRepository = Mockito.mock(OrderDisputeRepository.class);
         orderStatusHistoryRepository = Mockito.mock(OrderStatusHistoryRepository.class);
         menuItemRepository = Mockito.mock(MenuItemRepository.class);
         restaurantRepository = Mockito.mock(RestaurantRepository.class);
         qrCodeRepository = Mockito.mock(com.platterops.restaurant.zone.QrCodeRepository.class);
         menuItemZonePriceRepository = Mockito.mock(com.platterops.restaurant.zone.MenuItemZonePriceRepository.class);
         DiningTableService diningTableService = Mockito.mock(DiningTableService.class);
-        NotificationService notificationService = Mockito.mock(NotificationService.class);
+        OrderNotificationService notificationService = Mockito.mock(OrderNotificationService.class);
         SubscriptionService subscriptionService = Mockito.mock(SubscriptionService.class);
+        PaymentGatewayService paymentGatewayService = Mockito.mock(PaymentGatewayService.class);
         orderService = new OrderService(
                 orderRepository,
+                orderDisputeRepository,
                 menuItemRepository,
                 restaurantRepository,
                 orderStatusHistoryRepository,
                 diningTableService,
                 notificationService,
                 subscriptionService,
+                paymentGatewayService,
                 qrCodeRepository,
                 menuItemZonePriceRepository
         );
@@ -277,5 +306,81 @@ class OrderServiceTest {
         assertEquals(tenantId, order.getTenant().getId());
         assertEquals(1000, order.getTotalAmount());
         assertEquals(1, order.getItems().size());
+    }
+
+    @Test
+    void handlePaymentWebhook_duplicateForSameOrder_isIdempotent() {
+        UUID tenantId = UUID.randomUUID();
+        UUID orderId = UUID.randomUUID();
+        String providerOrderRef = "order_ref_1";
+        String providerPaymentRef = "pay_ref_1";
+
+        Restaurant tenant = new Restaurant();
+        try {
+            java.lang.reflect.Field idField = Restaurant.class.getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(tenant, tenantId);
+        } catch (ReflectiveOperationException ex) {
+            throw new RuntimeException(ex);
+        }
+
+        Order order = new Order();
+        setEntityId(order, orderId);
+        order.setTenant(tenant);
+        order.setStatus(OrderStatus.CONFIRMED);
+        order.setPaymentStatus(PaymentStatus.PAID);
+        order.setPaymentProviderOrderRef(providerOrderRef);
+        order.setPaymentProviderPaymentRef(providerPaymentRef);
+        order.setTotalAmount(1000);
+        setAuditTimestamps(order, java.time.LocalDateTime.now());
+
+        when(orderRepository.findByPaymentProviderOrderRef(providerOrderRef)).thenReturn(Optional.of(order));
+        when(orderRepository.findByPaymentProviderPaymentRef(providerPaymentRef)).thenReturn(Optional.of(order));
+
+        var response = orderService.handlePaymentWebhook(providerOrderRef, providerPaymentRef, true);
+
+        assertEquals(PaymentStatus.PAID, response.paymentStatus());
+        verify(orderRepository, Mockito.never()).save(any(Order.class));
+    }
+
+    @Test
+    void handlePaymentWebhook_reusedPaymentRefAcrossOrders_throwsIllegalArgumentException() {
+        UUID tenantId = UUID.randomUUID();
+        String providerOrderRef = "order_ref_current";
+        String reusedPaymentRef = "pay_ref_reused";
+
+        Restaurant tenant = new Restaurant();
+        try {
+            java.lang.reflect.Field idField = Restaurant.class.getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(tenant, tenantId);
+        } catch (ReflectiveOperationException ex) {
+            throw new RuntimeException(ex);
+        }
+
+        Order currentOrder = new Order();
+        setEntityId(currentOrder, UUID.randomUUID());
+        currentOrder.setTenant(tenant);
+        currentOrder.setStatus(OrderStatus.CONFIRMED);
+        currentOrder.setPaymentStatus(PaymentStatus.PENDING);
+        currentOrder.setPaymentProviderOrderRef(providerOrderRef);
+        currentOrder.setTotalAmount(1000);
+        setAuditTimestamps(currentOrder, java.time.LocalDateTime.now());
+
+        Order otherOrder = new Order();
+        setEntityId(otherOrder, UUID.randomUUID());
+        otherOrder.setTenant(tenant);
+        otherOrder.setStatus(OrderStatus.CONFIRMED);
+        otherOrder.setPaymentStatus(PaymentStatus.PAID);
+        otherOrder.setPaymentProviderPaymentRef(reusedPaymentRef);
+        otherOrder.setTotalAmount(1000);
+        setAuditTimestamps(otherOrder, java.time.LocalDateTime.now());
+
+        when(orderRepository.findByPaymentProviderOrderRef(providerOrderRef)).thenReturn(Optional.of(currentOrder));
+        when(orderRepository.findByPaymentProviderPaymentRef(reusedPaymentRef)).thenReturn(Optional.of(otherOrder));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> orderService.handlePaymentWebhook(providerOrderRef, reusedPaymentRef, true));
+        verify(orderRepository, Mockito.never()).save(any(Order.class));
     }
 }

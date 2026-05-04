@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -15,7 +16,7 @@ public class RateLimitService {
 
     private final StringRedisTemplate redisTemplate;
 
-    public RateLimitService(StringRedisTemplate redisTemplate) {
+    public RateLimitService(@Autowired(required = false) StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
@@ -23,6 +24,10 @@ public class RateLimitService {
         try {
             String safeKey = Objects.requireNonNull(key, "key must not be null");
             Duration safeWindow = Objects.requireNonNull(window, "window must not be null");
+            if (redisTemplate == null) {
+                // Redis not available in this profile (e.g., test); fail-open
+                return true;
+            }
             Long current = redisTemplate.opsForValue().increment(safeKey);
             if (current == null) {
                 return true;

@@ -77,7 +77,8 @@ class RestaurantOnboardingIntegrationTest {
                                   "name": "Spice Route",
                                   "address": "MG Road",
                                   "phone": "9999999999",
-                                  "cuisineType": "Indian"
+                                  "cuisineType": "Indian",
+                                  "fssaiLicense": "ABC12345XYZ9"
                                 }
                                 """))
                 .andExpect(status().isCreated())

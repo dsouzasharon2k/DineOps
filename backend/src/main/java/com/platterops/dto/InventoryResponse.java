@@ -14,6 +14,8 @@ public record InventoryResponse(
         Integer lowStockThreshold,
         boolean lowStock,
         boolean menuItemAvailable,
+        String unit,
+        String vendorPhone,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {}

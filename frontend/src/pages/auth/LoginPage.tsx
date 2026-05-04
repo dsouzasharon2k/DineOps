@@ -1,24 +1,47 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { loginApi } from '../../api/auth'
 import { useAuth } from '../../context/AuthContext'
 import { getApiErrorMessage } from '../../api/error'
+import { useI18n } from '../../i18n/I18nProvider'
+import ToastMessage from '../../components/ToastMessage'
+
+const loginSchema = z.object({
+  email: z.email('Enter a valid email address.'),
+  password: z.string().min(1, 'Password is required.'),
+})
+
+type LoginForm = z.infer<typeof loginSchema>
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   const navigate = useNavigate()
   const { login } = useAuth()
+  const { t } = useI18n()
 
-  const handleLogin = async () => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  })
+
+  const onSubmit = async (values: LoginForm) => {
     setError('')
     setLoading(true)
     try {
-      const data = await loginApi(email, password)
+      const data = await loginApi(values.email, values.password)
       if (data.requires2fa && data.tempToken) {
         sessionStorage.setItem('dineops_temp_2fa_token', data.tempToken)
         navigate('/auth/2fa/verify')
@@ -39,7 +62,7 @@ const LoginPage = () => {
 
   return (
     <main className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-md border border-gray-100">
+      <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-md rounded-2xl bg-white p-8 shadow-md border border-gray-100">
 
         {/* Logo mark */}
         <div className="flex items-center justify-center gap-2.5 mb-6">
@@ -52,52 +75,41 @@ const LoginPage = () => {
         </div>
 
         {/* Heading */}
-        <h1 className="text-2xl font-bold text-gray-900 mb-1 text-center">Welcome back</h1>
-        <p className="text-gray-500 text-sm mb-8 text-center">Sign in to your restaurant dashboard.</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-1 text-center">{t('login.welcome')}</h1>
+        <p className="text-gray-500 text-sm mb-8 text-center">{t('login.subtitle')}</p>
 
         {/* Error */}
-        {error && (
-          <div
-            role="alert"
-            aria-live="polite"
-            className="flex items-start gap-2 bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-lg mb-6"
-          >
-            <span className="mt-0.5 shrink-0">⚠</span>
-            <span>{error}</span>
-          </div>
-        )}
+        {error && <ToastMessage message={error} variant="error" onClose={() => setError('')} />}
 
         {/* Email */}
         <div className="mb-4">
           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-            Email
+            {t('login.email')}
           </label>
           <input
             id="email"
-            name="email"
             type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+            {...register('email')}
             placeholder="you@restaurant.com"
             autoComplete="email"
             className="w-full border border-gray-300 text-gray-900 placeholder-gray-400 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
           />
+          {errors.email && <p className="mt-1 text-xs text-red-500">{t('login.invalidEmail')}</p>}
         </div>
 
         {/* Password */}
         <div className="mb-8">
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-            Password
-          </label>
+          <div className="flex items-center justify-between mb-1">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              {t('login.password')}
+            </label>
+            <Link to="/forgot-password" className="text-xs text-orange-600 hover:underline">Forgot password?</Link>
+          </div>
           <div className="relative">
             <input
               id="password"
-              name="password"
               type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+              {...register('password')}
               placeholder="••••••••"
               autoComplete="current-password"
               className="w-full border border-gray-300 text-gray-900 placeholder-gray-400 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 pr-10"
@@ -119,12 +131,13 @@ const LoginPage = () => {
               )}
             </button>
           </div>
+          {errors.password && <p className="mt-1 text-xs text-red-500">{t('login.requiredPassword')}</p>}
         </div>
 
         {/* Sign in button */}
         <button
-          onClick={handleLogin}
-          disabled={loading || !email.trim() || !password}
+          type="submit"
+          disabled={loading}
           className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
@@ -136,13 +149,12 @@ const LoginPage = () => {
               Signing in…
             </span>
           ) : (
-            'Sign in'
+            t('common.signIn')
           )}
         </button>
 
         <p className="mt-4 text-center text-xs text-gray-500">
-          <Link to="/forgot-password" className="text-orange-600 hover:underline">Forgot password?</Link>
-          <span className="mx-2 text-gray-300">·</span>
+          Don&apos;t have an account?{' '}
           <Link to="/register" className="text-orange-600 hover:underline">Register</Link>
           <span className="mx-2 text-gray-300">·</span>
           <Link to="/otp-login" className="text-orange-600 hover:underline">OTP login</Link>
@@ -155,7 +167,7 @@ const LoginPage = () => {
           <Link to="/privacy" className="text-orange-600 hover:underline">Privacy Policy</Link>.
         </p>
 
-      </div>
+      </form>
     </main>
   )
 }

@@ -12,6 +12,14 @@
 
 ---
 
+## Portfolio / Hiring Pack
+
+- Resume bullets: `docs/RESUME_BULLET_PACK.md`
+- Interview prep (Full-Stack, QA, DevOps): `docs/INTERVIEW_PREP_FULLSTACK_QA_DEVOPS.md`
+- GitHub handoff index: `docs/GITHUB_HANDOFF_INDEX.md`
+
+---
+
 ## What Is PlatterOps?
 
 Restaurants typically operate across three disconnected audiences at once: a **customer** browsing a menu on their phone, a **kitchen team** watching for new orders, and an **admin** managing menus, staff, and billing — often with no single system tying it together.
@@ -134,7 +142,7 @@ push / PR → main or develop
 git clone https://github.com/dsouzasharon2k/PlatterOps.git
 cd PlatterOps
 
-cp .env.example .env
+cp .env.local.example .env
 # Set: POSTGRES_PASSWORD, DB_PASSWORD, JWT_SECRET, GF_SECURITY_ADMIN_PASSWORD
 ```
 
@@ -162,6 +170,16 @@ npm install
 npm run dev
 # App: http://localhost:5173
 ```
+
+---
+
+## Launch & Support Docs
+
+- Launch checklist: `docs/LAUNCH_CHECKLIST.md`
+- Rollback runbook: `docs/ROLLBACK_RUNBOOK.md`
+- Known issues: `docs/KNOWN_ISSUES.md`
+- Production readiness: `docs/PRODUCTION_READINESS.md`
+- Domain deploy guide: `docs/DEPLOY_SHARONDSOUZA.md`
 
 ---
 

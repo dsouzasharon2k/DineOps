@@ -1,4 +1,4 @@
--- V5: Link orders to dining zones and QR codes
+-- V28: Link orders to dining zones and QR codes
 -- Ensures pricing context is preserved
 
 ALTER TABLE orders ADD COLUMN dining_zone_id UUID REFERENCES dining_zones(id);

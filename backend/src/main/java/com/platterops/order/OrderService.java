@@ -2,14 +2,16 @@ package com.platterops.order;
 
 import com.platterops.audit.AuditedAction;
 import com.platterops.dto.OrderItemResponse;
+import com.platterops.dto.OrderDisputeResponse;
 import com.platterops.dto.OrderResponse;
 import com.platterops.dto.OrderStatusHistoryResponse;
 import com.platterops.dto.InitiatePaymentResponse;
+import com.platterops.dto.PageResponse;
 import com.platterops.dto.UserResponse;
 import com.platterops.exception.EntityNotFoundException;
 import com.platterops.menu.MenuItem;
 import com.platterops.menu.MenuItemRepository;
-import com.platterops.notification.NotificationService;
+import com.platterops.notification.OrderNotificationService;
 import com.platterops.restaurant.OperatingHoursParser;
 import com.platterops.restaurant.Restaurant;
 import com.platterops.restaurant.RestaurantRepository;
@@ -27,25 +29,35 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.nio.charset.StandardCharsets;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Objects;
+import java.util.Locale;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Async;
+
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @SuppressWarnings("null")
 public class OrderService {
 
     private static final Logger log = LoggerFactory.getLogger(OrderService.class);
-    private static final int GST_PERCENT = 5;
+    private static final String SAC_CODE_RESTAURANT_SERVICE = "996331";
+    private static final DateTimeFormatter INVOICE_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
     private static final int FALLBACK_PREP_TIME_MINUTES = 20;
+    private static final long HISTORICAL_PREP_LOOKBACK_DAYS = 90;
     private static final Map<OrderStatus, Set<OrderStatus>> ALLOWED_TRANSITIONS =
             new EnumMap<>(OrderStatus.class);
 
@@ -59,11 +71,12 @@ public class OrderService {
     }
 
     private final OrderRepository orderRepository;
+    private final OrderDisputeRepository orderDisputeRepository;
     private final MenuItemRepository menuItemRepository;
     private final RestaurantRepository restaurantRepository;
     private final OrderStatusHistoryRepository orderStatusHistoryRepository;
     private final DiningTableService diningTableService;
-    private final NotificationService notificationService;
+    private final OrderNotificationService notificationService;
     private final SubscriptionService subscriptionService;
     private final PaymentGatewayService paymentGatewayService;
     private final com.platterops.restaurant.zone.QrCodeRepository qrCodeRepository;
@@ -73,18 +86,22 @@ public class OrderService {
     private InventoryService inventoryService;
     @Autowired(required = false)
     private SimpMessagingTemplate messagingTemplate;
+    @Autowired(required = false)
+    private JdbcTemplate jdbcTemplate;
 
     public OrderService(OrderRepository orderRepository,
+                        OrderDisputeRepository orderDisputeRepository,
                         MenuItemRepository menuItemRepository,
                         RestaurantRepository restaurantRepository,
                         OrderStatusHistoryRepository orderStatusHistoryRepository,
                         DiningTableService diningTableService,
-                        NotificationService notificationService,
+                        OrderNotificationService notificationService,
                         SubscriptionService subscriptionService,
                         PaymentGatewayService paymentGatewayService,
                         com.platterops.restaurant.zone.QrCodeRepository qrCodeRepository,
                         com.platterops.restaurant.zone.MenuItemZonePriceRepository menuItemZonePriceRepository) {
         this.orderRepository = orderRepository;
+        this.orderDisputeRepository = orderDisputeRepository;
         this.menuItemRepository = menuItemRepository;
         this.restaurantRepository = restaurantRepository;
         this.orderStatusHistoryRepository = orderStatusHistoryRepository;
@@ -118,6 +135,7 @@ public class OrderService {
 
         Order order = new Order();
         order.setTenant(restaurant);
+        order.setInvoiceNumber(nextInvoiceNumber(restaurant.getId()));
 
         // Resolve QR Context
         if (trimToNull(safeRequest.qrCodeSourceIdentifier()) != null) {
@@ -167,6 +185,7 @@ public class OrderService {
             
             orderItem.setPrice(finalPrice);
             orderItem.setQuantity(itemReq.quantity());
+            orderItem.setCostAtOrder(menuItem.getBaseCost());
             if (inventoryService != null) {
                 inventoryService.consumeStockIfTracked(menuItem, itemReq.quantity());
             }
@@ -320,9 +339,47 @@ public class OrderService {
         String safeProviderOrderRef = Objects.requireNonNull(providerOrderRef, "providerOrderRef cannot be null");
         Order order = orderRepository.findByPaymentProviderOrderRef(safeProviderOrderRef)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found for providerOrderRef: " + safeProviderOrderRef));
-        order.setPaymentProviderPaymentRef(providerPaymentRef);
+        String safeProviderPaymentRef = trimToNull(providerPaymentRef);
+
+        if (safeProviderPaymentRef != null) {
+            orderRepository.findByPaymentProviderPaymentRef(safeProviderPaymentRef).ifPresent(existing -> {
+                if (!existing.getId().equals(order.getId())) {
+                    throw new IllegalArgumentException("Payment reference has already been processed for another order.");
+                }
+            });
+        }
+
+        if (order.getPaymentStatus() == PaymentStatus.PAID
+                && success
+                && Objects.equals(trimToNull(order.getPaymentProviderPaymentRef()), safeProviderPaymentRef)) {
+            return toResponse(order);
+        }
+        order.setPaymentProviderPaymentRef(safeProviderPaymentRef);
         order.setPaymentStatus(success ? PaymentStatus.PAID : PaymentStatus.FAILED);
         return toResponse(orderRepository.save(order));
+    }
+
+    private long nextInvoiceNumber(UUID tenantId) {
+        if (jdbcTemplate != null) {
+            try {
+                String sql = """
+                        INSERT INTO invoice_counters (tenant_id, last_invoice_number, updated_at)
+                        VALUES (?::uuid, 1, NOW())
+                        ON CONFLICT (tenant_id)
+                        DO UPDATE SET
+                            last_invoice_number = invoice_counters.last_invoice_number + 1,
+                            updated_at = NOW()
+                        RETURNING last_invoice_number
+                        """;
+                Long next = jdbcTemplate.queryForObject(sql, Long.class, tenantId.toString());
+                if (next != null && next > 0) {
+                    return next;
+                }
+            } catch (Exception ex) {
+                log.warn("invoice_counter_fallback tenantId={} reason={}", tenantId, ex.getMessage());
+            }
+        }
+        return orderRepository.findMaxInvoiceNumberByTenantId(tenantId) + 1;
     }
 
     public List<OrderStatusHistoryResponse> getStatusHistory(UUID orderId) {
@@ -344,6 +401,50 @@ public class OrderService {
                 .toList();
     }
 
+    public OrderDisputeResponse createDispute(UUID orderId, CreateOrderDisputeRequest request) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new EntityNotFoundException("Order not found"));
+
+        OrderDispute dispute = new OrderDispute();
+        dispute.setOrder(order);
+        dispute.setTenant(order.getTenant());
+        dispute.setIssueType(request.issueType().trim().toUpperCase(Locale.ROOT));
+        dispute.setDetails(request.details().trim());
+        dispute.setCustomerName(trimToNull(request.customerName()));
+        dispute.setCustomerPhone(trimToNull(request.customerPhone()));
+        dispute.setStatus("OPEN");
+        return toDisputeResponse(orderDisputeRepository.save(dispute));
+    }
+
+    public PageResponse<OrderDisputeResponse> getDisputes(UUID tenantId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<OrderDispute> disputes = orderDisputeRepository.findByTenantIdOrderByCreatedAtDesc(tenantId, pageable);
+        Page<OrderDisputeResponse> mapped = disputes.map(this::toDisputeResponse);
+        return PageResponse.from(mapped);
+    }
+
+    public PageResponse<OrderResponse> adminSearchOrders(
+            UUID tenantId,
+            OrderStatus status,
+            LocalDateTime fromInclusive,
+            LocalDateTime toExclusive,
+            String query,
+            int page,
+            int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Order> results = orderRepository.adminSearch(
+                tenantId,
+                status,
+                fromInclusive,
+                toExclusive,
+                trimToNull(query),
+                pageable
+        );
+        Page<OrderResponse> mapped = results.map(this::toResponse);
+        return PageResponse.from(mapped);
+    }
+
     public byte[] generateInvoicePdf(UUID orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found"));
@@ -359,50 +460,99 @@ public class OrderService {
             com.lowagie.text.Font normalFont = com.lowagie.text.FontFactory.getFont(com.lowagie.text.FontFactory.HELVETICA, 10);
 
             // Title
-            com.lowagie.text.Paragraph title = new com.lowagie.text.Paragraph("PlatterOps - Tax Invoice", titleFont);
+            com.lowagie.text.Paragraph title = new com.lowagie.text.Paragraph("TAX INVOICE", titleFont);
             title.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);
             document.add(title);
+            com.lowagie.text.Paragraph platformTag = new com.lowagie.text.Paragraph("Generated via DineOps", normalFont);
+            platformTag.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);
+            document.add(platformTag);
             document.add(new com.lowagie.text.Paragraph(" "));
 
-            // Restaurant & Order Info
-            document.add(new com.lowagie.text.Paragraph("Restaurant: " + order.getTenant().getName(), headerFont));
+            // Core invoice fields
+            String invoiceNumberText = order.getInvoiceNumber() == null
+                    ? String.valueOf(order.getId())
+                    : String.format("INV-%s-%06d", order.getTenant().getId().toString().substring(0, 6).toUpperCase(), order.getInvoiceNumber());
+            LocalDateTime invoiceDateTime = order.getCreatedAt() == null ? LocalDateTime.now() : order.getCreatedAt();
+            document.add(new com.lowagie.text.Paragraph("Invoice No: " + invoiceNumberText, headerFont));
+            document.add(new com.lowagie.text.Paragraph("Invoice Date: " + invoiceDateTime.format(INVOICE_DATE_TIME_FORMATTER), normalFont));
             document.add(new com.lowagie.text.Paragraph("Order ID: " + order.getId(), normalFont));
-            document.add(new com.lowagie.text.Paragraph("Date: " + order.getCreatedAt(), normalFont));
+            document.add(new com.lowagie.text.Paragraph(" "));
+
+            // Supplier details
+            document.add(new com.lowagie.text.Paragraph("Supplier Details", headerFont));
+            document.add(new com.lowagie.text.Paragraph("Restaurant: " + firstNonEmpty(order.getTenant().getName(), "N/A"), normalFont));
+            document.add(new com.lowagie.text.Paragraph("Address: " + firstNonEmpty(order.getTenant().getAddress(), "N/A"), normalFont));
             if (order.getTenant().getFssaiLicense() != null) 
                 document.add(new com.lowagie.text.Paragraph("FSSAI: " + order.getTenant().getFssaiLicense(), normalFont));
-            if (order.getTenant().getGstNumber() != null)
-                document.add(new com.lowagie.text.Paragraph("GSTIN: " + order.getTenant().getGstNumber(), normalFont));
+            document.add(new com.lowagie.text.Paragraph("GSTIN: " + firstNonEmpty(order.getTenant().getGstNumber(), "UNREGISTERED"), normalFont));
+            document.add(new com.lowagie.text.Paragraph("Place of Supply: " + firstNonEmpty(order.getTenant().getAddress(), "N/A"), normalFont));
+            document.add(new com.lowagie.text.Paragraph("Service Accounting Code (SAC): " + SAC_CODE_RESTAURANT_SERVICE, normalFont));
             document.add(new com.lowagie.text.Paragraph(" "));
 
-            // Items Table
-            com.lowagie.text.pdf.PdfPTable table = new com.lowagie.text.pdf.PdfPTable(4);
+            // Buyer details
+            document.add(new com.lowagie.text.Paragraph("Buyer Details", headerFont));
+            document.add(new com.lowagie.text.Paragraph("Customer: " + firstNonEmpty(order.getCustomerName(), "Walk-in customer"), normalFont));
+            document.add(new com.lowagie.text.Paragraph("Phone: " + firstNonEmpty(order.getCustomerPhone(), "N/A"), normalFont));
+            document.add(new com.lowagie.text.Paragraph(" "));
+
+            // Items Table with line-level GST breakup
+            int gstPercent = resolveGstPercent(order);
+            double halfGstRatePercent = gstPercent / 2.0;
+
+            com.lowagie.text.pdf.PdfPTable table = new com.lowagie.text.pdf.PdfPTable(8);
             table.setWidthPercentage(100);
+            table.setWidths(new float[]{3.4f, 1.4f, 0.9f, 1.3f, 1.4f, 1.2f, 1.2f, 1.4f});
             table.addCell(new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase("Item Name", headerFont)));
-            table.addCell(new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase("Price", headerFont)));
+            table.addCell(new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase("SAC", headerFont)));
             table.addCell(new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase("Qty", headerFont)));
-            table.addCell(new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase("Total", headerFont)));
+            table.addCell(new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase("Rate", headerFont)));
+            table.addCell(new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase("Taxable", headerFont)));
+            table.addCell(new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase("CGST " + halfGstRatePercent + "%", headerFont)));
+            table.addCell(new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase("SGST " + halfGstRatePercent + "%", headerFont)));
+            table.addCell(new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase("Line Total", headerFont)));
 
             for (OrderItem item : order.getItems()) {
+                long lineTotalPaise = (long) item.getPrice() * item.getQuantity();
+                long[] lineSplit = splitInclusiveTax(lineTotalPaise, gstPercent);
+                long lineTaxablePaise = lineSplit[0];
+                long lineGstPaise = lineSplit[1];
+                long lineCgstPaise = lineSplit[2];
+                long lineSgstPaise = lineSplit[3];
+
                 table.addCell(new com.lowagie.text.Phrase(item.getName(), normalFont));
-                table.addCell(new com.lowagie.text.Phrase(String.format("%.2f", item.getPrice() / 100.0), normalFont));
+                table.addCell(new com.lowagie.text.Phrase(SAC_CODE_RESTAURANT_SERVICE, normalFont));
                 table.addCell(new com.lowagie.text.Phrase(String.valueOf(item.getQuantity()), normalFont));
-                table.addCell(new com.lowagie.text.Phrase(String.format("%.2f", (item.getPrice() * item.getQuantity()) / 100.0), normalFont));
+                table.addCell(new com.lowagie.text.Phrase(toInr(item.getPrice()), normalFont));
+                table.addCell(new com.lowagie.text.Phrase(toInr(lineTaxablePaise), normalFont));
+                table.addCell(new com.lowagie.text.Phrase(toInr(lineCgstPaise), normalFont));
+                table.addCell(new com.lowagie.text.Phrase(toInr(lineSgstPaise), normalFont));
+                table.addCell(new com.lowagie.text.Phrase(toInr(lineTotalPaise), normalFont));
             }
             document.add(table);
             document.add(new com.lowagie.text.Paragraph(" "));
+            document.add(new com.lowagie.text.Paragraph("Line-level tax values are derived using the invoice GST rate.", normalFont));
+            document.add(new com.lowagie.text.Paragraph(" "));
 
-            // Totals
+            // Totals with GST breakup (CGST + SGST)
             int totalPaise = order.getTotalAmount();
-            int taxableAmountPaise = (int) Math.round(totalPaise / (1 + (GST_PERCENT / 100.0)));
-            int gstAmountPaise = totalPaise - taxableAmountPaise;
+            long[] totalSplit = splitInclusiveTax(totalPaise, gstPercent);
+            long taxableAmountPaise = totalSplit[0];
+            long gstAmountPaise = totalSplit[1];
+            long cgstPaise = totalSplit[2];
+            long sgstPaise = totalSplit[3];
 
-            document.add(new com.lowagie.text.Paragraph("Taxable Amount: INR " + String.format("%.2f", taxableAmountPaise / 100.0), normalFont));
-            document.add(new com.lowagie.text.Paragraph("GST (5%): INR " + String.format("%.2f", gstAmountPaise / 100.0), normalFont));
-            document.add(new com.lowagie.text.Paragraph("Grand Total: INR " + String.format("%.2f", totalPaise / 100.0), headerFont));
+            document.add(new com.lowagie.text.Paragraph("Taxable Amount: INR " + toInr(taxableAmountPaise), normalFont));
+            document.add(new com.lowagie.text.Paragraph("CGST (" + (gstPercent / 2.0) + "%): INR " + toInr(cgstPaise), normalFont));
+            document.add(new com.lowagie.text.Paragraph("SGST (" + (gstPercent / 2.0) + "%): INR " + toInr(sgstPaise), normalFont));
+            document.add(new com.lowagie.text.Paragraph("GST Total (" + gstPercent + "%): INR " + toInr(gstAmountPaise), normalFont));
+            document.add(new com.lowagie.text.Paragraph("Invoice Total: INR " + toInr(totalPaise), headerFont));
             document.add(new com.lowagie.text.Paragraph(" "));
             
             document.add(new com.lowagie.text.Paragraph("Payment Method: " + order.getPaymentMethod(), normalFont));
             document.add(new com.lowagie.text.Paragraph("Payment Status: " + order.getPaymentStatus(), normalFont));
+            document.add(new com.lowagie.text.Paragraph(" "));
+            document.add(new com.lowagie.text.Paragraph("Compliance note: Verify GST treatment and filing applicability for your jurisdiction with your CA.", normalFont));
+            document.add(new com.lowagie.text.Paragraph("System-generated invoice. Signature not required.", normalFont));
 
             document.close();
             return out.toByteArray();
@@ -412,8 +562,22 @@ public class OrderService {
         }
     }
 
+    @Async("invoiceTaskExecutor")
+    public CompletableFuture<byte[]> generateInvoicePdfAsync(UUID orderId) {
+        return CompletableFuture.completedFuture(generateInvoicePdf(orderId));
+    }
+
     private boolean isTransitionAllowed(OrderStatus from, OrderStatus to) {
         return ALLOWED_TRANSITIONS.getOrDefault(from, Set.of()).contains(to);
+    }
+
+    private int resolveGstPercent(Order order) {
+        int nonAcRate = order.getTenant().getGstRateNonAcPercent() == null ? 5 : order.getTenant().getGstRateNonAcPercent();
+        int acRate = order.getTenant().getGstRateAcPercent() == null ? 18 : order.getTenant().getGstRateAcPercent();
+        if (order.getDiningZone() != null && order.getDiningZone().isAirConditioned()) {
+            return acRate;
+        }
+        return nonAcRate;
     }
 
     private void saveStatusHistory(Order order, OrderStatus oldStatus, OrderStatus newStatus) {
@@ -437,6 +601,24 @@ public class OrderService {
     private static String firstNonEmpty(String a, String b) {
         if (a != null && !a.isBlank()) return a;
         return b;
+    }
+
+    private static String toInr(long paise) {
+        return String.format("%.2f", paise / 100.0);
+    }
+
+    private static long[] splitInclusiveTax(long grossPaise, int gstPercent) {
+        if (gstPercent <= 0) {
+            return new long[]{grossPaise, 0L, 0L, 0L};
+        }
+        BigDecimal gross = BigDecimal.valueOf(grossPaise);
+        BigDecimal taxable = gross.multiply(BigDecimal.valueOf(100L))
+                .divide(BigDecimal.valueOf(100L + gstPercent), 0, RoundingMode.HALF_UP);
+        long taxablePaise = taxable.longValue();
+        long gstPaise = grossPaise - taxablePaise;
+        long cgstPaise = gstPaise / 2;
+        long sgstPaise = gstPaise - cgstPaise;
+        return new long[]{taxablePaise, gstPaise, cgstPaise, sgstPaise};
     }
 
     private OrderResponse toResponse(Order order) {
@@ -495,7 +677,9 @@ public class OrderService {
     }
 
     private int computeHistoricalAveragePrepMinutes(UUID tenantId) {
-        List<OrderStatusHistory> history = orderStatusHistoryRepository.findByOrderTenantIdOrderByChangedAtAsc(tenantId);
+        LocalDateTime changedAfterInclusive = LocalDateTime.now().minusDays(HISTORICAL_PREP_LOOKBACK_DAYS);
+        List<OrderStatusHistory> history = orderStatusHistoryRepository
+            .findByOrderTenantIdAndChangedAtGreaterThanEqualOrderByChangedAtAsc(tenantId, changedAfterInclusive);
         Map<UUID, LocalDateTime> confirmedTimes = new java.util.HashMap<>();
         List<Long> durations = new java.util.ArrayList<>();
 
@@ -562,6 +746,20 @@ public class OrderService {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private OrderDisputeResponse toDisputeResponse(OrderDispute dispute) {
+        return new OrderDisputeResponse(
+                dispute.getId(),
+                dispute.getOrder().getId(),
+                dispute.getTenant().getId(),
+                dispute.getIssueType(),
+                dispute.getDetails(),
+                dispute.getCustomerName(),
+                dispute.getCustomerPhone(),
+                dispute.getStatus(),
+                dispute.getCreatedAt()
+        );
     }
 
     private void publishRealtimeUpdate(OrderResponse response) {

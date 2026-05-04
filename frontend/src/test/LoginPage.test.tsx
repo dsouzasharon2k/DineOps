@@ -1,7 +1,18 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import LoginPage from '../pages/auth/LoginPage'
 import { AuthProvider } from '../context/AuthContext'
+import { I18nProvider } from '../i18n/I18nProvider'
+
+const navigateMock = vi.fn()
+
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
+  return {
+    ...actual,
+    useNavigate: () => navigateMock,
+  }
+})
 
 // Mock the auth API so we don't make real HTTP calls in tests
 vi.mock('../api/auth', () => ({
@@ -14,11 +25,13 @@ describe('LoginPage', () => {
 
   test('renders login form correctly', () => {
     render(
-      <AuthProvider skipBootstrap>
-        <MemoryRouter>
-          <LoginPage />
-        </MemoryRouter>
-      </AuthProvider>
+      <I18nProvider>
+        <AuthProvider skipBootstrap>
+          <MemoryRouter>
+            <LoginPage />
+          </MemoryRouter>
+        </AuthProvider>
+      </I18nProvider>
     )
 
     // Check that key elements are present
@@ -34,11 +47,13 @@ describe('LoginPage', () => {
     })
 
     render(
-      <AuthProvider skipBootstrap>
-        <MemoryRouter>
-          <LoginPage />
-        </MemoryRouter>
-      </AuthProvider>
+      <I18nProvider>
+        <AuthProvider skipBootstrap>
+          <MemoryRouter>
+            <LoginPage />
+          </MemoryRouter>
+        </AuthProvider>
+      </I18nProvider>
     )
 
     // Fill in the form
@@ -57,13 +72,43 @@ describe('LoginPage', () => {
     expect(error).toBeInTheDocument()
   })
 
+  test('logs in and navigates to dashboard on happy path', async () => {
+    vi.mocked(loginApi).mockResolvedValueOnce({ token: 'token-value', requires2fa: false })
+
+    render(
+      <I18nProvider>
+        <AuthProvider skipBootstrap>
+          <MemoryRouter>
+            <LoginPage />
+          </MemoryRouter>
+        </AuthProvider>
+      </I18nProvider>
+    )
+
+    fireEvent.change(screen.getByPlaceholderText('you@restaurant.com'), {
+      target: { value: 'owner@dineops.com' },
+    })
+    fireEvent.change(screen.getByPlaceholderText('••••••••'), {
+      target: { value: 'PasswordA1' },
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
+
+    await waitFor(() => {
+      expect(loginApi).toHaveBeenCalledWith('owner@dineops.com', 'PasswordA1')
+      expect(navigateMock).toHaveBeenCalledWith('/dashboard')
+    })
+  })
+
   test('toggles password visibility', () => {
     render(
-      <AuthProvider skipBootstrap>
-        <MemoryRouter>
-          <LoginPage />
-        </MemoryRouter>
-      </AuthProvider>
+      <I18nProvider>
+        <AuthProvider skipBootstrap>
+          <MemoryRouter>
+            <LoginPage />
+          </MemoryRouter>
+        </AuthProvider>
+      </I18nProvider>
     )
 
     const passwordInput = screen.getByPlaceholderText('••••••••')

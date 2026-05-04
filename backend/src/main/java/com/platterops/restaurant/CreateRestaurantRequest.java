@@ -10,7 +10,11 @@ public record CreateRestaurantRequest(
         String phone,
         String cuisineType,
         String logoUrl,
-        String fssaiLicense,
+        @NotBlank(message = "FSSAI license is required")
+        @Pattern(
+                regexp = "^[0-9A-Za-z-]{8,20}$",
+                message = "FSSAI license format is invalid"
+        ) String fssaiLicense,
         @Pattern(
                 regexp = "^$|^[0-9A-Z]{15}$",
                 message = "GST number must be 15 uppercase alphanumeric characters"

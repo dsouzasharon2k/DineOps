@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+set -e
+
+echo "Running frontend TypeScript check..."
+cd frontend
+npm run typecheck

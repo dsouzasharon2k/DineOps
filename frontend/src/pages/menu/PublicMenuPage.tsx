@@ -12,6 +12,8 @@ import { getApiErrorMessage } from '../../api/error'
 import { formatCurrency } from '../../utils/currency'
 import LoadingState from '../../components/LoadingState'
 import EmptyState from '../../components/EmptyState'
+import ToastMessage from '../../components/ToastMessage'
+import { getOrCreateProductSessionId, trackProductEventApi } from '../../api/analytics'
 
 
 const toFoodItemCardData = (item: MenuItem): FoodItemCardData => {
@@ -133,6 +135,18 @@ const PublicMenuPage = () => {
       }
     }
     loadMenu()
+  }, [tenantId])
+
+  useEffect(() => {
+    if (!tenantId) return
+    trackProductEventApi({
+      tenantId,
+      eventType: 'MENU_VIEW',
+      sessionId: getOrCreateProductSessionId(),
+      source: 'web',
+    }).catch(() => {
+      // Non-blocking analytics telemetry.
+    })
   }, [tenantId])
 
   const scrollTabIntoView = (catId: string) => {
@@ -303,11 +317,7 @@ const PublicMenuPage = () => {
 
       {/* ─── Items ─── */}
       <div className="flex-1 max-w-2xl mx-auto w-full px-4 py-5 pb-32">
-        {error && (
-          <div className="mb-4 rounded-lg bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-600">
-            {error}
-          </div>
-        )}
+        {error && <ToastMessage message={error} variant="error" onClose={() => setError('')} />}
 
         {activeCategory && (
           <div className="mb-3">
@@ -374,6 +384,7 @@ const PublicMenuPage = () => {
                     name: item.name,
                     price: item.price,
                     isVegetarian: item.isVegetarian,
+                    allergens: item.allergens ?? [],
                   })
                 }
                 onRemove={() => removeItem(item.id)}

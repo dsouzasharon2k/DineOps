@@ -5,6 +5,7 @@ import com.platterops.dto.MenuItemResponse.NutritionRow;
 import com.platterops.exception.EntityNotFoundException;
 import com.platterops.restaurant.Restaurant;
 import com.platterops.restaurant.RestaurantRepository;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,7 @@ public class MenuItemService {
                 .findByCategory_IdAndIsAvailableTrueOrderByDisplayOrderAsc(categoryId);
     }
 
+    @Cacheable(value = "menu:items:by-category", key = "#categoryId")
     public List<MenuItemResponse> getItemResponsesByCategory(UUID categoryId) {
         return getItemsByCategory(categoryId).stream()
                 .map(this::toResponse)
@@ -58,6 +60,7 @@ public class MenuItemService {
                 .findByTenant_IdAndIsAvailableTrueOrderByDisplayOrderAsc(tenantId);
     }
 
+    @Cacheable(value = "menu:items:zone-aware", key = "#tenantId.toString() + ':' + #zoneId.toString()")
     public List<MenuItemResponse> getZoneAwareItemResponses(UUID tenantId, UUID zoneId) {
         List<MenuItem> items = getItemsByTenant(tenantId);
         return items.stream()
@@ -94,7 +97,11 @@ public class MenuItemService {
     }
 
     @Transactional
-    @CacheEvict(value = "menu:items", key = "#tenantId")
+    @Caching(evict = {
+            @CacheEvict(value = "menu:items", key = "#tenantId"),
+            @CacheEvict(value = "menu:items:by-category", key = "#categoryId"),
+            @CacheEvict(value = "menu:items:zone-aware", allEntries = true)
+    })
     public MenuItemResponse createItemResponse(UUID tenantId, UUID categoryId, CreateMenuItemRequest request) {
         return toResponse(createItem(tenantId, categoryId, request));
     }
@@ -111,6 +118,11 @@ public class MenuItemService {
     }
 
     // Toggle is_available on an item
+    @Caching(evict = {
+            @CacheEvict(value = "menu:items", allEntries = true),
+            @CacheEvict(value = "menu:items:by-category", allEntries = true),
+            @CacheEvict(value = "menu:items:zone-aware", allEntries = true)
+    })
     public MenuItemResponse toggleAvailability(UUID itemId) {
         MenuItem item = menuItemRepository.findById(itemId)
                 .orElseThrow(() -> new EntityNotFoundException("Item not found"));
@@ -119,6 +131,11 @@ public class MenuItemService {
     }
 
     // Soft delete - mark as unavailable instead of deleting
+    @Caching(evict = {
+            @CacheEvict(value = "menu:items", allEntries = true),
+            @CacheEvict(value = "menu:items:by-category", allEntries = true),
+            @CacheEvict(value = "menu:items:zone-aware", allEntries = true)
+    })
     public void deleteItem(UUID itemId) {
         MenuItem item = menuItemRepository.findById(itemId)
                 .orElseThrow(() -> new EntityNotFoundException("Item not found"));

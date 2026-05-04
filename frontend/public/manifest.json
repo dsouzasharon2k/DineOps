@@ -1,0 +1,19 @@
+{
+  "name": "PlatterOps",
+  "short_name": "PlatterOps",
+  "description": "Restaurant operations and direct-order management platform",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f97316",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["food", "business", "productivity"]
+}

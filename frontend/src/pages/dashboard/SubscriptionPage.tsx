@@ -2,17 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { getApiErrorMessage } from '../../api/error'
 import { getCurrentSubscriptionApi, startSubscriptionApi } from '../../api/subscriptions'
 import { useAuth } from '../../context/AuthContext'
+import { extractTenantId } from '../../utils/jwt'
 import type { Subscription, SubscriptionPlan } from '../../types/subscription'
-
-const extractTenantId = (token: string | null): string | null => {
-  if (!token) return null
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    return payload.tenantId ?? null
-  } catch {
-    return null
-  }
-}
 
 const plans: { id: SubscriptionPlan; label: string; monthlyLimit: string }[] = [
   { id: 'STARTER', label: 'Starter', monthlyLimit: '300 orders / month' },

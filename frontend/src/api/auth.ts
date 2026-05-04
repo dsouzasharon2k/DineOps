@@ -24,6 +24,7 @@ export const registerApi = async (payload: {
   email: string
   phone?: string
   password: string
+  acceptTerms: boolean
 }) => {
   const response = await axiosInstance.post('/api/v1/auth/register', payload)
   return response.data

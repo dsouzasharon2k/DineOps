@@ -10,6 +10,7 @@ import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
 import TwoFactorVerifyPage from './pages/auth/TwoFactorVerifyPage'
 import RestaurantsPage from './pages/dashboard/RestaurantsPage'
 import MenuPage from './pages/dashboard/MenuPage'
+import MenuInsightsPage from './pages/dashboard/MenuInsightsPage'
 import KitchenPage from './pages/dashboard/KitchenPage'
 import InventoryPage from './pages/dashboard/InventoryPage'
 import RestaurantOnboardingPage from './pages/dashboard/RestaurantOnboardingPage'
@@ -19,6 +20,7 @@ import PublicMenuPage from './pages/menu/PublicMenuPage'
 import OrderConfirmPage from './pages/menu/OrderConfirmPage'
 import OrderStatusPage from './pages/menu/OrderStatusPage'
 import OrderHistoryPage from './pages/menu/OrderHistoryPage'
+import QrScanRedirectPage from './pages/menu/QrScanRedirectPage'
 import PrivacyPage from './pages/legal/PrivacyPage'
 import TermsPage from './pages/legal/TermsPage'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -30,11 +32,22 @@ import ReviewsPage from './pages/dashboard/ReviewsPage'
 import TicketsPage from './pages/dashboard/TicketsPage'
 import WastagePage from './pages/dashboard/WastagePage'
 import TwoFactorSetupPage from './pages/dashboard/TwoFactorSetupPage'
+import CookieConsentBanner from './components/CookieConsentBanner'
+import FinancePage from './pages/dashboard/FinancePage'
+import AlertCenterPage from './pages/dashboard/AlertCenterPage'
+import StaffInsightsPage from './pages/dashboard/StaffInsightsPage'
+import CustomerInsightsPage from './pages/dashboard/CustomerInsightsPage'
+import DailyClosingReportPage from './pages/dashboard/DailyClosingReportPage'
+import VendorPage from './pages/dashboard/VendorPage'
+import MarketingPage from './pages/dashboard/MarketingPage'
 
 function App() {
+  const baseUrl = import.meta.env.BASE_URL || '/'
+  const basename = baseUrl === '/' ? undefined : baseUrl.replace(/\/$/, '')
+
   return (
     <ErrorBoundary>
-      <BrowserRouter>
+      <BrowserRouter basename={basename}>
         <Routes>
 
           {/* Public routes - no login required */}
@@ -58,6 +71,7 @@ function App() {
             <Route path="/otp-login" element={<OtpLoginPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/auth/2fa/verify" element={<TwoFactorVerifyPage />} />
+            <Route path="/menu/scan/:sourceIdentifier" element={<QrScanRedirectPage />} />
             <Route path="/menu/:tenantId" element={<PublicMenuPage />} />
             <Route path="/menu/:tenantId/confirm" element={<OrderConfirmPage />} />
             <Route path="/menu/:tenantId/order/:orderId" element={<OrderStatusPage />} />
@@ -109,6 +123,14 @@ function App() {
               }
             />
             <Route
+              path="/dashboard/menu-insights"
+              element={
+                <RoleRoute allowedRoles={['TENANT_ADMIN', 'STAFF']}>
+                  <MenuInsightsPage />
+                </RoleRoute>
+              }
+            />
+            <Route
               path="/dashboard/kitchen"
               element={
                 <RoleRoute allowedRoles={['TENANT_ADMIN', 'STAFF']}>
@@ -125,10 +147,66 @@ function App() {
               }
             />
             <Route
+              path="/dashboard/vendors"
+              element={
+                <RoleRoute allowedRoles={['TENANT_ADMIN']}>
+                  <VendorPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/dashboard/marketing"
+              element={
+                <RoleRoute allowedRoles={['TENANT_ADMIN']}>
+                  <MarketingPage />
+                </RoleRoute>
+              }
+            />
+            <Route
               path="/dashboard/wastage"
               element={
                 <RoleRoute allowedRoles={['TENANT_ADMIN', 'STAFF']}>
                   <WastagePage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/dashboard/finance"
+              element={
+                <RoleRoute allowedRoles={['TENANT_ADMIN', 'STAFF']}>
+                  <FinancePage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/dashboard/alerts"
+              element={
+                <RoleRoute allowedRoles={['TENANT_ADMIN', 'STAFF']}>
+                  <AlertCenterPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/dashboard/staff"
+              element={
+                <RoleRoute allowedRoles={['TENANT_ADMIN', 'STAFF']}>
+                  <StaffInsightsPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/dashboard/customers"
+              element={
+                <RoleRoute allowedRoles={['TENANT_ADMIN', 'STAFF']}>
+                  <CustomerInsightsPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/dashboard/closing-report"
+              element={
+                <RoleRoute allowedRoles={['TENANT_ADMIN', 'STAFF']}>
+                  <DailyClosingReportPage />
                 </RoleRoute>
               }
             />
@@ -179,6 +257,7 @@ function App() {
 
         </Routes>
       </BrowserRouter>
+      <CookieConsentBanner />
     </ErrorBoundary>
   )
 }

@@ -2,6 +2,7 @@ package com.platterops.security;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Duration;
 import java.util.Locale;
@@ -16,17 +17,23 @@ public class AccountLockoutService {
 
     private final StringRedisTemplate redisTemplate;
 
-    public AccountLockoutService(StringRedisTemplate redisTemplate) {
+    public AccountLockoutService(@Autowired(required = false) StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
     public boolean isLocked(String email) {
+        if (redisTemplate == null) {
+            return false;
+        }
         String key = lockKey(Objects.requireNonNull(email, "email must not be null"));
         Boolean exists = redisTemplate.hasKey(key);
         return Boolean.TRUE.equals(exists);
     }
 
     public void recordFailedAttempt(String email) {
+        if (redisTemplate == null) {
+            return;
+        }
         String safeEmail = Objects.requireNonNull(email, "email must not be null");
         String failedKey = failedAttemptsKey(safeEmail);
         Long attempts = redisTemplate.opsForValue().increment(failedKey);
@@ -45,6 +52,9 @@ public class AccountLockoutService {
     }
 
     public void clearFailures(String email) {
+        if (redisTemplate == null) {
+            return;
+        }
         String safeEmail = Objects.requireNonNull(email, "email must not be null");
         redisTemplate.delete(failedAttemptsKey(safeEmail));
         redisTemplate.delete(lockKey(safeEmail));

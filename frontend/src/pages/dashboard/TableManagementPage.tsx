@@ -3,18 +3,17 @@ import { createTableApi, deleteTableApi, getTablesApi, updateTableApi } from '..
 import type { DiningTable, DiningTableStatus } from '../../types/table'
 import { getApiErrorMessage } from '../../api/error'
 import { useAuth } from '../../context/AuthContext'
-
-const extractTenantId = (token: string | null): string | null => {
-  if (!token) return null
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    return payload.tenantId ?? null
-  } catch {
-    return null
-  }
-}
+import { extractTenantId } from '../../utils/jwt'
+import ToastMessage from '../../components/ToastMessage'
 
 const STATUSES: DiningTableStatus[] = ['AVAILABLE', 'OCCUPIED', 'RESERVED', 'OUT_OF_SERVICE']
+type QrTemplate = 'CLASSIC' | 'MINIMAL' | 'STANDEE'
+
+const QR_TEMPLATES: { value: QrTemplate; label: string }[] = [
+  { value: 'CLASSIC', label: 'Classic Card' },
+  { value: 'MINIMAL', label: 'Minimal Label' },
+  { value: 'STANDEE', label: 'Table Standee' },
+]
 
 const TableManagementPage = () => {
   const { token } = useAuth()
@@ -22,6 +21,7 @@ const TableManagementPage = () => {
   const [tables, setTables] = useState<DiningTable[]>([])
   const [tableNumber, setTableNumber] = useState('')
   const [capacity, setCapacity] = useState(4)
+  const [qrTemplate, setQrTemplate] = useState<QrTemplate>('CLASSIC')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -80,23 +80,62 @@ const TableManagementPage = () => {
     return `https://quickchart.io/qr?size=180&text=${encodeURIComponent(absoluteUrl)}`
   }
 
+  const buildPrintHtml = (table: DiningTable, qrImage: string, absoluteUrl: string, template: QrTemplate) => {
+    const safeTableNumber = String(table.tableNumber)
+    if (template === 'MINIMAL') {
+      return `
+        <html>
+        <head><title>QR - Table ${safeTableNumber}</title></head>
+        <body style="font-family: Arial, sans-serif; text-align:center; padding:24px;">
+          <div style="display:inline-block; border:1px dashed #bbb; border-radius:10px; padding:16px 18px;">
+            <p style="margin:0 0 10px 0; font-size:12px; letter-spacing:0.6px; color:#666;">SCAN TO ORDER</p>
+            <img src="${qrImage}" alt="QR" style="width:200px;height:200px;" />
+            <p style="margin:10px 0 0 0; font-size:16px; font-weight:700;">Table ${safeTableNumber}</p>
+          </div>
+          <p style="font-size:11px; color:#888; margin-top:12px;">${absoluteUrl}</p>
+        </body>
+        </html>
+      `
+    }
+
+    if (template === 'STANDEE') {
+      return `
+        <html>
+        <head><title>QR - Table ${safeTableNumber}</title></head>
+        <body style="font-family: Arial, sans-serif; padding:18px;">
+          <div style="max-width:360px; margin:0 auto; border:2px solid #111; border-radius:14px; padding:18px; text-align:center;">
+            <p style="margin:0; font-size:12px; color:#444; letter-spacing:0.8px;">WELCOME TO</p>
+            <h2 style="margin:4px 0 8px 0; font-size:24px;">DineOps</h2>
+            <p style="margin:0 0 12px 0; font-size:18px; font-weight:700;">Table ${safeTableNumber}</p>
+            <img src="${qrImage}" alt="QR" style="width:240px;height:240px; border:1px solid #ddd; border-radius:10px;" />
+            <p style="margin:12px 0 0 0; font-size:13px; color:#333;">Scan to view menu and place your order</p>
+            <p style="font-size:11px; color:#777; margin-top:8px;">${absoluteUrl}</p>
+          </div>
+        </body>
+        </html>
+      `
+    }
+
+    return `
+      <html>
+      <head><title>QR - Table ${safeTableNumber}</title></head>
+      <body style="font-family: Arial, sans-serif; text-align:center; padding:24px;">
+        <h2 style="margin-bottom:4px;">PlatterOps</h2>
+        <p style="margin-top:0;">Table ${safeTableNumber}</p>
+        <img src="${qrImage}" alt="QR" style="width:220px;height:220px;" />
+        <p style="font-size:12px; color:#666; margin-top:12px;">${absoluteUrl}</p>
+      </body>
+      </html>
+    `
+  }
+
   const printQr = (table: DiningTable) => {
     const qrImage = buildQrImageUrl(table.qrCodeUrl)
     if (!qrImage) return
     const absoluteUrl = table.qrCodeUrl?.startsWith('http')
       ? table.qrCodeUrl
       : `${window.location.origin}${table.qrCodeUrl ?? ''}`
-    const html = `
-      <html>
-      <head><title>QR - Table ${table.tableNumber}</title></head>
-      <body style="font-family: Arial, sans-serif; text-align:center; padding:24px;">
-        <h2 style="margin-bottom:4px;">PlatterOps</h2>
-        <p style="margin-top:0;">Table ${table.tableNumber}</p>
-        <img src="${qrImage}" alt="QR" style="width:220px;height:220px;" />
-        <p style="font-size:12px; color:#666; margin-top:12px;">${absoluteUrl}</p>
-      </body>
-      </html>
-    `
+    const html = buildPrintHtml(table, qrImage, absoluteUrl, qrTemplate)
     const w = window.open('', '_blank')
     if (!w) return
     w.document.write(html)
@@ -113,8 +152,21 @@ const TableManagementPage = () => {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-800">Table Management</h1>
+        <div className="flex items-center gap-2">
+          <label htmlFor="qr-template" className="text-xs font-medium text-gray-600">Print template</label>
+          <select
+            id="qr-template"
+            value={qrTemplate}
+            onChange={(e) => setQrTemplate(e.target.value as QrTemplate)}
+            className="rounded border border-gray-300 px-2 py-1 text-xs"
+          >
+            {QR_TEMPLATES.map((template) => (
+              <option key={template.value} value={template.value}>{template.label}</option>
+            ))}
+          </select>
+        </div>
       </div>
-      {error && <p className="mb-3 rounded bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
+      {error && <ToastMessage message={error} variant="error" onClose={() => setError('')} />}
 
       <div className="mb-4 rounded-xl bg-white p-4 shadow-sm">
         <p className="mb-3 text-sm font-semibold text-gray-700">Add table</p>

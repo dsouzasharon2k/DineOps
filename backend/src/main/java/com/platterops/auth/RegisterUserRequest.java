@@ -1,6 +1,7 @@
 package com.platterops.auth;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
@@ -14,5 +15,6 @@ public record RegisterUserRequest(
                 message = "Password must be at least 8 characters and include both uppercase and lowercase letters"
         )
         String password,
-        @NotBlank(message = "Phone is required") String phone
+        @NotBlank(message = "Phone is required") String phone,
+        @AssertTrue(message = "Terms must be accepted") boolean acceptTerms
 ) {}

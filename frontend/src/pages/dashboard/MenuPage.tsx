@@ -11,18 +11,10 @@ import {
 import type { MenuCategory, MenuItem } from '../../types/menu'
 import { getApiErrorMessage } from '../../api/error'
 import { formatCurrency } from '../../utils/currency'
+import { extractTenantId } from '../../utils/jwt'
 import LoadingState from '../../components/LoadingState'
 import { useAuth } from '../../context/AuthContext'
-
-const extractTenantId = (token: string | null): string | null => {
-  if (!token) return null
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    return payload.tenantId ?? null
-  } catch {
-    return null
-  }
-}
+import ToastMessage from '../../components/ToastMessage'
 
 const VegDot = ({ isVegetarian }: { isVegetarian: boolean }) => (
   <span
@@ -242,7 +234,11 @@ const MenuPage = () => {
       </div>
 
       {errors.fetchCategories && (
-        <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">{errors.fetchCategories}</p>
+        <ToastMessage
+          message={errors.fetchCategories}
+          variant="error"
+          onClose={() => clearOpError('fetchCategories')}
+        />
       )}
 
       <div className="flex gap-5 flex-1 min-h-0">
@@ -421,7 +417,13 @@ const MenuPage = () => {
               )}
 
               {errors.fetchItems && (
-                <p className="px-5 py-3 text-sm text-red-600 bg-red-50">{errors.fetchItems}</p>
+                <div className="px-5 py-3">
+                  <ToastMessage
+                    message={errors.fetchItems}
+                    variant="error"
+                    onClose={() => clearOpError('fetchItems')}
+                  />
+                </div>
               )}
 
               {/* Items table */}

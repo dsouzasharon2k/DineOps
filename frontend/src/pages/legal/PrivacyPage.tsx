@@ -45,6 +45,15 @@ const PrivacyPage = () => {
             </p>
           </section>
 
+          <section>
+            <h2 className="font-semibold text-gray-800">Grievance Officer Contact</h2>
+            <p>
+              For privacy or data protection grievances, contact our Grievance Officer at{' '}
+              <a className="text-orange-600 hover:underline" href="mailto:grievance@dineops.in">grievance@dineops.in</a>{' '}
+              or call +91-20-4000-2211 (Mon-Fri, 10:00 AM-6:00 PM IST).
+            </p>
+          </section>
+
           <p className="rounded-md bg-yellow-50 px-3 py-2 text-xs text-yellow-700">
             Placeholder policy text: consult a qualified legal professional before production launch.
           </p>

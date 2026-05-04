@@ -4,6 +4,9 @@ import com.platterops.exception.EntityNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
@@ -32,7 +35,30 @@ public class UserService {
 
     public void updatePassword(User user, String newRawPassword) {
         user.setPasswordHash(passwordEncoder.encode(newRawPassword));
+        revokeAllSessions(user);
         userRepository.save(user);
+    }
+
+    public void storeRefreshToken(User user, String rawRefreshToken) {
+        user.setRefreshTokenHash(sha256Hex(rawRefreshToken));
+        userRepository.save(user);
+    }
+
+    public boolean isRefreshTokenCurrent(User user, String rawRefreshToken) {
+        if (user.getRefreshTokenHash() == null || rawRefreshToken == null) {
+            return false;
+        }
+        String providedHash = sha256Hex(rawRefreshToken);
+        return MessageDigest.isEqual(
+                user.getRefreshTokenHash().getBytes(StandardCharsets.UTF_8),
+                providedHash.getBytes(StandardCharsets.UTF_8)
+        );
+    }
+
+    public void revokeAllSessions(User user) {
+        int current = user.getTokenVersion() == null ? 0 : user.getTokenVersion();
+        user.setTokenVersion(current + 1);
+        user.setRefreshTokenHash(null);
     }
 
     public Optional<User> findByEmail(String email) {
@@ -87,5 +113,19 @@ public class UserService {
         user.setEmail("deleted_" + user.getId() + "@anon.local");
         user.setPasswordHash(null);
         user.setDeletedAt(now);
+    }
+
+    private String sha256Hex(String value) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(value.getBytes(StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder(hash.length * 2);
+            for (byte b : hash) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 not available", e);
+        }
     }
 }

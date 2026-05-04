@@ -1,24 +1,75 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { createRestaurantApi } from '../../api/restaurants'
 import { getApiErrorMessage } from '../../api/error'
+
+const onboardingSchema = z.object({
+  name: z.string().trim().min(1, 'Restaurant name is required.'),
+  address: z.string().trim().optional(),
+  phone: z
+    .string()
+    .trim()
+    .optional()
+    .refine((value) => !value || /^[0-9+\-\s]{7,15}$/.test(value), 'Enter a valid phone number.'),
+  cuisineType: z.string().trim().optional(),
+  fssaiLicense: z
+    .string()
+    .trim()
+    .min(1, 'FSSAI license is required.')
+    .regex(/^[0-9A-Za-z-]{8,20}$/, 'Enter a valid FSSAI license format.'),
+  gstNumber: z
+    .string()
+    .trim()
+    .optional()
+    .refine(
+      (value) => !value || /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(value),
+      'GST number format is invalid.'
+    ),
+  ownerEmail: z
+    .string()
+    .trim()
+    .optional()
+    .refine((value) => !value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value), 'Enter a valid email address.'),
+})
+
+type OnboardingForm = z.infer<typeof onboardingSchema>
 
 const RestaurantOnboardingPage = () => {
   const navigate = useNavigate()
   const [step, setStep] = useState(1)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
-  const [name, setName] = useState('')
-  const [address, setAddress] = useState('')
-  const [phone, setPhone] = useState('')
-  const [cuisineType, setCuisineType] = useState('')
-  const [fssaiLicense, setFssaiLicense] = useState('')
-  const [gstNumber, setGstNumber] = useState('')
-  const [ownerEmail, setOwnerEmail] = useState('')
+  const {
+    register,
+    watch,
+    getValues,
+    trigger,
+    formState: { errors },
+  } = useForm<OnboardingForm>({
+    resolver: zodResolver(onboardingSchema),
+    defaultValues: {
+      name: '',
+      address: '',
+      phone: '',
+      cuisineType: '',
+      fssaiLicense: '',
+      gstNumber: '',
+      ownerEmail: '',
+    },
+  })
 
-  const slugPreview = name
+  const name = watch('name')
+  const address = watch('address')
+  const phone = watch('phone')
+  const cuisineType = watch('cuisineType')
+  const fssaiLicense = watch('fssaiLicense')
+  const gstNumber = watch('gstNumber')
+
+  const slugPreview = (name ?? '')
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
@@ -26,33 +77,19 @@ const RestaurantOnboardingPage = () => {
     .replace(/-{2,}/g, '-')
     .replace(/^-|-$/g, '')
 
-  const validateStep2 = () => {
-    const errors: Record<string, string> = {}
-    if (!name.trim()) errors.name = 'Restaurant name is required.'
-    if (phone && !/^[0-9+\-\s]{7,15}$/.test(phone)) errors.phone = 'Enter a valid phone number.'
-    if (ownerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ownerEmail)) errors.ownerEmail = 'Enter a valid email address.'
-    if (
-      gstNumber &&
-      !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(gstNumber)
-    ) {
-      errors.gstNumber = 'GST number format is invalid.'
-    }
-    setFieldErrors(errors)
-    return Object.keys(errors).length === 0
-  }
-
   const handleCreate = async () => {
     setSubmitting(true)
     setError('')
     try {
+      const values = getValues()
       await createRestaurantApi({
-        name,
-        address,
-        phone,
-        cuisineType,
-        fssaiLicense,
-        gstNumber,
-        ownerEmail,
+        name: values.name,
+        address: values.address,
+        phone: values.phone,
+        cuisineType: values.cuisineType,
+        fssaiLicense: values.fssaiLicense,
+        gstNumber: values.gstNumber?.toUpperCase(),
+        ownerEmail: values.ownerEmail,
       })
       navigate('/dashboard/menu')
     } catch (err) {
@@ -103,84 +140,68 @@ const RestaurantOnboardingPage = () => {
           <div className="grid grid-cols-1 gap-3">
             <div>
               <input
-                className={`rounded-lg border px-3 py-2 text-sm w-full ${fieldErrors.name ? 'border-red-400' : 'border-gray-300'}`}
+                className={`rounded-lg border px-3 py-2 text-sm w-full ${errors.name ? 'border-red-400' : 'border-gray-300'}`}
                 placeholder="Restaurant name *"
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value)
-                  setFieldErrors((f) => ({ ...f, name: '' }))
-                }}
+                {...register('name')}
               />
-              {fieldErrors.name && <p className="text-xs text-red-500 mt-1">{fieldErrors.name}</p>}
+              {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
             </div>
             <input
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
               placeholder="Address"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              {...register('address')}
             />
             <div>
               <input
-                className={`rounded-lg border px-3 py-2 text-sm w-full ${fieldErrors.phone ? 'border-red-400' : 'border-gray-300'}`}
+                className={`rounded-lg border px-3 py-2 text-sm w-full ${errors.phone ? 'border-red-400' : 'border-gray-300'}`}
                 placeholder="Phone"
-                value={phone}
-                onChange={(e) => {
-                  setPhone(e.target.value)
-                  setFieldErrors((f) => ({ ...f, phone: '' }))
-                }}
+                {...register('phone')}
               />
-              {fieldErrors.phone && <p className="text-xs text-red-500 mt-1">{fieldErrors.phone}</p>}
+              {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone.message}</p>}
             </div>
             <input
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
               placeholder="Cuisine type"
-              value={cuisineType}
-              onChange={(e) => setCuisineType(e.target.value)}
-            />
-            <input
-              className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
-              placeholder="FSSAI license"
-              value={fssaiLicense}
-              onChange={(e) => setFssaiLicense(e.target.value)}
+              {...register('cuisineType')}
             />
             <div>
               <input
-                className={`rounded-lg border px-3 py-2 text-sm w-full ${fieldErrors.gstNumber ? 'border-red-400' : 'border-gray-300'}`}
-                placeholder="GST number"
-                value={gstNumber}
-                onChange={(e) => {
-                  setGstNumber(e.target.value.toUpperCase())
-                  setFieldErrors((f) => ({ ...f, gstNumber: '' }))
-                }}
+                className={`rounded-lg border px-3 py-2 text-sm w-full ${errors.fssaiLicense ? 'border-red-400' : 'border-gray-300'}`}
+                placeholder="FSSAI license *"
+                {...register('fssaiLicense')}
               />
-              {fieldErrors.gstNumber && <p className="text-xs text-red-500 mt-1">{fieldErrors.gstNumber}</p>}
+              {errors.fssaiLicense && <p className="text-xs text-red-500 mt-1">{errors.fssaiLicense.message}</p>}
             </div>
             <div>
               <input
-                className={`rounded-lg border px-3 py-2 text-sm w-full ${fieldErrors.ownerEmail ? 'border-red-400' : 'border-gray-300'}`}
-                placeholder="Owner email (required for SUPER_ADMIN)"
-                value={ownerEmail}
-                onChange={(e) => {
-                  setOwnerEmail(e.target.value)
-                  setFieldErrors((f) => ({ ...f, ownerEmail: '' }))
-                }}
+                className={`rounded-lg border px-3 py-2 text-sm w-full ${errors.gstNumber ? 'border-red-400' : 'border-gray-300'}`}
+                placeholder="GST number"
+                {...register('gstNumber')}
               />
-              {fieldErrors.ownerEmail && <p className="text-xs text-red-500 mt-1">{fieldErrors.ownerEmail}</p>}
+              {errors.gstNumber && <p className="text-xs text-red-500 mt-1">{errors.gstNumber.message}</p>}
+            </div>
+            <div>
+              <input
+                className={`rounded-lg border px-3 py-2 text-sm w-full ${errors.ownerEmail ? 'border-red-400' : 'border-gray-300'}`}
+                placeholder="Owner email (required for SUPER_ADMIN)"
+                {...register('ownerEmail')}
+              />
+              {errors.ownerEmail && <p className="text-xs text-red-500 mt-1">{errors.ownerEmail.message}</p>}
             </div>
           </div>
           <div className="mt-4 flex items-center gap-2">
             <button
               onClick={() => {
                 setStep(1)
-                setFieldErrors({})
               }}
               className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700"
             >
               Back
             </button>
             <button
-              onClick={() => {
-                if (validateStep2()) setStep(3)
+              onClick={async () => {
+                const valid = await trigger(['name', 'phone', 'fssaiLicense', 'gstNumber', 'ownerEmail'])
+                if (valid) setStep(3)
               }}
               disabled={!name.trim()}
               className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"

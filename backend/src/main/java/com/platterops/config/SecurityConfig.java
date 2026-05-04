@@ -12,7 +12,6 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -64,8 +63,10 @@ public class SecurityConfig {
                 .httpStrictTransportSecurity(hsts -> hsts
                     .maxAgeInSeconds(31536000)
                     .includeSubDomains(true))
+                .referrerPolicy(referrer -> referrer.policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
                 .contentSecurityPolicy(csp -> csp
-                    .policyDirectives("default-src 'self'; connect-src 'self' ws: wss:"))
+                    .policyDirectives("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' http: https: ws: wss:; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"))
+                .permissionsPolicy(permissions -> permissions.policy("geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()"))
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -79,15 +80,20 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/restaurants/**").permitAll()
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/users/me").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/users/*").hasRole("SUPER_ADMIN")
+                // QR code scan resolution (customers not logged in)
+                .requestMatchers(HttpMethod.GET, "/api/v1/qr-scan/**").permitAll()
                 // Public order placement and status tracking (customers not logged in)
                 .requestMatchers(HttpMethod.POST, "/api/v1/orders").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/analytics/events").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/orders/*/cancel").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/orders/*/pay").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/orders/*/review").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/orders/*/disputes").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/orders/*/review").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/orders/payments/webhook").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/orders/lookup").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/api/v1/orders", "/api/v1/orders/**").permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/api/v1/analytics/events").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/orders/{orderId}").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/restaurants/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/v1/restaurants/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN")
@@ -101,9 +107,21 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/v1/wastage/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN", "STAFF")
                 .requestMatchers(HttpMethod.GET, "/api/v1/subscriptions/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN", "STAFF")
                 .requestMatchers(HttpMethod.POST, "/api/v1/subscriptions/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN", "STAFF")
+                .requestMatchers(HttpMethod.GET, "/api/v1/tickets/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN", "STAFF")
+                .requestMatchers(HttpMethod.POST, "/api/v1/tickets/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN", "STAFF")
+                .requestMatchers(HttpMethod.PATCH, "/api/v1/tickets/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN", "STAFF")
+                // Vendors & Procurement — TENANT_ADMIN only (financial/supplier data)
+                .requestMatchers("/api/v1/restaurants/*/vendors/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN")
+                .requestMatchers("/api/v1/restaurants/*/purchase-orders/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/v1/reviews/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/v1/audit-log/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/v1/analytics/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/v1/alerts/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN", "STAFF")
+                .requestMatchers(HttpMethod.PATCH, "/api/v1/alerts/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN", "STAFF")
+                .requestMatchers(HttpMethod.GET, "/api/v1/finance/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN", "STAFF")
+                .requestMatchers(HttpMethod.POST, "/api/v1/finance/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN", "STAFF")
+                .requestMatchers(HttpMethod.PUT, "/api/v1/finance/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN", "STAFF")
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/finance/**").hasAnyRole("SUPER_ADMIN", "TENANT_ADMIN", "STAFF")
                 .anyRequest().authenticated()
             )
                     .addFilterBefore(requestContextFilter, UsernamePasswordAuthenticationFilter.class)
@@ -127,8 +145,4 @@ public class SecurityConfig {
         return source;
     }
 
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 }

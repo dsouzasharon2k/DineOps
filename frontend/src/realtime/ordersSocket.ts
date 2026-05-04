@@ -1,4 +1,4 @@
-import { Client } from '@stomp/stompjs'
+import { Client, ReconnectionTimeMode } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
 import type { Order } from '../types/order'
 import { tokenStore } from '../auth/tokenStore'
@@ -16,24 +16,33 @@ function createConnectHeaders(): Record<string, string> {
   return headers
 }
 
+function createRealtimeClient(onError: () => void): Client {
+  const stompClient = new Client({
+    webSocketFactory: () => new SockJS(wsUrl),
+    reconnectDelay: 1000,
+    maxReconnectDelay: 30000,
+    reconnectTimeMode: ReconnectionTimeMode.EXPONENTIAL,
+    beforeConnect: async () => {
+      stompClient.connectHeaders = createConnectHeaders()
+    },
+    onStompError: () => onError(),
+    onWebSocketError: () => onError(),
+  })
+  return stompClient
+}
+
 export const subscribeTenantOrders = (
   tenantId: string,
   onMessage: (order: Order) => void,
   onError: () => void
 ): (() => void) => {
-  const client = new Client({
-    webSocketFactory: () => new SockJS(wsUrl),
-    connectHeaders: createConnectHeaders(),
-    reconnectDelay: 0,
-    onConnect: () => {
-      client.subscribe(`/topic/orders/${tenantId}`, (message) => {
-        const payload = JSON.parse(message.body) as Order
-        onMessage(payload)
-      })
-    },
-    onStompError: () => onError(),
-    onWebSocketError: () => onError(),
-  })
+  const client = createRealtimeClient(onError)
+  client.onConnect = () => {
+    client.subscribe(`/topic/orders/${tenantId}`, (message) => {
+      const payload = JSON.parse(message.body) as Order
+      onMessage(payload)
+    })
+  }
   client.activate()
   return () => client.deactivate()
 }
@@ -43,19 +52,13 @@ export const subscribeOrderStatus = (
   onMessage: (order: Order) => void,
   onError: () => void
 ): (() => void) => {
-  const client = new Client({
-    webSocketFactory: () => new SockJS(wsUrl),
-    connectHeaders: createConnectHeaders(),
-    reconnectDelay: 0,
-    onConnect: () => {
-      client.subscribe(`/topic/order/${orderId}`, (message) => {
-        const payload = JSON.parse(message.body) as Order
-        onMessage(payload)
-      })
-    },
-    onStompError: () => onError(),
-    onWebSocketError: () => onError(),
-  })
+  const client = createRealtimeClient(onError)
+  client.onConnect = () => {
+    client.subscribe(`/topic/order/${orderId}`, (message) => {
+      const payload = JSON.parse(message.body) as Order
+      onMessage(payload)
+    })
+  }
   client.activate()
   return () => client.deactivate()
 }

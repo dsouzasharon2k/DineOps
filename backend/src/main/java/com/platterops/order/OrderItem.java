@@ -40,6 +40,9 @@ public class OrderItem extends AuditableEntity {
     @Column(nullable = false)
     private Integer quantity;
 
+    @Column(name = "cost_at_order")
+    private Long costAtOrder;
+
     /** Denormalized for analytics; avoids join through orders for "revenue by item for tenant X". */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id")
@@ -57,6 +60,8 @@ public class OrderItem extends AuditableEntity {
     public void setPrice(Integer price) { this.price = price; }
     public Integer getQuantity() { return quantity; }
     public void setQuantity(Integer quantity) { this.quantity = quantity; }
+    public Long getCostAtOrder() { return costAtOrder; }
+    public void setCostAtOrder(Long costAtOrder) { this.costAtOrder = costAtOrder; }
     public Restaurant getTenantRestaurant() { return tenantRestaurant; }
     public void setTenantRestaurant(Restaurant tenantRestaurant) { this.tenantRestaurant = tenantRestaurant; }
 }

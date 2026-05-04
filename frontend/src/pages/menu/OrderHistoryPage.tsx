@@ -4,6 +4,7 @@ import { lookupOrdersByPhoneApi } from '../../api/menu'
 import type { Order, OrderStatus } from '../../types/order'
 import { getApiErrorMessage } from '../../api/error'
 import { formatCurrency } from '../../utils/currency'
+import ToastMessage from '../../components/ToastMessage'
 
 const STATUS_LABELS: Record<
   OrderStatus,
@@ -107,7 +108,7 @@ export default function OrderHistoryPage() {
               {loading ? '...' : 'Lookup'}
             </button>
           </div>
-          {error && <p role="alert" aria-live="polite" className="text-red-700 text-sm mt-2">{error}</p>}
+          {error && <ToastMessage message={error} variant="error" onClose={() => setError('')} />}
         </div>
 
         {/* Order result */}

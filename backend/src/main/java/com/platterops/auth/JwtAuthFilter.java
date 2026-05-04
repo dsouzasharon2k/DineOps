@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import com.platterops.user.UserService;
 import org.slf4j.MDC;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,9 +21,11 @@ import java.util.List;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
+    private final UserService userService;
 
-    public JwtAuthFilter(JwtUtils jwtUtils) {
+    public JwtAuthFilter(JwtUtils jwtUtils, UserService userService) {
         this.jwtUtils = jwtUtils;
+        this.userService = userService;
     }
 
     @Override
@@ -37,9 +40,25 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             String token = authHeader.substring(7);
             if (jwtUtils.validateAccessToken(token)) {
                 Claims claims = jwtUtils.parseToken(token);
+                String email = claims.getSubject();
+                int tokenVersion = claims.get("tokenVersion", Integer.class) == null
+                    ? 0
+                    : claims.get("tokenVersion", Integer.class);
+                var userOpt = userService.findByEmail(email);
+                if (userOpt.isEmpty() || !userOpt.get().isActive()) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+                int currentTokenVersion = userOpt.get().getTokenVersion() == null
+                    ? 0
+                    : userOpt.get().getTokenVersion();
+                if (tokenVersion != currentTokenVersion) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
                 String role = claims.get("role", String.class);
                 var auth = new UsernamePasswordAuthenticationToken(
-                        claims.getSubject(),
+                    email,
                         null,
                         List.of(new SimpleGrantedAuthority("ROLE_" + role))
                 );

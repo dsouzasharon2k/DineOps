@@ -31,6 +31,12 @@ public class Inventory extends AuditableEntity {
     @Column(name = "low_stock_threshold", nullable = false)
     private Integer lowStockThreshold = 5;
 
+    @Column(name = "unit", nullable = false)
+    private String unit = "pcs";
+
+    @Column(name = "vendor_phone")
+    private String vendorPhone;
+
     public UUID getId() {
         return id;
     }
@@ -65,5 +71,21 @@ public class Inventory extends AuditableEntity {
 
     public void setLowStockThreshold(Integer lowStockThreshold) {
         this.lowStockThreshold = lowStockThreshold;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit == null || unit.isBlank() ? "pcs" : unit;
+    }
+
+    public String getVendorPhone() {
+        return vendorPhone;
+    }
+
+    public void setVendorPhone(String vendorPhone) {
+        this.vendorPhone = vendorPhone;
     }
 }

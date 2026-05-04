@@ -25,9 +25,32 @@ replay_pid*
 
 # Environment files
 .env
+.env.local
+.env.*.local
 
 # Local backups
 backups/
 
 #tree.txt
 tree.txt
+
+# Maven build output
+backend/target/
+
+# Node / frontend build output
+frontend/dist/
+frontend/node_modules/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker certs (never commit private keys)
+docker/certs/*.key
+docker/certs/*.pem
+docker/certs/*.crt

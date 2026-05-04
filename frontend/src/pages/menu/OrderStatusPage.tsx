@@ -9,6 +9,7 @@ import type { Restaurant } from '../../types/restaurant';
 import { getApiErrorMessage } from '../../api/error';
 import { formatCurrency } from '../../utils/currency';
 import { subscribeOrderStatus } from '../../realtime/ordersSocket';
+import { getOrCreateProductSessionId, trackProductEventApi } from '../../api/analytics';
 
 // Maps status to display label and progress step
 const STATUS_STEPS = ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'DELIVERED'];
@@ -89,6 +90,21 @@ export default function OrderStatusPage() {
       clearInterval(interval);
     };
   }, [fetchOrder, orderId, wsConnected]);
+
+  useEffect(() => {
+    if (!tenantId || !order?.id || order.paymentStatus !== 'PAID') return;
+    const key = `dineops_payment_success_event_${order.id}`;
+    if (localStorage.getItem(key) === '1') return;
+    trackProductEventApi({
+      tenantId,
+      eventType: 'PAYMENT_SUCCEEDED',
+      sessionId: getOrCreateProductSessionId(),
+      orderId: order.id,
+      source: 'web',
+    }).finally(() => {
+      localStorage.setItem(key, '1');
+    });
+  }, [tenantId, order?.id, order?.paymentStatus]);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">

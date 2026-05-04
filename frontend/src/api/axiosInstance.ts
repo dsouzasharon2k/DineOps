@@ -9,6 +9,8 @@ type RetryableAxiosRequest = {
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? '/api'
+const APP_BASE_PATH = import.meta.env.BASE_URL || '/'
+const LOGIN_PATH = `${APP_BASE_PATH.replace(/\/$/, '')}/login`
 let refreshRequest: Promise<string> | null = null
 
 const axiosInstance = axios.create({
@@ -57,16 +59,16 @@ axiosInstance.interceptors.response.use(
           return axiosInstance(originalRequest)
         } catch {
           tokenStore.clear()
-          const isOnLoginPage = window.location.pathname === '/login'
+          const isOnLoginPage = window.location.pathname === LOGIN_PATH
           if (!isOnLoginPage) {
-            window.location.href = '/login'
+            window.location.href = LOGIN_PATH
           }
         }
       } else if (status === 401 && isAuthEndpoint) {
         tokenStore.clear()
-        const isOnLoginPage = window.location.pathname === '/login'
+        const isOnLoginPage = window.location.pathname === LOGIN_PATH
         if (!isOnLoginPage) {
-          window.location.href = '/login'
+          window.location.href = LOGIN_PATH
         }
       }
 

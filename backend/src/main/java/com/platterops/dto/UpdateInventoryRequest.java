@@ -7,5 +7,7 @@ import jakarta.validation.constraints.NotNull;
 @Schema(description = "Request payload for updating inventory levels")
 public record UpdateInventoryRequest(
         @NotNull(message = "quantity is required") @Min(value = 0, message = "quantity cannot be negative") Integer quantity,
-        @NotNull(message = "lowStockThreshold is required") @Min(value = 0, message = "lowStockThreshold cannot be negative") Integer lowStockThreshold
+        @NotNull(message = "lowStockThreshold is required") @Min(value = 0, message = "lowStockThreshold cannot be negative") Integer lowStockThreshold,
+        String unit,
+        String vendorPhone
 ) {}

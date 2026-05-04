@@ -4,8 +4,10 @@ import type { Order, OrderStatus } from '../../types/order'
 import { useAuth } from '../../context/AuthContext'
 import { getApiErrorMessage } from '../../api/error'
 import { formatCurrency } from '../../utils/currency'
+import { extractTenantId } from '../../utils/jwt'
 import LoadingState from '../../components/LoadingState'
 import EmptyState from '../../components/EmptyState'
+import ToastMessage from '../../components/ToastMessage'
 import { subscribeTenantOrders } from '../../realtime/ordersSocket'
 
 // The status flow for an order in the kitchen
@@ -77,15 +79,8 @@ const timeAgo = (createdAt: string): string => {
   return `${Math.floor(diff / 3600)}h ago`
 }
 
-const extractTenantId = (token: string | null): string | null => {
-  if (!token) return null
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    return payload.tenantId ?? null
-  } catch {
-    return null
-  }
-}
+const QUEUE_LIMIT_KEY = 'platterops_queue_limit'
+const DEFAULT_QUEUE_LIMIT = 10
 
 export default function KitchenPage() {
   const [orders, setOrders] = useState<Order[]>([])
@@ -94,6 +89,22 @@ export default function KitchenPage() {
   const [lastRefresh, setLastRefresh] = useState(new Date())
   const [error, setError] = useState('')
   const [wsConnected, setWsConnected] = useState(false)
+
+  // Smart Queue Throttling
+  const [queueLimit, setQueueLimit] = useState<number>(() => {
+    const stored = localStorage.getItem(QUEUE_LIMIT_KEY)
+    return stored ? Number(stored) : DEFAULT_QUEUE_LIMIT
+  })
+  const [editingLimit, setEditingLimit] = useState(false)
+  const [limitInput, setLimitInput] = useState(String(queueLimit))
+  const saveQueueLimit = () => {
+    const v = parseInt(limitInput)
+    if (Number.isFinite(v) && v >= 1 && v <= 100) {
+      setQueueLimit(v)
+      localStorage.setItem(QUEUE_LIMIT_KEY, String(v))
+    }
+    setEditingLimit(false)
+  }
 
   const { token, initializing } = useAuth()
   const tenantId = useMemo(() => extractTenantId(token), [token])
@@ -184,12 +195,18 @@ export default function KitchenPage() {
     {} as Record<OrderStatus, Order[]>
   )
 
+  // Queue pressure: active (non-delivered) orders vs limit
+  const activeCount = orders.filter((o) => !['DELIVERED', 'CANCELLED'].includes(o.status)).length
+  const queuePct = Math.round((activeCount / queueLimit) * 100)
+  const queueFull = activeCount >= queueLimit
+  const queuePressure = queuePct >= 100 ? 'critical' : queuePct >= 75 ? 'high' : queuePct >= 50 ? 'medium' : 'low'
+
   if (loading)
     return <LoadingState message="Loading kitchen orders..." />
 
   return (
     <div className="p-4">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Kitchen View</h1>
           <p className="text-sm text-gray-400 mt-0.5">
@@ -210,18 +227,68 @@ export default function KitchenPage() {
           Refresh
         </button>
       </div>
-      {error && (
-        <div className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600 flex items-center justify-between gap-3">
-          <span>{error}</span>
-          <button
-            onClick={() => {
-              void fetchOrders()
-            }}
-            className="shrink-0 rounded bg-white px-2 py-1 text-xs font-medium text-red-600 border border-red-200 hover:bg-red-100"
-          >
-            Retry
-          </button>
+
+      {/* ─── Smart Queue Throttle Bar ─── */}
+      <div className={`mb-4 rounded-xl border p-3 ${queueFull ? 'bg-red-50 border-red-300' : queuePressure === 'high' ? 'bg-amber-50 border-amber-300' : 'bg-white border-gray-100'}`}>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className={`text-xs font-semibold ${queueFull ? 'text-red-700' : queuePressure === 'high' ? 'text-amber-700' : 'text-gray-600'}`}>
+                  Queue Pressure
+                </span>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${queueFull ? 'bg-red-100 text-red-700' : queuePressure === 'high' ? 'bg-amber-100 text-amber-700' : queuePressure === 'medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                  {queueFull ? '🔴 PAUSING NEW ORDERS' : queuePressure === 'high' ? '⚠ HIGH' : queuePressure === 'medium' ? '○ MODERATE' : '✓ LOW'}
+                </span>
+              </div>
+              <div className="w-48 h-2 rounded-full bg-gray-200 overflow-hidden">
+                <div
+                  className={`h-2 rounded-full transition-all ${queueFull ? 'bg-red-500' : queuePressure === 'high' ? 'bg-amber-500' : queuePressure === 'medium' ? 'bg-yellow-400' : 'bg-emerald-400'}`}
+                  style={{ width: `${Math.min(queuePct, 100)}%` }}
+                />
+              </div>
+            </div>
+            <span className={`text-sm font-bold tabular-nums ${queueFull ? 'text-red-700' : 'text-gray-700'}`}>
+              {activeCount} / {queueLimit}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            {editingLimit ? (
+              <>
+                <input
+                  type="number" min={1} max={100} value={limitInput}
+                  onChange={(e) => setLimitInput(e.target.value)}
+                  className="w-16 rounded-lg border border-gray-300 px-2 py-1 text-sm text-center"
+                />
+                <button onClick={saveQueueLimit} className="rounded-lg bg-gray-800 text-white text-xs px-3 py-1.5 font-semibold hover:bg-gray-700">Save</button>
+              </>
+            ) : (
+              <button
+                onClick={() => { setLimitInput(String(queueLimit)); setEditingLimit(true) }}
+                className="text-xs text-gray-400 hover:text-gray-700 underline underline-offset-2"
+              >
+                Max queue: {queueLimit} — change
+              </button>
+            )}
+          </div>
         </div>
+        {queueFull && (
+          <div className="mt-2 rounded-lg bg-red-100 border border-red-200 px-3 py-2 text-xs text-red-700 font-medium">
+            ⚠ Kitchen at full capacity. Consider pausing online ordering or increasing staff. Clear at least {Math.ceil(queueLimit * 0.25)} orders before accepting more.
+          </div>
+        )}
+      </div>
+
+      {error && (
+        <ToastMessage
+          message={error}
+          variant="error"
+          actionLabel="Retry"
+          onAction={() => {
+            void fetchOrders()
+          }}
+          onClose={() => setError('')}
+        />
       )}
 
       {orders.length === 0 ? (

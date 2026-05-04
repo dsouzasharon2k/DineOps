@@ -9,12 +9,16 @@ export const getInventoryByTenantApi = async (tenantId: string): Promise<Invento
 export const upsertInventoryApi = async (
   menuItemId: string,
   quantity: number,
-  lowStockThreshold: number
+  lowStockThreshold: number,
+  unit?: string,
+  vendorPhone?: string
 ): Promise<InventoryItem> => {
   const res = await axiosInstance.post<InventoryItem>('/api/v1/inventory', {
     menuItemId,
     quantity,
     lowStockThreshold,
+    unit,
+    vendorPhone,
   })
   return res.data
 }
@@ -22,11 +26,15 @@ export const upsertInventoryApi = async (
 export const updateInventoryApi = async (
   inventoryId: string,
   quantity: number,
-  lowStockThreshold: number
+  lowStockThreshold: number,
+  unit?: string,
+  vendorPhone?: string
 ): Promise<InventoryItem> => {
   const res = await axiosInstance.put<InventoryItem>(`/api/v1/inventory/${inventoryId}`, {
     quantity,
     lowStockThreshold,
+    unit,
+    vendorPhone,
   })
   return res.data
 }

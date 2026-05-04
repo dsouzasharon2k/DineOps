@@ -9,6 +9,7 @@ import com.platterops.order.PaymentStatus;
 import com.platterops.review.ReviewService;
 import com.platterops.security.AccountLockoutService;
 import com.platterops.security.RateLimitService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -20,10 +21,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -35,6 +39,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @SuppressWarnings("null")
 class OrderControllerIntegrationTest {
+
+        private static final String TEST_WEBHOOK_SECRET = "test-webhook-secret";
 
     @Autowired
     private MockMvc mockMvc;
@@ -52,6 +58,32 @@ class OrderControllerIntegrationTest {
 
     @MockBean
     private RedisConnectionFactory redisConnectionFactory;
+
+    @BeforeEach
+    void setUp() {
+        when(rateLimitService.isAllowed(any(), any(Integer.class), any(Duration.class))).thenReturn(true);
+        when(accountLockoutService.isLocked(any())).thenReturn(false);
+    }
+
+                @Test
+                void placeOrder_whenRateLimited_returnsTooManyRequests() throws Exception {
+                                UUID tenantId = UUID.randomUUID();
+                                UUID menuItemId = UUID.randomUUID();
+                                when(rateLimitService.isAllowed(any(), any(Integer.class), any(Duration.class))).thenReturn(false);
+
+                                mockMvc.perform(post("/api/v1/orders")
+                                                                                                .contentType(MediaType.APPLICATION_JSON)
+                                                                                                .content("""
+                                                                                                                                {
+                                                                                                                                        "tenantId": "%s",
+                                                                                                                                        "customerPhone": "9999999999",
+                                                                                                                                        "items": [
+                                                                                                                                                { "menuItemId": "%s", "quantity": 1 }
+                                                                                                                                        ]
+                                                                                                                                }
+                                                                                                                                """.formatted(tenantId, menuItemId)))
+                                                                .andExpect(status().isTooManyRequests());
+                }
 
     @Test
     void placeOrder_validPayload_returnsCreatedOrder() throws Exception {
@@ -91,6 +123,7 @@ class OrderControllerIntegrationTest {
                         .content("""
                                 {
                                   "tenantId": "%s",
+                                  "customerPhone": "9999999999",
                                   "notes": "Less spicy",
                                   "items": [
                                     { "menuItemId": "%s", "quantity": 2 }
@@ -131,4 +164,79 @@ class OrderControllerIntegrationTest {
                 .andExpect(jsonPath("$.status").value("CONFIRMED"))
                 .andExpect(jsonPath("$.tenantId").value(tenantId.toString()));
     }
+
+                @Test
+                void paymentWebhook_mockProvider_missingSharedSecretHeader_returnsForbidden() throws Exception {
+                                mockMvc.perform(post("/api/v1/orders/payments/webhook")
+                                                                                                .contentType(MediaType.APPLICATION_JSON)
+                                                                                                .content("""
+                                                                                                                                {
+                                                                                                                                        "providerOrderRef": "order_123",
+                                                                                                                                        "providerPaymentRef": "pay_123",
+                                                                                                                                        "success": true
+                                                                                                                                }
+                                                                                                                                """))
+                                                                .andExpect(status().isForbidden());
+                }
+
+                @Test
+                void paymentWebhook_mockProvider_validSharedSecretHeader_returnsOk() throws Exception {
+                                UUID orderId = UUID.randomUUID();
+                                UUID tenantId = UUID.randomUUID();
+                                LocalDateTime now = LocalDateTime.now();
+                                OrderResponse response = new OrderResponse(
+                                                                orderId,
+                                                                tenantId,
+                                                                null,
+                                                                null,
+                                                                OrderStatus.CONFIRMED,
+                                                                PaymentStatus.PAID,
+                                                                PaymentMethod.ONLINE,
+                                                                15,
+                                                                42000,
+                                                                null,
+                                                                List.of(),
+                                                                now,
+                                                                now
+                                );
+                                when(orderService.handlePaymentWebhook(anyString(), anyString(), anyBoolean())).thenReturn(response);
+
+                                mockMvc.perform(post("/api/v1/orders/payments/webhook")
+                                                                                                .header("X-Webhook-Secret", TEST_WEBHOOK_SECRET)
+                                                                                                .contentType(MediaType.APPLICATION_JSON)
+                                                                                                .content("""
+                                                                                                                                {
+                                                                                                                                        "providerOrderRef": "order_abc",
+                                                                                                                                        "providerPaymentRef": "pay_def",
+                                                                                                                                        "success": true
+                                                                                                                                }
+                                                                                                                                """))
+                                                                .andExpect(status().isOk())
+                                                                .andExpect(jsonPath("$.id").value(orderId.toString()))
+                                                                .andExpect(jsonPath("$.paymentStatus").value("PAID"));
+                }
+
+                @Test
+                void paymentWebhook_mockProvider_invalidSharedSecretHeader_returnsForbidden() throws Exception {
+                                mockMvc.perform(post("/api/v1/orders/payments/webhook")
+                                                                                                .header("X-Webhook-Secret", "wrong-secret")
+                                                                                                .contentType(MediaType.APPLICATION_JSON)
+                                                                                                .content("""
+                                                                                                                                {
+                                                                                                                                        "providerOrderRef": "order_abc",
+                                                                                                                                        "providerPaymentRef": "pay_def",
+                                                                                                                                        "success": true
+                                                                                                                                }
+                                                                                                                                """))
+                                                                .andExpect(status().isForbidden());
+                }
+
+                @Test
+                void paymentWebhook_withInvalidJson_returnsBadRequest() throws Exception {
+                                mockMvc.perform(post("/api/v1/orders/payments/webhook")
+                                                                                                .header("X-Webhook-Secret", TEST_WEBHOOK_SECRET)
+                                                                                                .contentType(MediaType.APPLICATION_JSON)
+                                                                                                .content("not-a-json"))
+                                                                .andExpect(status().isBadRequest());
+                }
 }

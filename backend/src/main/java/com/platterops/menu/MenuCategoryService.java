@@ -4,6 +4,8 @@ import com.platterops.dto.MenuCategoryResponse;
 import com.platterops.exception.EntityNotFoundException;
 import com.platterops.restaurant.Restaurant;
 import com.platterops.restaurant.RestaurantRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,6 +30,7 @@ public class MenuCategoryService {
                 .findByTenant_IdAndIsActiveTrueOrderByDisplayOrderAsc(tenantId);
     }
 
+    @Cacheable(value = "menu:categories", key = "#tenantId")
     public List<MenuCategoryResponse> getCategoryResponsesByTenant(UUID tenantId) {
         return getCategoriesByTenant(tenantId).stream()
                 .map(this::toResponse)
@@ -48,12 +51,14 @@ public class MenuCategoryService {
         return menuCategoryRepository.save(category);
     }
 
+    @CacheEvict(value = "menu:categories", key = "#tenantId")
     public MenuCategoryResponse createCategoryResponse(UUID tenantId, String name, String description) {
         return toResponse(createCategory(tenantId, name, description));
     }
 
     // Soft delete - mark as inactive instead of deleting from DB
     // This preserves historical data and is safer than hard delete
+    @CacheEvict(value = "menu:categories", allEntries = true)
     public void deleteCategory(UUID categoryId) {
         MenuCategory category = menuCategoryRepository.findById(categoryId)
                 .orElseThrow(() -> new EntityNotFoundException("Category not found"));

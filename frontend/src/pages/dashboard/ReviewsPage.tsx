@@ -2,17 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { getReviewsByTenantApi } from '../../api/reviews'
 import { getApiErrorMessage } from '../../api/error'
 import { useAuth } from '../../context/AuthContext'
+import { extractTenantId } from '../../utils/jwt'
 import type { Review } from '../../types/review'
-
-const extractTenantId = (token: string | null): string | null => {
-  if (!token) return null
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    return payload.tenantId ?? null
-  } catch {
-    return null
-  }
-}
 
 const Star = ({ active }: { active: boolean }) => (
   <svg width="14" height="14" viewBox="0 0 24 24" className={active ? 'fill-amber-400 text-amber-400' : 'fill-gray-200 text-gray-200'}>

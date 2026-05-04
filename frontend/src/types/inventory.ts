@@ -7,6 +7,8 @@ export interface InventoryItem {
   lowStockThreshold: number
   lowStock: boolean
   menuItemAvailable: boolean
+  unit: string
+  vendorPhone: string | null
   createdAt: string
   updatedAt: string
 }

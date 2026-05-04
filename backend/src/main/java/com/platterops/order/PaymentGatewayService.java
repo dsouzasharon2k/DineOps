@@ -1,5 +1,6 @@
 package com.platterops.order;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,6 +37,7 @@ public class PaymentGatewayService {
         this.frontendBaseUrl = frontendBaseUrl;
     }
 
+    @CircuitBreaker(name = "paymentGateway", fallbackMethod = "paymentGatewayFallback")
     public PaymentInitResult createPaymentOrder(UUID orderId, int amountPaise) {
         if ("razorpay".equals(provider)) {
             return createRazorpayOrder(orderId, amountPaise);
@@ -72,9 +74,16 @@ public class PaymentGatewayService {
             String checkoutUrl = frontendBaseUrl + "/pay/checkout/" + orderId + "?provider=razorpay&order_id=" + providerOrderId + "&key_id=" + razorpayKeyId;
             return new PaymentInitResult(providerOrderId, checkoutUrl);
         } catch (Exception ex) {
-            log.error("razorpay_order_creation_failed orderId={} reason={}", orderId, ex.getMessage());
-            return createMockPaymentOrder(orderId);
+            throw new IllegalStateException("Razorpay order creation failed", ex);
         }
+    }
+
+    private PaymentInitResult paymentGatewayFallback(UUID orderId, int amountPaise, Throwable throwable) {
+        log.error("payment_gateway_fallback orderId={} amountPaise={} reason={}",
+                orderId,
+                amountPaise,
+                throwable == null ? "unknown" : throwable.getMessage());
+        return createMockPaymentOrder(orderId);
     }
 
     private String extractJsonField(String json, String key) {

@@ -27,6 +27,9 @@ public class DiningZone extends AuditableEntity {
     @Column(name = "price_multiplier", precision = 5, scale = 2)
     private BigDecimal priceMultiplier = BigDecimal.ONE;
 
+    @Column(name = "is_air_conditioned", nullable = false)
+    private boolean airConditioned = false;
+
     public UUID getId() { return id; }
     public Restaurant getTenant() { return tenant; }
     public void setTenant(Restaurant tenant) { this.tenant = tenant; }
@@ -34,4 +37,6 @@ public class DiningZone extends AuditableEntity {
     public void setName(String name) { this.name = name; }
     public BigDecimal getPriceMultiplier() { return priceMultiplier; }
     public void setPriceMultiplier(BigDecimal priceMultiplier) { this.priceMultiplier = priceMultiplier; }
+    public boolean isAirConditioned() { return airConditioned; }
+    public void setAirConditioned(boolean airConditioned) { this.airConditioned = airConditioned; }
 }

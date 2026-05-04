@@ -6,9 +6,14 @@ import com.platterops.dto.RestaurantResponse;
 import java.time.LocalDateTime;
 import com.platterops.exception.EntityNotFoundException;
 import com.platterops.review.ReviewService;
+import com.platterops.subscription.Subscription;
+import com.platterops.subscription.SubscriptionPlan;
+import com.platterops.subscription.SubscriptionRepository;
+import com.platterops.subscription.SubscriptionStatus;
 import com.platterops.user.User;
 import com.platterops.user.UserRepository;
 import com.platterops.user.UserRole;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -24,11 +29,16 @@ public class RestaurantService {
     private final RestaurantRepository restaurantRepository;
     private final UserRepository userRepository;
     private final ReviewService reviewService;
+    private final SubscriptionRepository subscriptionRepository;
 
-    public RestaurantService(RestaurantRepository restaurantRepository, UserRepository userRepository, ReviewService reviewService) {
+    public RestaurantService(RestaurantRepository restaurantRepository,
+                             UserRepository userRepository,
+                             ReviewService reviewService,
+                             SubscriptionRepository subscriptionRepository) {
         this.restaurantRepository = restaurantRepository;
         this.userRepository = userRepository;
         this.reviewService = reviewService;
+        this.subscriptionRepository = subscriptionRepository;
     }
 
     public List<Restaurant> getAllRestaurants() {
@@ -45,6 +55,7 @@ public class RestaurantService {
         return new PageImpl<>(Objects.requireNonNull(content), pageable, restaurantPage.getTotalElements());
     }
 
+    @Cacheable(value = "restaurants:by-id", key = "#restaurantId")
     public RestaurantResponse getRestaurantResponseById(java.util.UUID restaurantId) {
         java.util.UUID safeRestaurantId = java.util.Objects.requireNonNull(restaurantId, "restaurantId cannot be null");
         Restaurant restaurant = restaurantRepository.findById(safeRestaurantId)
@@ -70,12 +81,26 @@ public class RestaurantService {
         restaurant.setGstNumber(trimToNull(request.gstNumber()));
         restaurant.setOperatingHours(trimToNull(request.operatingHours()));
         restaurant.setDefaultPrepTimeMinutes(request.defaultPrepTimeMinutes() != null ? request.defaultPrepTimeMinutes() : 20);
+        restaurant.setGstRateNonAcPercent(5);
+        restaurant.setGstRateAcPercent(18);
 
         Restaurant savedRestaurant = restaurantRepository.save(restaurant);
         User owner = resolveOwner(actorEmail, request.ownerEmail(), actorIsSuperAdmin);
         owner.setTenant(savedRestaurant);
         owner.setRole(UserRole.TENANT_ADMIN);
         userRepository.save(owner);
+
+        // Ensure free tier is available immediately after onboarding.
+        if (subscriptionRepository.findTopByTenantIdOrderByCreatedAtDesc(savedRestaurant.getId()).isEmpty()) {
+            Subscription starter = new Subscription();
+            starter.setTenant(savedRestaurant);
+            starter.setPlan(SubscriptionPlan.STARTER);
+            starter.setStatus(SubscriptionStatus.ACTIVE);
+            starter.setStartsAt(LocalDateTime.now());
+            starter.setExpiresAt(LocalDateTime.now().plusYears(100));
+            starter.setProviderSubscriptionRef("starter-auto");
+            subscriptionRepository.save(starter);
+        }
 
         return toResponse(savedRestaurant);
     }

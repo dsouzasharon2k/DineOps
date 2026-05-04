@@ -8,7 +8,7 @@ export interface CreateRestaurantPayload {
   phone?: string
   cuisineType?: string
   logoUrl?: string
-  fssaiLicense?: string
+  fssaiLicense: string
   gstNumber?: string
   ownerEmail?: string
 }

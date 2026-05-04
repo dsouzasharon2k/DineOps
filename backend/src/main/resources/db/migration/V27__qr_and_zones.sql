@@ -1,4 +1,4 @@
--- V4: Dining zones and QR code management
+-- V27: Dining zones and QR code management
 -- Supports zone-specific pricing (AC/Non-AC) and context-aware ordering
 
 CREATE TABLE dining_zones (
@@ -6,8 +6,10 @@ CREATE TABLE dining_zones (
     tenant_id UUID NOT NULL REFERENCES restaurants(id),
     name VARCHAR(50) NOT NULL, -- e.g. 'AC', 'Non-AC', 'Delivery', 'Takeaway'
     price_multiplier DECIMAL(5, 2) DEFAULT 1.0, -- Default multiplier for the zone
+    is_air_conditioned BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMP
 );
 
 CREATE TABLE menu_item_zone_prices (

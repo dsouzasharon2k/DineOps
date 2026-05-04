@@ -22,6 +22,10 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+
+  flyway:
+    baseline-on-migrate: false
 
 logging:
   level:
@@ -43,6 +47,13 @@ management:
     health:
       show-details: never
 
+sentry:
+  dsn: ${SENTRY_DSN:}
+  environment: ${SENTRY_ENVIRONMENT:production}
+  release: ${SENTRY_RELEASE:dineops-backend-prod}
+  traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:0.2}
+  send-default-pii: false
+
 app:
   jwt:
     secret: ${JWT_SECRET}
@@ -63,9 +74,28 @@ app:
       account-sid: ${TWILIO_ACCOUNT_SID:}
       auth-token: ${TWILIO_AUTH_TOKEN:}
       from-number: ${TWILIO_FROM_NUMBER:}
+  email:
+    provider: ${EMAIL_PROVIDER:smtp}
+    from: ${EMAIL_FROM:no-reply@dineops.local}
   payment:
     provider: ${PAYMENT_PROVIDER:mock}
+    webhook-shared-secret: ${PAYMENT_WEBHOOK_SHARED_SECRET:}
     frontend-base-url: ${PAYMENT_FRONTEND_BASE_URL}
     razorpay:
       key-id: ${RAZORPAY_KEY_ID:}
       key-secret: ${RAZORPAY_KEY_SECRET:}
+  digest:
+    schedule-enabled: ${DIGEST_SCHEDULE_ENABLED:true}
+    cron: ${DIGEST_CRON:0 30 23 * * *}
+    fallback-recipients: ${DIGEST_FALLBACK_RECIPIENTS:}
+  uptime:
+    enabled: ${UPTIME_MONITOR_ENABLED:true}
+    check-cron: ${UPTIME_CHECK_CRON:0 */5 * * * *}
+    targets:
+      backend-health-url: ${UPTIME_BACKEND_HEALTH_URL:https://api.example.com/actuator/health}
+      frontend-url: ${UPTIME_FRONTEND_URL:https://app.example.com/}
+    alerts:
+      cooldown-minutes: ${UPTIME_ALERT_COOLDOWN_MINUTES:30}
+      email-recipients: ${UPTIME_ALERT_EMAIL_RECIPIENTS:}
+      whatsapp-recipients: ${UPTIME_ALERT_WHATSAPP_RECIPIENTS:}
+      slack-webhook-url: ${UPTIME_ALERT_SLACK_WEBHOOK_URL:}

@@ -83,6 +83,9 @@ public class Order extends AuditableEntity {
     @Column(name = "payment_provider_payment_ref")
     private String paymentProviderPaymentRef;
 
+    @Column(name = "invoice_number")
+    private Long invoiceNumber;
+
     // One order has many order items - cascade means items are saved with the order
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<OrderItem> items = new ArrayList<>();
@@ -119,6 +122,8 @@ public class Order extends AuditableEntity {
     public void setPaymentProviderOrderRef(String paymentProviderOrderRef) { this.paymentProviderOrderRef = paymentProviderOrderRef; }
     public String getPaymentProviderPaymentRef() { return paymentProviderPaymentRef; }
     public void setPaymentProviderPaymentRef(String paymentProviderPaymentRef) { this.paymentProviderPaymentRef = paymentProviderPaymentRef; }
+    public Long getInvoiceNumber() { return invoiceNumber; }
+    public void setInvoiceNumber(Long invoiceNumber) { this.invoiceNumber = invoiceNumber; }
     public List<OrderItem> getItems() { return items; }
     public void setItems(List<OrderItem> items) { this.items = items; }
     public com.platterops.restaurant.zone.DiningZone getDiningZone() { return diningZone; }

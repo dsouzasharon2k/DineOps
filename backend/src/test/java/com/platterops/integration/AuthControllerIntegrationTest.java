@@ -66,9 +66,9 @@ class AuthControllerIntegrationTest {
         when(accountLockoutService.isLocked(anyString())).thenReturn(false);
         when(userService.findByEmail("staff@dineops.com")).thenReturn(Optional.of(user));
         when(userService.checkPassword("PasswordA1", "hashed-password")).thenReturn(true);
-        when(jwtUtils.generateAccessToken(nullable(UUID.class), anyString(), anyString(), nullable(UUID.class)))
+        when(jwtUtils.generateAccessToken(nullable(UUID.class), anyString(), anyString(), nullable(UUID.class), anyInt()))
                 .thenReturn("access-token");
-        when(jwtUtils.generateRefreshToken(nullable(UUID.class), anyString()))
+        when(jwtUtils.generateRefreshToken(nullable(UUID.class), anyString(), anyInt()))
                 .thenReturn("refresh-token");
 
         mockMvc.perform(post("/api/v1/auth/login")

@@ -2,17 +2,30 @@ name: CI
 
 on:
   push:
-    branches: [ develop, main ]
+    branches: [develop, main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
+# Cancel in-progress runs on the same branch to avoid redundant builds
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+  security-events: write   # required for Trivy SARIF upload
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Frontend: lint → type-check → unit tests → build
+# ─────────────────────────────────────────────────────────────────────────────
 jobs:
   frontend-ci:
+    name: "Frontend — lint / typecheck / tests / build"
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Node 20
         uses: actions/setup-node@v4
@@ -21,29 +34,48 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install frontend dependencies
+      - name: Install dependencies
         working-directory: frontend
         run: npm ci
 
-      - name: Run frontend lint
+      - name: Lint
         working-directory: frontend
         run: npm run lint
 
-      - name: Run frontend coverage checks
+      - name: TypeScript type-check
+        working-directory: frontend
+        run: npx tsc --noEmit
+
+      - name: Dependency audit (high+)
+        working-directory: frontend
+        run: npm audit --audit-level=high
+
+      - name: Unit tests with coverage
         working-directory: frontend
         run: npm run test:coverage
 
-      - name: Build frontend
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage
+          if-no-files-found: ignore
+
+      - name: Build
         working-directory: frontend
         run: npm run build
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Frontend E2E (Playwright) — runs after CI passes
+# ─────────────────────────────────────────────────────────────────────────────
   frontend-e2e:
+    name: "Frontend — E2E (Playwright)"
     runs-on: ubuntu-latest
     needs: frontend-ci
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Node 20
         uses: actions/setup-node@v4
@@ -52,7 +84,7 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install frontend dependencies
+      - name: Install dependencies
         working-directory: frontend
         run: npm ci
 
@@ -60,7 +92,7 @@ jobs:
         working-directory: frontend
         run: npx playwright install --with-deps chromium firefox
 
-      - name: Run frontend E2E tests
+      - name: Run E2E tests
         working-directory: frontend
         run: npm run test:e2e
 
@@ -72,7 +104,28 @@ jobs:
           path: frontend/playwright-report
           if-no-files-found: ignore
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Secret scanning (Gitleaks)
+# ─────────────────────────────────────────────────────────────────────────────
+  secret-scan:
+    name: "Secret scanning (Gitleaks)"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history for accurate scan
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Backend: build → test → coverage → OWASP → SonarCloud
+# ─────────────────────────────────────────────────────────────────────────────
   build-and-test:
+    name: "Backend — build / test / OWASP / Sonar"
     runs-on: ubuntu-latest
 
     services:
@@ -101,8 +154,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Java 21
         uses: actions/setup-java@v4
@@ -111,12 +163,245 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build, test, and enforce backend coverage
+      - name: Build, test, and enforce coverage
         working-directory: backend
         run: ./mvnw clean verify -q
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-surefire-reports
+          path: backend/target/surefire-reports
+          if-no-files-found: ignore
+
+      - name: OWASP dependency vulnerability scan
+        working-directory: backend
+        run: ./mvnw -q org.owasp:dependency-check-maven:check -Dformat=HTML -DfailBuildOnCVSS=7
 
       - name: SonarCloud scan
         working-directory: backend
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./mvnw sonar:sonar -Dsonar.projectKey=dsouzasharon2k_PlatterOps -Dsonar.organization=dsouzasharon2k -Dsonar.host.url=https://sonarcloud.io
+        run: >
+          ./mvnw sonar:sonar
+          -Dsonar.projectKey=dsouzasharon2k_PlatterOps
+          -Dsonar.organization=dsouzasharon2k
+          -Dsonar.host.url=https://sonarcloud.io
+
+      - name: Upload OWASP report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-owasp-report
+          path: backend/target/dependency-check-report.html
+          if-no-files-found: ignore
+
+# ─────────────────────────────────────────────────────────────────────────────
+# K6 load & smoke tests — runs against a live backend
+# ─────────────────────────────────────────────────────────────────────────────
+  k6-load-tests:
+    name: "Load tests (k6)"
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: dineops
+          POSTGRES_USER: dineops
+          POSTGRES_PASSWORD: dineops123
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Set up k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Start backend for k6
+        working-directory: backend
+        run: |
+          nohup ./mvnw -q -DskipTests spring-boot:run \
+            -Dspring-boot.run.profiles=test > ../k6-backend.log 2>&1 &
+          for i in {1..60}; do
+            curl -sf http://localhost:8080/actuator/health && break
+            sleep 2
+          done
+
+      - name: Smoke test
+        run: k6 run k6/smoke-test.js
+        env:
+          K6_BASE_URL: http://localhost:8080/api/v1
+
+      - name: Load test (public order flow)
+        run: k6 run k6/load-test.js
+        env:
+          K6_BASE_URL: http://localhost:8080/api/v1
+
+      - name: Dashboard authenticated load test
+        run: k6 run k6/dashboard-test.js
+        env:
+          K6_BASE_URL: http://localhost:8080/api/v1
+          K6_EMAIL: owner@dineops.com
+          K6_PASSWORD: PasswordA1
+
+      - name: Upload k6 summaries
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-summary
+          path: |
+            k6/summary.json
+            k6/dashboard-summary.json
+          if-no-files-found: ignore
+
+      - name: Upload backend logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-backend-log
+          path: k6-backend.log
+          if-no-files-found: ignore
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Docker build + Trivy image security scan + push to GHCR
+# ─────────────────────────────────────────────────────────────────────────────
+  docker-images:
+    name: "Docker — build / Trivy scan / push"
+    runs-on: ubuntu-latest
+    needs: [frontend-ci, frontend-e2e, build-and-test, k6-load-tests, secret-scan]
+    if: github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Backend image ────────────────────────────────────────────────────────
+
+      - name: Extract backend image metadata
+        id: backend_meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/dineops-backend
+          tags: |
+            type=sha,format=short
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build backend image (local)
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          file: backend/Dockerfile
+          push: false
+          load: true
+          tags: dineops-backend:scan
+
+      - name: Trivy — scan backend image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: dineops-backend:scan
+          format: sarif
+          output: trivy-backend.sarif
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+          ignore-unfixed: true
+
+      - name: Upload backend Trivy SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-backend.sarif
+          category: trivy-backend
+
+      - name: Push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          file: backend/Dockerfile
+          push: true
+          tags: ${{ steps.backend_meta.outputs.tags }}
+          labels: ${{ steps.backend_meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # ── Frontend image ───────────────────────────────────────────────────────
+
+      - name: Extract frontend image metadata
+        id: frontend_meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/dineops-frontend
+          tags: |
+            type=sha,format=short
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build frontend image (local)
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          file: frontend/Dockerfile
+          push: false
+          load: true
+          tags: dineops-frontend:scan
+
+      - name: Trivy — scan frontend image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: dineops-frontend:scan
+          format: sarif
+          output: trivy-frontend.sarif
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+          ignore-unfixed: true
+
+      - name: Upload frontend Trivy SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-frontend.sarif
+          category: trivy-frontend
+
+      - name: Push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          file: frontend/Dockerfile
+          push: true
+          tags: ${{ steps.frontend_meta.outputs.tags }}
+          labels: ${{ steps.frontend_meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

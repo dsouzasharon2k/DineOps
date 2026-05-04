@@ -10,6 +10,7 @@ public record AnalyticsSummaryResponse(
         long todaysWastage,
         List<StatusCount> ordersByStatus,
         List<RevenuePoint> revenueTrend,
+        List<RevenuePoint> wastageTrend,
         List<ItemCount> topMenuItems,
         double averagePreparationMinutes
 ) {

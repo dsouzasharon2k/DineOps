@@ -19,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.Map;
 import java.util.Optional;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -119,9 +120,15 @@ public class AuthController {
                 user.getId(),
                 user.getEmail(),
                 user.getRole().name(),
-                user.getTenant() != null ? user.getTenant().getId() : null
+            user.getTenant() != null ? user.getTenant().getId() : null,
+            user.getTokenVersion() == null ? 0 : user.getTokenVersion()
         );
-        String refreshToken = jwtUtils.generateRefreshToken(user.getId(), user.getEmail());
+        String refreshToken = jwtUtils.generateRefreshToken(
+            user.getId(),
+            user.getEmail(),
+            user.getTokenVersion() == null ? 0 : user.getTokenVersion()
+        );
+        userService.storeRefreshToken(user, refreshToken);
         log.info("login_success userId={} role={} tenantId={}",
                 user.getId(),
                 user.getRole(),
@@ -138,30 +145,43 @@ public class AuthController {
             @CookieValue(name = REFRESH_COOKIE_NAME, required = false) String refreshTokenCookie) {
         if (refreshTokenCookie == null || !jwtUtils.validateRefreshToken(refreshTokenCookie)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .header(HttpHeaders.SET_COOKIE, clearRefreshCookie().toString())
                     .body(Map.of("error", "Invalid refresh token"));
         }
 
         var claims = jwtUtils.parseToken(refreshTokenCookie);
         String email = claims.getSubject();
+        Integer tokenVersionClaim = claims.get("tokenVersion", Integer.class);
+        int tokenVersion = tokenVersionClaim == null ? 0 : tokenVersionClaim;
         Optional<User> userOpt = userService.findByEmail(email);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .header(HttpHeaders.SET_COOKIE, clearRefreshCookie().toString())
                     .body(Map.of("error", "Invalid refresh token"));
         }
 
         User user = userOpt.get();
         if (!user.isActive()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .header(HttpHeaders.SET_COOKIE, clearRefreshCookie().toString())
                     .body(Map.of("error", "Invalid refresh token"));
+        }
+        int currentTokenVersion = user.getTokenVersion() == null ? 0 : user.getTokenVersion();
+        if (tokenVersion != currentTokenVersion || !userService.isRefreshTokenCurrent(user, refreshTokenCookie)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .header(HttpHeaders.SET_COOKIE, clearRefreshCookie().toString())
+                .body(Map.of("error", "Invalid refresh token"));
         }
 
         String accessToken = jwtUtils.generateAccessToken(
                 user.getId(),
                 user.getEmail(),
                 user.getRole().name(),
-                user.getTenant() != null ? user.getTenant().getId() : null
+            user.getTenant() != null ? user.getTenant().getId() : null,
+            currentTokenVersion
         );
-        String refreshToken = jwtUtils.generateRefreshToken(user.getId(), user.getEmail());
+        String refreshToken = jwtUtils.generateRefreshToken(user.getId(), user.getEmail(), currentTokenVersion);
+        userService.storeRefreshToken(user, refreshToken);
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, buildRefreshCookie(refreshToken).toString())
                 .body(Map.of("token", accessToken));
@@ -195,9 +215,15 @@ public class AuthController {
                 user.getId(),
                 user.getEmail(),
                 user.getRole().name(),
-                user.getTenant() != null ? user.getTenant().getId() : null
+            user.getTenant() != null ? user.getTenant().getId() : null,
+            user.getTokenVersion() == null ? 0 : user.getTokenVersion()
         );
-        String refreshToken = jwtUtils.generateRefreshToken(user.getId(), user.getEmail());
+        String refreshToken = jwtUtils.generateRefreshToken(
+            user.getId(),
+            user.getEmail(),
+            user.getTokenVersion() == null ? 0 : user.getTokenVersion()
+        );
+        userService.storeRefreshToken(user, refreshToken);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, buildRefreshCookie(refreshToken).toString())
@@ -290,9 +316,15 @@ public class AuthController {
                 user.getId(),
                 user.getEmail() != null ? user.getEmail() : user.getPhone(),
                 user.getRole().name(),
-                user.getTenant() != null ? user.getTenant().getId() : null
+            user.getTenant() != null ? user.getTenant().getId() : null,
+            user.getTokenVersion() == null ? 0 : user.getTokenVersion()
         );
-        String refreshToken = jwtUtils.generateRefreshToken(user.getId(), user.getEmail() != null ? user.getEmail() : user.getPhone());
+        String refreshToken = jwtUtils.generateRefreshToken(
+            user.getId(),
+            user.getEmail() != null ? user.getEmail() : user.getPhone(),
+            user.getTokenVersion() == null ? 0 : user.getTokenVersion()
+        );
+        userService.storeRefreshToken(user, refreshToken);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, buildRefreshCookie(refreshToken).toString())
@@ -374,6 +406,8 @@ public class AuthController {
         user.setPhone(request.phone());
         user.setRole(UserRole.CUSTOMER);
         user.setActive(true);
+        user.setTermsAccepted(request.acceptTerms());
+        user.setTermsAcceptedAt(LocalDateTime.now());
 
         User saved = userService.createUser(user, request.password());
         log.info("user_registered userId={} role={}", saved.getId(), saved.getRole());

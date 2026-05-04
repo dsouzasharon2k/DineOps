@@ -31,9 +31,11 @@ spring:
 
 app:
   jwt:
-    secret: ${TEST_JWT_SECRET:test-secret-replace-with-32-byte-random}
+    secret: ${TEST_JWT_SECRET:test-secret-32-bytes-minimum-value-123}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
     refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
+  payment:
+    webhook-shared-secret: ${TEST_PAYMENT_WEBHOOK_SHARED_SECRET:test-webhook-secret}
   cors:
     allowed-origins: ${TEST_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
     allowed-methods: ${TEST_CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS,PATCH}

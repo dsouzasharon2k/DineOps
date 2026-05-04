@@ -28,7 +28,8 @@ class RegisterUserRequestValidationTest {
                 "Customer",
                 "not-an-email",
                 "weakpass",
-                "9999999999");
+            "9999999999",
+            true);
 
         Set<ConstraintViolation<RegisterUserRequest>> violations = validator.validate(request);
 
@@ -43,7 +44,8 @@ class RegisterUserRequestValidationTest {
                 "Customer",
                 "customer@dineops.com",
                 "StrongPassA",
-                "9999999999");
+            "9999999999",
+            true);
 
         Set<ConstraintViolation<RegisterUserRequest>> violations = validator.validate(request);
 

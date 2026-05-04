@@ -6,7 +6,7 @@ ALTER TABLE menu_items
   ADD COLUMN IF NOT EXISTS diet_type VARCHAR(20),
   ADD COLUMN IF NOT EXISTS serving_size VARCHAR(100),
   ADD COLUMN IF NOT EXISTS ingredients TEXT,
-  ADD COLUMN IF NOT EXISTS spice_level SMALLINT;
+  ADD COLUMN IF NOT EXISTS spice_level INTEGER;
 
 -- Set default for new column, backfill from is_vegetarian
 UPDATE menu_items
@@ -107,7 +107,7 @@ SELECT
   mi.prep_time_minutes,
   mi.is_available,
   mi.display_order,
-  (SELECT COALESCE(ARRAY_AGG(ma.allergen), ARRAY[]::TEXT[])
+  (SELECT COALESCE(ARRAY_AGG(ma.allergen::TEXT), ARRAY[]::TEXT[])
    FROM menu_item_allergens ma
    WHERE ma.menu_item_id = mi.id AND ma.deleted_at IS NULL) AS allergens,
   (SELECT COALESCE(ARRAY_AGG(mf.tag ORDER BY mf.display_order), ARRAY[]::TEXT[])

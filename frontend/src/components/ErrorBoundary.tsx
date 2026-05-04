@@ -1,4 +1,5 @@
 import { Component } from 'react'
+import { captureUiException } from '../observability/sentry'
 
 interface ErrorBoundaryProps {
   children: React.ReactNode
@@ -19,8 +20,9 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Centralized crash logging hook for future monitoring integrations.
+    // Centralized crash logging hook.
     console.error('UI render error captured by ErrorBoundary', error, errorInfo)
+    captureUiException(error, { componentStack: errorInfo.componentStack })
   }
 
   private handleReload = () => {

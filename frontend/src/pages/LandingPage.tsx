@@ -219,7 +219,7 @@ footer{background:var(--dark-2);border-top:1px solid rgba(255,255,255,.06);paddi
           </div>
           <div className="pricing-grid reveal">
             <div className="pricing-card"><div className="pricing-plan">STARTER</div><div className="pricing-price"><sup>₹</sup>0</div><div className="pricing-period">Free forever · 1 outlet</div><hr className="pricing-divider" /><ul className="pricing-features"><li><span className="pricing-check">✓</span>QR menu</li><li><span className="pricing-check">✓</span>Kitchen board</li></ul><a href="/login" className="btn-pricing btn-pricing-ghost">Get started free</a></div>
-            <div className="pricing-card featured"><span className="pricing-badge">Most popular</span><div className="pricing-plan">PRO</div><div className="pricing-price"><sup>₹</sup>1,999</div><div className="pricing-period">per month · up to 3 outlets</div><hr className="pricing-divider" /><ul className="pricing-features"><li><span className="pricing-check">✓</span>Everything in Starter</li><li><span className="pricing-check">✓</span>Inventory + analytics</li></ul><a href="/login" className="btn-pricing btn-pricing-primary">Start 14-day trial</a></div>
+            <div className="pricing-card featured"><span className="pricing-badge">Most popular</span><div className="pricing-plan">GROWTH</div><div className="pricing-price"><sup>₹</sup>50</div><div className="pricing-period">per month · up to 3 outlets</div><hr className="pricing-divider" /><ul className="pricing-features"><li><span className="pricing-check">✓</span>Everything in Starter</li><li><span className="pricing-check">✓</span>Inventory + analytics</li></ul><a href="/login" className="btn-pricing btn-pricing-primary">Start 14-day trial</a></div>
             <div className="pricing-card"><div className="pricing-plan">ENTERPRISE</div><div className="pricing-price" style={{ fontSize: '2rem', paddingTop: '.5rem' }}>Custom</div><div className="pricing-period">Chains · Cloud kitchens</div><hr className="pricing-divider" /><ul className="pricing-features"><li><span className="pricing-check">✓</span>Unlimited outlets</li><li><span className="pricing-check">✓</span>Priority support</li></ul><a href="mailto:hello@dineops.in" className="btn-pricing btn-pricing-ghost">Contact us</a></div>
           </div>
         </section>
@@ -251,11 +251,12 @@ footer{background:var(--dark-2);border-top:1px solid rgba(255,255,255,.06);paddi
                 <span className="nav-logo-mark" />
                 <span className="nav-logo-text">PlatterOps</span>
               </a>
-              <p className="footer-copy" style={{ marginTop: '.5rem' }}>© 2025 PlatterOps. Built in Pune, India.</p>
+              <p className="footer-copy" style={{ marginTop: '.5rem' }}>© 2026 PlatterOps. Built in Pune, India.</p>
             </div>
             <ul className="footer-links">
               <li><a href="/privacy">Privacy</a></li>
               <li><a href="/terms">Terms</a></li>
+              <li><a href="mailto:grievance@dineops.in">Grievance Officer</a></li>
               <li><a href="mailto:hello@dineops.in">Contact</a></li>
             </ul>
           </div>

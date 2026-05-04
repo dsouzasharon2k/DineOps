@@ -8,4 +8,5 @@ import java.util.UUID;
 public interface OrderStatusHistoryRepository extends JpaRepository<OrderStatusHistory, UUID> {
     List<OrderStatusHistory> findByOrderIdOrderByChangedAtAsc(UUID orderId);
     List<OrderStatusHistory> findByOrderTenantIdOrderByChangedAtAsc(UUID tenantId);
+    List<OrderStatusHistory> findByOrderTenantIdAndChangedAtGreaterThanEqualOrderByChangedAtAsc(UUID tenantId, java.time.LocalDateTime changedAt);
 }

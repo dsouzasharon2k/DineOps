@@ -9,6 +9,7 @@ export interface CartItem {
   price: number // in paise
   quantity: number
   isVegetarian: boolean
+  allergens?: string[]
 }
 
 export interface Cart {
